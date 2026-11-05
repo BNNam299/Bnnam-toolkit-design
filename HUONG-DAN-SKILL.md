@@ -1,6 +1,6 @@
 # Tra cứu nhanh — gọi skill nào cho việc gì
 
-25 skill nằm trong `.claude/skills/`. Bảng dưới đây giúp gọi **đúng một skill cho đúng việc**, để Claude không nạp kiến thức thừa.
+26 skill nằm trong `.claude/skills/`. Bảng dưới đây giúp gọi **đúng một skill cho đúng việc**, để Claude không nạp kiến thức thừa.
 
 ## Cách gọi
 
@@ -57,7 +57,8 @@
 |---|---|
 | Màn iPhone theo HIG (cỡ, thanh trên, tab bar, sheet, Dynamic Type) | `apple-design-iphone` |
 | Màn iPad (split view, sidebar, popover) | `apple-design-ipad` |
-| Widget, Live Activity, Dynamic Island | `apple-design-widget` |
+| Widget, Live Activity, Dynamic Island (kèm mẫu bố cục từ app thật) | `apple-design-widget` |
+| Widget Android, hoặc một widget cho cả iOS và Android | `android-design-widget` |
 | iPhone Duo (gập), màn co giãn nhiều cỡ | `iphone-duo-adaptive` |
 | Android / Material 3 | `material-design-3` |
 | Website (marketing site, landing page) | `web-design` |

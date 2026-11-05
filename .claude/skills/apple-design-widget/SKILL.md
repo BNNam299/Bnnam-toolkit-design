@@ -1,6 +1,6 @@
 ---
 name: apple-design-widget
-description: Apple HIG standard for iOS / iPadOS system surfaces outside the app — Home Screen and Lock Screen widgets (system small / medium / large / extra large, accessory circular / rectangular / inline, StandBy, CarPlay), Live Activities (compact, minimal, expanded in the Dynamic Island, Lock Screen banner, StandBy), Home Screen quick actions — with exact sizes in pt, margins 16 / 11 / 14, text ≥ 11 pt, update and animation limits, and the hard surface limits (no blur, Dynamic Island always black, Lock Screen background is one colour). Use whenever someone designs, builds in Figma or reviews a widget, Live Activity, Dynamic Island view or quick action menu, including Vietnamese requests such as "thiết kế widget", "làm widget màn hình khoá", "Live Activity giao hàng", "Dynamic Island hiện gì", "quick action khi nhấn giữ icon", "widget có blur được không". For in-app screens use apple-design-iphone; for the background component of these surfaces use screen-background; for the screen build loop use figma-ui-flow.
+description: Apple HIG standard for iOS / iPadOS system surfaces outside the app — Home Screen and Lock Screen widgets (system small / medium / large / extra large, accessory circular / rectangular / inline, StandBy, CarPlay), Live Activities (compact, minimal, expanded in the Dynamic Island, Lock Screen banner, StandBy), Home Screen quick actions — exact pt sizes, margins, text ≥ 11 pt, update limits, hard surface limits (no blur, Dynamic Island black), plus wireframed layout patterns from Apple's kit and real apps. Use whenever someone designs, builds in Figma or reviews a widget, Live Activity, Dynamic Island view or quick action menu, including Vietnamese requests such as "thiết kế widget", "làm widget màn hình khoá", "Live Activity giao hàng", "Dynamic Island hiện gì", "quick action khi nhấn giữ icon", "widget có blur được không". For in-app screens use apple-design-iphone; for Android widgets use android-design-widget; for the surface background use screen-background; for the build loop use figma-ui-flow.
 ---
 
 # apple-design-widget — widgets, Live Activities and quick actions (iOS / iPadOS 27)
@@ -26,6 +26,9 @@ layouts) is gone.
 | Quick action menu | `../apple-hig/references/home-screen-quick-actions.md` |
 | Push notifications (content, actions, marketing) | `../apple-hig/references/notifications.md`, `managing-notifications.md` · copy: `../ux-writing/SKILL.md` |
 | Background component for the surface frame | `../screen-background/SKILL.md` |
+| **Layout ideas**: kit anatomy and layer names, 13 Home Screen patterns from Apple and real apps (search + shortcuts, action grid, trending, people row, status, quick play, re-order), size growth, branding, all states, Lock Screen and StandBy patterns, gallery copy, pattern picker by app type | `references/widget-patterns.md` |
+| Control Center / Lock Screen / Action button **controls** (iOS 18+) | `../apple-hig/references/controls.md` |
+| Android widgets, or one widget for iOS and Android | `../android-design-widget/SKILL.md` · comparison: `../android-design-widget/references/widget-platform-comparison.md` |
 
 ## Core rules (apply even without opening a reference)
 
@@ -37,6 +40,7 @@ layouts) is gone.
 | A one-off timely message | **Notification** |
 | A few high-value actions straight from the app icon | **Home Screen quick action** |
 | An action exposed to Siri, Spotlight, the Action button | **App Shortcut** (`../apple-design-iphone/references/ios-platform.md` §7) |
+| A one-tap toggle or action in Control Center, on the Lock Screen or the Action button (iOS 18+) | **Control** (`../apple-hig/references/controls.md`) |
 
 Widgets never show real-time data — real-time progress belongs in a Live Activity. Widgets and Live Activities share frameworks and
 design components: design them together and reuse parts.
@@ -64,6 +68,8 @@ design components: design them together and reuse parts.
 - Brand through colour, type and glyphs; a logo is rarely needed — if content comes from several sources, a **small logo top-right**.
 - Choose automatic content or let people configure it (e.g. which stocks). Don't put a widget look-alike inside the app.
 - Signed-out / no-permission states show alternative content that says what signing in adds ("Sign in to view reservations").
+- Also draw **loading** (placeholder skeleton), **empty** (keep the header, one calm line), **needs setup** ("Tap and hold to add…"),
+  **error / offline** (last good data + "Updated …") and **after a tap** (new state shown at once) — `references/widget-patterns.md` §7.
 - Lock Screen widgets give useful information, not just another launcher; they follow complication rules (design both together).
 
 ### 4. Widgets — sizes and layout
@@ -164,7 +170,8 @@ design components: design them together and reuse parts.
   adapt to Dark Mode).
 
 ## Workflow (designing a widget or Live Activity)
-1. Confirm the surface with the table in §1; write its single purpose in one sentence.
+1. Confirm the surface with the table in §1; write its single purpose in one sentence; pick a base layout pattern from
+   `references/widget-patterns.md` (§11 picker by app type) and show its wireframe before building.
 2. Pick sizes / presentations: widget sizes that add value · for a Live Activity every presentation (compact, minimal, expanded,
    Lock Screen, StandBy).
 3. Create frames at the Apple sizes above, each with its `Background/<name>` component (one colour, alpha token) at the frame size.
@@ -188,5 +195,8 @@ design components: design them together and reuse parts.
 - [ ] Widget margins 16 / 11, Lock Screen Live Activity 14; radii concentric; text ≥ 11 pt; meaning not by colour alone.
 - [ ] Every Live Activity presentation exists (compact, minimal, expanded, Lock Screen, StandBy) incl. limited width.
 - [ ] Taps deep-link to the right place; at most a few simple controls (one preferred on Live Activities).
-- [ ] Placeholder without real data; signed-out and stale states shown.
+- [ ] Placeholder without real data; loading, empty, needs-setup, signed-out, error, stale and after-tap states shown.
+- [ ] Each size has its own content strategy; ≤ 4 actions side by side, targets ≈ 44 × 44 pt.
+- [ ] Lock Screen set includes at least one informative accessory, not only launchers; reads in one colour.
+- [ ] Gallery name + verb-first description; preview matches the widget.
 - [ ] Live Activity ends with the task and has a dismissal time; no sensitive data or ads.
