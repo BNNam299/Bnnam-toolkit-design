@@ -1,6 +1,6 @@
 # Tra cứu nhanh — gọi skill nào cho việc gì
 
-26 skill nằm trong `.claude/skills/`. Bảng dưới đây giúp gọi **đúng một skill cho đúng việc**, để Claude không nạp kiến thức thừa.
+27 skill nằm trong `.claude/skills/`. Bảng dưới đây giúp gọi **đúng một skill cho đúng việc**, để Claude không nạp kiến thức thừa.
 
 ## Cách gọi
 
@@ -45,6 +45,7 @@
 |---|---|---|
 | Viết prompt sinh ảnh (một ảnh hoặc cả bộ ảnh cùng phong cách) | `generating-oneshot-image-prompts` | "prompt ảnh minh hoạ cho 4 màn onboarding" |
 | Sinh một icon / mascot / sticker nền trong suốt | `app-asset-generator` | "làm mascot con mèo nền trong" |
+| Vẽ / sửa minh hoạ vector ngay trên Figma (cảnh widget, màn rỗng, onboarding): bóng không lòi, mưa tự nhiên, gom nhóm | `figma-vector-illustration` | "vẽ lại minh hoạ widget thời tiết, bóng đang bị lòi ra" |
 
 ### Kiểm tra và bàn giao
 | Việc | Gọi | Câu mẫu |

@@ -26,6 +26,7 @@ layouts) is gone.
 | Quick action menu | `../apple-hig/references/home-screen-quick-actions.md` |
 | Push notifications (content, actions, marketing) | `../apple-hig/references/notifications.md`, `managing-notifications.md` · copy: `../ux-writing/SKILL.md` |
 | Background component for the surface frame | `../screen-background/SKILL.md` |
+| Vector art inside the widget (scene, shading, rain, grouping, Illustration + Content structure) | `../figma-vector-illustration/SKILL.md` |
 | **Layout ideas**: kit anatomy and layer names, 13 Home Screen patterns from Apple and real apps (search + shortcuts, action grid, trending, people row, status, quick play, re-order), size growth, branding, all states, Lock Screen and StandBy patterns, gallery copy, pattern picker by app type | `references/widget-patterns.md` |
 | Control Center / Lock Screen / Action button **controls** (iOS 18+) | `../apple-hig/references/controls.md` |
 | Android widgets, or one widget for iOS and Android | `../android-design-widget/SKILL.md` · comparison: `../android-design-widget/references/widget-platform-comparison.md` |
@@ -176,6 +177,8 @@ design components: design them together and reuse parts.
    Lock Screen, StandBy).
 3. Create frames at the Apple sizes above, each with its `Background/<name>` component (one colour, alpha token) at the frame size.
 4. Build content with system text styles ≥ 11 pt, SF Symbols, margins 16 / 11 (widget) or 14 (Lock Screen Live Activity), concentric radii.
+   In Figma the widget is an auto layout and every cluster of related elements is its own named auto-layout frame (art · text group ·
+   value row · actions); only art that bleeds past the padding may sit absolute behind Content — `../figma-vector-illustration/SKILL.md` rules 3–5.
 5. Draw the extra states: widget placeholder, signed-out, stale data; Live Activity limited width, Dark Mode, Always-On, StandBy Night Mode.
 6. Review with the self-check; hand off noting that backgrounds and gradients are built in code.
 

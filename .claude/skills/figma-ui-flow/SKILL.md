@@ -46,6 +46,7 @@ Do not read everything at once. Each stage below states which file it needs.
 | iOS 27 adaptive layouts: iPhone Duo (foldable), iPad, Split View, resizable windows | `iphone-duo-adaptive` |
 | Android, Material 3, iOS vs Android decisions | `material-design-3` |
 | Android home screen widgets (grid cells, canonical layouts, quality tiers) | `android-design-widget` |
+| Vector illustration drawn in Figma (widget scene, empty state, onboarding art): shading, masks, grouping | `figma-vector-illustration` |
 | Websites (marketing site or web product) | `web-design` |
 | Store approval of paywalls, subscriptions, ads, permissions, privacy | `app-store-policies` |
 | Color-blend screen background (`Background/<name>`) | `screen-background` |

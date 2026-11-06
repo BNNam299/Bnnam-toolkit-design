@@ -1,6 +1,6 @@
 ---
 name: app-asset-generator
-description: Generate ONE image asset (icon, mascot, sticker, illustration, object) with the Gemini image MCP on a chromakey background and cut it out into a clean transparent PNG for design work in Figma, with no purple/green fringe. Use whenever the user needs an app/design asset with a transparent background, or wants the background removed from a chromakey image.
+description: Generate ONE image asset (icon, mascot, sticker, illustration, object) with the Gemini image MCP on a chromakey background and cut it out into a clean transparent PNG for design work in Figma, with no purple/green fringe. Use whenever the user needs an app/design asset with a transparent background, or wants the background removed from a chromakey image. For vector illustrations drawn in Figma use figma-vector-illustration.
 ---
 
 # App Asset Generator

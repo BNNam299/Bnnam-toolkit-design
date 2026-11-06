@@ -113,6 +113,7 @@ for real when the designer says *"chạy thật"*. Python tools run locally (`py
 | `../figma-project-maintain/scripts/compare.js` | the designer says they edited — compare `<name>_Fix` with `<name>` — read only |
 | `../ux-writing/scripts/textdump.js` | read the copy of existing screens, extract the voice — read only |
 | `../figma-prototype-flow/scripts/prototype.js` | click-through flow on copies; `check` reports stale copies — dry run by default |
+| `../figma-vector-illustration/scripts/illustration-helpers.js` | drawing / fixing a vector illustration: shading paints, masks, contact shadow, rain, glass drops, grouping, widget build, 4× zoom check — helpers to paste, they write |
 | `../screen-background/scripts/background.js`, `palette.py` | background from a palette (explore, component, instance at the bottom layer); OKLCH ramps and contrast |
 | `../prd-to-ux-flow/scripts/docx_extract.py` | extract a `.docx` PRD (merged cells, comments, images, embedded Excel) |
 | `../iphone-duo-adaptive/scripts/adaptive.js` | adaptive screen families: missing variants, actions differing between variants, fixed hinge spacer, text too wide — read only |
