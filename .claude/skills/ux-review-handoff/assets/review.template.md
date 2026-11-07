@@ -43,6 +43,8 @@ level: —                           # short | standard | full — the depth act
 ## Scope and confidence
 - screens read: —                   # n / total
 - flows walked through: —           # task · assumed user
+- methods used: —                   # e.g. 5 components · Nielsen · walkthrough <task> · Laws of UX — and what each found
+- overall score: —                  # optional, references/review-methods.md §13 — preset, arithmetic
 - usage data: no                    # no | yes — source
 - check in build: —                 # items not checkable on a static design
 

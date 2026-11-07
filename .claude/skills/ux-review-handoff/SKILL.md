@@ -21,6 +21,8 @@ eye (`mobile-ui-master`). Exact Apple / Material wording: `apple-hig`, `material
 |---|---|
 | Run the UX review: scenario, three lenses, 0–4 scoring, accessibility by eye, honesty, `review.md` format, adaptive pass | `references/review-methods.md` |
 | Review file template | `assets/review.template.md` |
+| One overall score weighted by app type (subscription, productivity, brand, consumer), bands, arithmetic | `references/review-methods.md` §13 |
+| Laws of UX to name in an entry (Fitts, Jakob, Von Restorff, peak–end, Gestalt…) | `../mobile-ux-fundamentals/references/behavior-psychology.md` §9 |
 | Nielsen's ten heuristics in depth, heuristic evaluation procedure and issue template | `references/heuristics-evaluation.md` §3–4 |
 | Which evaluation method answers which question (walkthrough, PURE, usability test, A/B, analytics, reporting) | `references/heuristics-evaluation.md` §5 |
 | UX metrics, other severity scales (S0–S3, NN/g 0–4) and how they map to the team scale | `references/heuristics-evaluation.md` top note, §1 |

@@ -22,6 +22,7 @@ libraries `apple-hig` and `material-design-3`; this skill points into them.
 | Accessibility: targets, text size, contrast, screen reader, focus, motion/sound, checklist | `references/accessibility.md` §1 |
 | UX research basics, persona, IA maps, usability, evaluation methods | `references/accessibility.md` Part B (§2–10) |
 | Emotion, BJ Fogg B = M·A·T, Hooked | `references/behavior-psychology.md` |
+| Laws of UX for laying out and checking a screen (Fitts, Hick, Jakob, Von Restorff, serial position, Miller, Tesler, Doherty, aesthetic–usability, peak–end, goal gradient, Gestalt) | `references/behavior-psychology.md` §9 |
 | AI features: patterns, trust, conversation, errors, autonomy, evaluation | `references/ai-product.md` |
 | Anti-patterns, Definition of Done | `../ux-review-handoff/references/acceptance-checklist.md` |
 | Labels, error and empty-state copy | `../ux-writing/references/principles.md` |

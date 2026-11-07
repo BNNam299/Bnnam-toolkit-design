@@ -68,3 +68,23 @@ Example — a phone call: no ring = missing trigger; unknown number = missing mo
 ## 8. The chain
 
 Find the problem → solve the problem → raise the quality (the long-term core value).
+
+## 9. Laws of UX — for building a screen and checking it
+
+> Source: Laws of UX (Jon Yablonski, lawsofux.com) and the Gestalt principles of perception; added 08/11/2026 at the team's request.
+
+Use while laying out a screen and again in review; name the law in the review entry ("caught by: Fitts").
+| Law | What it means on a phone screen | Check |
+|---|---|---|
+| **Fitts** | time to hit a target grows with distance and shrinks with size | the primary action is large and in the thumb zone; destructive actions are not next to it |
+| **Hick** | more choices, slower decisions | one primary action per screen; long option lists are grouped or progressively disclosed |
+| **Jakob** | users spend most of their time in other apps and expect yours to work the same | platform patterns (tab bar, back, share sheet, pull to refresh) are not reinvented |
+| **Von Restorff** (isolation) | the item that differs is the one remembered | only one element stands out — the primary action or the key number; two "special" items cancel each other |
+| **Serial position** | first and last items in a list are remembered best | the most important items sit at the start and end of lists and tab bars |
+| **Miller** (chunking) | people hold a few chunks at a time | long numbers, codes and forms are split into groups; steps show progress |
+| **Tesler** (conservation of complexity) | complexity cannot vanish, only move | the app absorbs it (defaults, smart suggestions) instead of pushing it to the user — but never hides choices the user must make |
+| **Doherty** | under ~400 ms the user stays in flow | every tap gets feedback within 400 ms; longer work shows progress (`states-feedback-motion.md`) |
+| **Aesthetic–usability** | attractive designs are perceived as easier and forgive small flaws | in review, do not let polish hide a usability problem; test the flow, not the look |
+| **Peak–end** | an experience is judged by its peak and its end | the success moment is designed with care; a session never ends on an error, a wall or an ad |
+| **Goal gradient** | effort increases as people near a goal | show progress in onboarding and multi-step tasks; a head start ("1/4 xong") helps |
+| **Gestalt — proximity, similarity, common region, continuity** | things close, alike or inside the same container read as one group | spacing and containers match the real grouping; unrelated items are not boxed together |

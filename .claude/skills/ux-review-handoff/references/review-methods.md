@@ -19,6 +19,7 @@ blocking gate**. The reviewer never fixes anything — it produces a list and th
 10. Output — `design/review.md`
 11. Adaptive projects (iOS 27 · iPhone Duo · iPad)
 12. Stop points, self-check, report
+13. Overall score weighted by app type (optional)
 
 ---
 
@@ -223,7 +224,8 @@ keyboard + AX text size + Live Activity*) — the word "Duo" alone is not enough
 - **Stop:** the user chooses which entries to fix — this review never fixes anything itself.
 - **Self-check:** every problem has a 0–4 score and names the method that found it · only things actually seen are scored · scope and
   confidence filled in · satisfaction left to user testing.
-- **Report** (in addition to the usual summary): number of problems by score (0 · 1 · 2 · 3) · by component (learnability · efficiency ·
+- **Report** (in addition to the usual summary): the methods used and what each found (e.g. "Nielsen: 6 issues · walkthrough of onboarding:
+  2 steps scored 1") · number of problems by score (0 · 1 · 2 · 3) · by component (learnability · efficiency ·
   memorability · errors) · flows walked, flows walked through cognitively · number of *check in build* items · number of items needing
   user tests.
 
@@ -232,3 +234,26 @@ Next steps
   → choose entries to fix — e.g. "fix the 0 and 1 entries"
   → "write dev notes"              if you want a handoff
 ```
+
+## 13. Overall score weighted by app type (optional)
+
+> Source: the team handbook (11 UX & Product skills), skill UX Design Review, `scoring.md` — added 08/11/2026.
+
+Use only when the user wants one number for the whole design (comparing two versions, reporting to the team). The 0–4 entries stay
+the main output; this score never replaces them.
+- **Five criteria, each scored 0–100**: usability and heuristics (Nielsen, platform conventions, error prevention, feedback) · visual
+  design (hierarchy, type, colour, spacing, consistency, trust) · conversion / goal effectiveness (does the design drive its main goal
+  — funnel data if any) · information architecture (structure, navigation, labels) · content and consistency (microcopy, terms, no
+  placeholder text). Accessibility is a baseline check whose violations appear as entries; score it as its own line (10–15%) only if
+  asked, and renormalise.
+- **Bands**: 90–100 excellent · 75–89 good · 60–74 fair · 40–59 weak · 20–39 poor · 0–19 broken. Score against the standard, not
+  other apps, and cite the entries that put a criterion in its band.
+- **Weights by app type** (state which preset was used):
+  | App type | Usability | Visual | Conversion | IA | Content |
+  |---|---|---|---|---|---|
+  | Subscription / commerce | 25% | 20% | 30% | 15% | 10% |
+  | Productivity / work | 35% | 15% | 10% | 25% | 15% |
+  | Brand / marketing | 15% | 35% | 20% | 10% | 20% |
+  | General consumer (default) | 30% | 20% | 20% | 15% | 15% |
+- **Show the arithmetic** (e.g. 50 × 0.25 + 75 × 0.20 + 40 × 0.30 + 55 × 0.15 + 55 × 0.10 = 53.25 ≈ 53 / 100). When the total
+  changes only because the weights changed, say so.
