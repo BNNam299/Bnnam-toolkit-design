@@ -10,6 +10,8 @@
  * Dialect: # title · **Key**: value meta lines · ## H1 · ### H2 · #### H3 ·
  * "- " bullets (2-space nesting) · GitHub pipe tables · "> " callouts · **bold** inline ·
  * status tags [CONFIRMED]/[DRAFT]/[RESEARCH] are stripped on export.
+ * "## Mục lục" (any list under it) is replaced by a clickable table of contents built from the ## and ###
+ * headings that follow; every page gets "Trang x / y" in the footer.
  */
 const fs = require("fs");
 const path = require("path");
@@ -21,7 +23,7 @@ try { docxLib = require("docx"); } catch (e) {
 const {
   Document, Packer, Paragraph, TextRun, Table, TableRow, TableCell,
   HeadingLevel, AlignmentType, WidthType, BorderStyle, ShadingType,
-  LevelFormat, convertInchesToTwip,
+  LevelFormat, convertInchesToTwip, InternalHyperlink, Bookmark, Footer, PageNumber,
 } = docxLib;
 
 const [, , inPath, outPath] = process.argv;
@@ -36,11 +38,13 @@ const stripTags = (s) => s.replace(/\s*\[(CONFIRMED|DRAFT|RESEARCH[^\]]*)\]\s*/g
 // Inline **bold** parser -> TextRun[]
 function runs(text, extra = {}) {
   const out = [];
-  const parts = String(text).split(/(\*\*[^*]+\*\*)/g);
+  const parts = String(text).split(/(\*\*[^*]+\*\*|\*[^*\s][^*]*\*)/g);
   for (const p of parts) {
     if (!p) continue;
     const m = p.match(/^\*\*([^*]+)\*\*$/);
+    const it = !m && p.match(/^\*([^*]+)\*$/);
     if (m) out.push(new TextRun({ text: m[1], bold: true, ...extra }));
+    else if (it) out.push(new TextRun({ text: it[1], italics: true, ...extra }));
     else out.push(new TextRun({ text: p, ...extra }));
   }
   return out.length ? out : [new TextRun({ text: "", ...extra })];
@@ -56,6 +60,11 @@ while (i < lines.length) {
   if (!line.trim() || line.trim() === "---" || /^```/.test(line.trim())) { i++; continue; }
 
   let m;
+  if (/^## (\d+\.\s*)?Mục lục\s*$/i.test(line)) {          // table of contents: rebuilt from the headings
+    blocks.push({ t: "toc" }); i++;
+    while (i < lines.length && !/^#{1,2} /.test(lines[i])) i++;
+    continue;
+  }
   if ((m = line.match(/^# (.+)$/)))       { blocks.push({ t: "title", text: stripTags(m[1]) }); i++; continue; }
   if ((m = line.match(/^## (.+)$/)))      { blocks.push({ t: "h1", text: stripTags(m[1]) }); i++; continue; }
   if ((m = line.match(/^### (.+)$/)))     { blocks.push({ t: "h2", text: stripTags(m[1]) }); i++; continue; }
@@ -86,6 +95,12 @@ while (i < lines.length) {
 
   blocks.push({ t: "p", text: stripTags(line) }); i++;
 }
+
+// ---------- bookmarks for the table of contents ----------
+let nHead = 0;
+for (const b of blocks) if (b.t === "h1" || b.t === "h2") b.anchor = "muc_" + (++nHead);
+const plain = (t) => String(t).replace(/\*\*/g, "");
+const headRuns = (b, extra) => b.anchor ? [new Bookmark({ id: b.anchor, children: runs(b.text, extra) })] : runs(b.text, extra);
 
 // ---------- build docx children ----------
 const children = [];
@@ -138,14 +153,26 @@ function flushMeta() {
 for (const b of blocks) {
   if (b.t === "title") {
     children.push(new Paragraph({ children: runs(b.text, { size: 40, bold: true, color: ACCENT }), spacing: { after: 200 } , alignment: AlignmentType.CENTER}));
+  } else if (b.t === "toc") {
+    flushMeta();
+    children.push(new Paragraph({ children: runs("Mục lục", { size: 30, bold: true, color: ACCENT }), spacing: { before: 240, after: 120 } }));
+    for (const h of blocks) {
+      if (!h.anchor) continue;
+      const sub = h.t === "h2";
+      children.push(new Paragraph({
+        children: [new InternalHyperlink({ anchor: h.anchor, children: [new TextRun({ text: plain(h.text), size: sub ? 20 : 21, bold: !sub, color: "1F4E79" })] })],
+        indent: { left: convertInchesToTwip(sub ? 0.3 : 0) }, spacing: { after: sub ? 20 : 60 },
+      }));
+    }
+    children.push(new Paragraph({ children: [], spacing: { after: 160 } }));
   } else if (b.t === "meta") {
     pendingMeta.push(b);
   } else if (b.t === "h1") {
     flushMeta();
-    children.push(new Paragraph({ heading: HeadingLevel.HEADING_1, children: runs(b.text, { size: 30, bold: true, color: ACCENT }), spacing: { before: 320, after: 140 } }));
+    children.push(new Paragraph({ heading: HeadingLevel.HEADING_1, children: headRuns(b, { size: 30, bold: true, color: ACCENT }), spacing: { before: 320, after: 140 } }));
   } else if (b.t === "h2") {
     flushMeta();
-    children.push(new Paragraph({ heading: HeadingLevel.HEADING_2, children: runs(b.text, { size: 24, bold: true, color: "2E5E8C" }), spacing: { before: 220, after: 100 } }));
+    children.push(new Paragraph({ heading: HeadingLevel.HEADING_2, children: headRuns(b, { size: 24, bold: true, color: "2E5E8C" }), spacing: { before: 220, after: 100 } }));
   } else if (b.t === "h3") {
     children.push(new Paragraph({ heading: HeadingLevel.HEADING_3, children: runs(b.text, { size: 22, bold: true, color: "444444" }), spacing: { before: 160, after: 80 } }));
   } else if (b.t === "bullet") {
@@ -173,6 +200,8 @@ const doc = new Document({
   styles: { default: { document: { run: { font: "Calibri", size: 21 } } } },
   sections: [{
     properties: { page: { margin: { top: convertInchesToTwip(0.7), bottom: convertInchesToTwip(0.7), left: convertInchesToTwip(0.7), right: convertInchesToTwip(0.7) } } },
+    footers: { default: new Footer({ children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [
+      new TextRun({ children: ["Trang ", PageNumber.CURRENT, " / ", PageNumber.TOTAL_PAGES], size: 18, color: "777777" })] })] }) },
     children,
   }],
 });

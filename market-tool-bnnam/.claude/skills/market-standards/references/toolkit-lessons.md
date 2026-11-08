@@ -40,3 +40,6 @@ Format: `BH-<n> · <dd/mm/yyyy> · <source: test vòng N / dùng thật – dự
 - 08/11/2026 · người dùng · bản đọc nên là md trong lúc làm (đọc và sửa nhanh), xong hết mới thành docx và xoá md đọc — cuối cùng
   chỉ còn md cho máy + docx cho người; brief Dev xuất docx ngay khi duyệt gửi; người dùng sửa bản đọc thì phần sửa đi vào bản làm
   việc trước khi viết lại (`check_market.py --mark-reader` lưu bản gốc, lần kiểm sau in đúng dòng bị sửa) · `references/reader-copy.md`
+- 08/11/2026 · người dùng · tài liệu dài cho người phải đánh số mục và có mục lục: bản đọc đánh số "1.", "2.1", từ 4 mục trở lên
+  mở đầu bằng "Mục lục"; xuất docx tự thành mục lục bấm được + số trang; script kiểm bắt mục chưa đánh số / thiếu mục lục ·
+  `references/reader-copy.md`, `scripts/export_docx.js`

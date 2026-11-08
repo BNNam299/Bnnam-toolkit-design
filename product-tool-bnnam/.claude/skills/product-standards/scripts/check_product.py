@@ -66,7 +66,34 @@ READER_RULES = [
 DEV_TAG = re.compile(r"\((?:[A-Z]{2,5}-[\d.]+(?:,\s*)?)+\)")
 
 
+TOC_HEAD = re.compile(r"^##\s+(\d+\.\s*)?M\u1ee5c l\u1ee5c\s*$", re.I)
+
+
+def check_outline(lines, path):
+    """Reader copies: numbered sections; 4+ main sections need a "Mục lục" that matches them."""
+    h2 = [(i, ln) for i, ln in enumerate(lines, 1) if ln.startswith("## ") and not TOC_HEAD.match(ln.strip())]
+    h3 = [(i, ln) for i, ln in enumerate(lines, 1) if ln.startswith("### ")]
+    for i, ln in h2:
+        if not re.match(r"^## \d+\. \S", ln):
+            add("LỖI", path, i, "bản đọc", "mục chưa đánh số — viết '## 1. Tên mục'")
+    for i, ln in h3:
+        if not re.match(r"^### \d+\.\d+\.? \S", ln):
+            add("LỖI", path, i, "bản đọc", "mục con chưa đánh số — viết '### 2.1 Tên mục'")
+    toc = [i for i, ln in enumerate(lines) if TOC_HEAD.match(ln.strip())]
+    if len(h2) >= 4 and not toc:
+        add("LỖI", path, 0, "bản đọc", f"{len(h2)} mục mà chưa có '## Mục lục' ở đầu")
+    if toc:
+        j, entries = toc[0] + 1, 0
+        while j < len(lines) and not lines[j].startswith("#"):
+            if re.match(r"^- \S", lines[j]):
+                entries += 1
+            j += 1
+        if entries != len(h2):
+            add("CẢNH BÁO", path, toc[0] + 1, "bản đọc", f"mục lục có {entries} dòng nhưng bản đọc có {len(h2)} mục — viết lại cho khớp")
+
+
 def check_reader(lines, path, for_dev=False):
+    check_outline(lines, path)
     for i, ln in enumerate(lines, 1):
         text = DEV_TAG.sub("", ln) if for_dev else ln
         for rx, msg in READER_RULES:

@@ -40,24 +40,36 @@ Shape (readable in about 10–15 minutes; long PRDs keep the version part short 
 *Phiên bản <x.y.z> · cập nhật dd/mm/yyyy, sau bước <tên bước bằng lời>. Bạn sửa thẳng ở đây được — bước sau sẽ đưa phần sửa vào
 bản làm việc trước khi viết lại.*
 
-## Tóm tắt              3–5 câu: app làm gì cho ai, bản này phải chứng minh điều gì, đang ở đâu, cần bạn chốt gì
-## Sản phẩm             vấn đề → cách giải, định vị, nguyên tắc "ưu tiên A hơn B", điều không làm (và vì sao)
-## Người dùng           ai là người dùng chính, họ muốn làm được việc gì, khoảnh khắc thấy app có ích
-## Bản <x.y.z> có gì     danh sách tính năng bằng lời: mỗi tính năng một đoạn ngắn — làm gì, vì sao vào bản này, mức hoàn thiện
-## Kiếm tiền và chỉ số   gói, giá, chỗ hiện paywall / quảng cáo, chỉ số chính và mốc đạt
-## Màn hình và luồng     (từ product-spec) các màn chính và đường đi chính bằng câu thường; link Figma / FigJam nếu có
-## Còn mở                câu hỏi chưa có trả lời, ai trả lời
+## Mục lục              một dòng mỗi mục bên dưới, mục con thụt vào
+## 1. Tóm tắt           3–5 câu: app làm gì cho ai, bản này phải chứng minh điều gì, đang ở đâu, cần bạn chốt gì
+## 2. Sản phẩm          vấn đề → cách giải, định vị, nguyên tắc "ưu tiên A hơn B", điều không làm (và vì sao)
+## 3. Người dùng        ai là người dùng chính, họ muốn làm được việc gì, khoảnh khắc thấy app có ích
+## 4. Bản <x.y.z> có gì  danh sách tính năng bằng lời: mỗi tính năng một đoạn ngắn — làm gì, vì sao vào bản này, mức hoàn thiện
+## 5. Kiếm tiền và chỉ số gói, giá, chỗ hiện paywall / quảng cáo, chỉ số chính và mốc đạt
+## 6. Màn hình và luồng  (từ product-spec) các màn chính và đường đi chính bằng câu thường; link Figma / FigJam nếu có
+## 7. Còn mở             câu hỏi chưa có trả lời, ai trả lời
 ```
-Sections whose step has not run are left out.
+Sections whose step has not run are left out; the rest are renumbered in order.
 
 ## Requirements reader copy — for Dev
 The reader is a developer, so the rules change in two places:
 - **IDs are allowed as a tag at the end of an item, in parentheses** — "(FR-04, AC-04.2)" — so Dev and tests map back to the working
   file. The sentence must read fully without the tag.
 - Technical terms Dev uses are fine (permission names, store APIs, event names).
-Shape: per feature — what it does in 2–3 sentences, the main flow as numbered steps, the unhappy cases (each: when → what the app
+Shape: "Mục lục" first, then one numbered section per feature ("## 3. Chụp theo ảnh mẫu (FEAT-01)", parts as "### 3.1 Luồng
+chính") — what it does in 2–3 sentences, the main flow as numbered steps, the unhappy cases (each: when → what the app
 does), the acceptance checks as plain "Kiểm: …" lines marked *Lead kiểm* / *Dev kiểm*, business rules as plain sentences, events to
 track. No traceability tables, no levels history, no decision log.
+
+## Numbering and table of contents (every reader copy)
+- **Number the sections** in reading order: "## 1. Tóm tắt", "## 2. …", subsections "### 2.1 …". The whole copy is rewritten
+  each step, so renumber freely when a section is added.
+- **Numbers help people find things; they are not codes.** In the text, refer to a section by number and name — "xem mục 4,
+  Người dùng khổ ở đâu" — never by the number alone.
+- **A copy with 4 or more main sections starts with "## Mục lục"** right after the date line (not numbered itself): one line per
+  main section ("- 1. Tóm tắt"), subsections indented under it. Keep it in step with the headings.
+- The docx export turns "Mục lục" into a clickable table of contents and adds "Trang x / y" to every page — nothing to do by hand.
+- `check_*.py` flags unnumbered sections, a missing "Mục lục" and a "Mục lục" that does not match the headings.
 
 ## Writing rules (both copies)
 1. **Full sentences, spoken order.** No chains of "→" and "·", no fill-in-the-slot template sentences, no telegram style.
@@ -89,5 +101,6 @@ Reader copy:
 - Before rewriting: no "bản đọc đã sửa tay" left unhandled — the user's edits are in the working files.
 - `scripts/check_product.py docs/product` shows no LỖI for the reader md files; then `--mark-reader` was run.
 - Every fact in the reader copy exists in the working files; nothing new was added.
+- Sections numbered (1., 2.1 …); a copy with 4+ main sections opens with a "Mục lục" that matches the headings.
 - During steps: no docx except `prd.docx` once the user approved the hand-off to design. Version ready to build: both docx exported,
   `reader/` deleted.

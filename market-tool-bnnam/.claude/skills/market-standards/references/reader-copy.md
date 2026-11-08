@@ -38,18 +38,32 @@ at the end        docs/market/export/market-report.docx ← exported from the re
 # <Tên app> — Báo cáo thị trường (bản đọc)
 *Cập nhật dd/mm/yyyy, sau bước N. Bản đọc, viết lại từ bản làm việc. Bạn sửa thẳng ở đây được — bước sau sẽ đưa phần sửa vào bản làm việc trước khi viết lại.*
 
-## Tóm tắt
+## Mục lục
+- 1. Tóm tắt
+- 2. …   (one line per section below, subsections indented)
+
+## 1. Tóm tắt
 3–5 câu: đang xét gì, kết luận tới giờ và chắc đến đâu, bạn cần quyết gì, bước tiếp theo.
 
-## <one section per finished step, titled by the question it answers>
+## 2. <one section per finished step, numbered, titled by the question it answers>
    e.g. "Ý tưởng và giới hạn của team" · "Thị trường lớn cỡ nào, có chỗ cho app mới không" ·
         "Người dùng khổ ở đâu" · "Đối thủ làm gì, hở chỗ nào" · "Nên làm ý tưởng nào" · "Quyết định"
    Each: a plain opening sentence that answers the question, then the few facts that support it.
 
-## Còn chưa chắc
+## <last number>. Còn chưa chắc
 Short list of the assumptions that could change the conclusion, each in one sentence + what would settle it.
 ```
 Sections of steps not run yet are left out entirely (no "Chưa làm" lines).
+
+## Numbering and table of contents (every reader copy)
+- **Number the sections** in reading order: "## 1. Tóm tắt", "## 2. …", subsections "### 2.1 …". The whole copy is rewritten
+  each step, so renumber freely when a section is added.
+- **Numbers help people find things; they are not codes.** In the text, refer to a section by number and name — "xem mục 4,
+  Người dùng khổ ở đâu" — never by the number alone.
+- **A copy with 4 or more main sections starts with "## Mục lục"** right after the date line (not numbered itself): one line per
+  main section ("- 1. Tóm tắt"), subsections indented under it. Keep it in step with the headings.
+- The docx export turns "Mục lục" into a clickable table of contents and adds "Trang x / y" to every page — nothing to do by hand.
+- `check_*.py` flags unnumbered sections, a missing "Mục lục" and a "Mục lục" that does not match the headings.
 
 ## Writing rules
 1. **Full sentences, spoken order.** Subject, verb, object, as you would explain it to a colleague. No chains of "→" and "·", no
@@ -89,14 +103,15 @@ Shape (about 1–2 pages):
 # <Tên app> — Việc cần Dev thử (bản đọc)
 *Bản <1/2> · ngày gửi · hạn trả lời (hoặc "không đặt hạn") · bản md đầy đủ cho agent: dev-brief.md*
 
-## Cần bạn làm gì     2–4 câu: việc, phải trả lời những gì, trả lời bằng cách nào
-## App làm gì         3–5 bước người dùng, câu thường
-## Đọc gì trong repo  (chỉ khi đã có code) 3–6 file, mỗi file một dòng: vì sao đọc
-## Các phép thử       mỗi phép: thử gì · thế nào là đạt / tạm được / không đạt · vì sao con số đó
-## Thử trên máy nào   máy yếu nhất làm chuẩn + điều kiện thử
-## Nếu không đạt      mỗi phép một câu: team sẽ làm gì
-## Không cần làm      danh sách ngắn
-## Cách trả lời       lưu file nào, theo mẫu ở cuối bản md
+## Mục lục
+## 1. Cần bạn làm gì     2–4 câu: việc, phải trả lời những gì, trả lời bằng cách nào
+## 2. App làm gì      3–5 bước người dùng, câu thường
+## 3. Đọc gì trong repo (chỉ khi đã có code) 3–6 file, mỗi file một dòng: vì sao đọc
+## 4. Các phép thử    mỗi phép: thử gì · thế nào là đạt / tạm được / không đạt · vì sao con số đó
+## 5. Thử trên máy nào máy yếu nhất làm chuẩn + điều kiện thử
+## 6. Nếu không đạt   mỗi phép một câu: team sẽ làm gì
+## 7. Không cần làm   danh sách ngắn
+## 8. Cách trả lời    lưu file nào, theo mẫu ở cuối bản md
 ```
 
 ## Example — the same content, working file vs reader copy
@@ -116,4 +131,5 @@ Reader copy:
 - `scripts/check_market.py docs/market` shows no LỖI for the reader md files (it flags codes, evidence numbers, paths, comments,
   "K/M" units); then `--mark-reader` was run.
 - Every number in the reader copy exists in the working file; nothing new was added.
+- Sections numbered (1., 2.1 …); a copy with 4+ main sections opens with a "Mục lục" that matches the headings.
 - During steps: no docx except `dev-brief.docx` once the user approved sending. At the end: both docx exported, `reader/` deleted.

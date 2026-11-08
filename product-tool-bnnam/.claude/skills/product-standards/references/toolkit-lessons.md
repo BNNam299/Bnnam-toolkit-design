@@ -38,3 +38,6 @@ Format: `BH-<n> · <dd/mm/yyyy> · <source: test vòng N / dùng thật – dự
   bản đọc `reader/prd.md` (+ `reader/requirements.md` cho Dev từ product-spec), người dùng sửa thẳng được và phần sửa đi vào bản làm
   việc trước (`check_product.py --mark-reader`); docx xuất từ bản đọc khi phiên bản đủ để build rồi xoá `reader/` ·
   `references/reader-copy.md`
+- 08/11/2026 · người dùng · tài liệu dài cho người phải đánh số mục và có mục lục: bản đọc đánh số "1.", "2.1", từ 4 mục trở lên
+  mở đầu bằng "Mục lục"; xuất docx tự thành mục lục bấm được + số trang; script kiểm bắt mục chưa đánh số / thiếu mục lục ·
+  `references/reader-copy.md`, `scripts/export_docx.js`
