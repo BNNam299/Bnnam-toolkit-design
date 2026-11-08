@@ -34,8 +34,10 @@ people will read.
 5. **Events and AC** tied to screens (§5) in requirements §2, §6, §7; settle any open limit numbers first. Tag each AC **[Lead kiểm]**
    (UI, copy, screen states) or **[Dev kiểm]** (logic, data, permissions, payments) — the team has no tester.
 6. **Full review** (`quality-gates.md` all sections) → prd.md §15. FEATs that pass → *Đủ để build*; others stay, with what is missing.
-7. **Export** both files to `docs/product/export/` (`../product-standards/SKILL.md` "Export"): md stays the source for Dev's agent,
-   docx is for people; if the docx package is missing, ask before installing.
+**Reader copy first:** carry any hand edits from `docs/product/reader/` into the working files, then rewrite `docs/product/reader/prd.md` and `docs/product/reader/requirements.md` for the current state (`product-standards/references/reader-copy.md`; md only — no docx until the version is ready to build); the reply points the user to the reader md.
+7. **Export** the two reader copies to `docs/product/export/prd.docx` and `requirements.docx`, check both exist, then delete
+   `docs/product/reader/` (`../product-standards/SKILL.md` "Export"): working md stays the source for Dev's agent, docx is for
+   people; if the docx package is missing, ask before installing and keep `reader/` until it is.
 8. **Report**: version, FEATs ready to build, open items, files to send (docx for people, md for Dev's agent), the retest scope, next — build (Dev / `/ios-spec`), and
    `product-plan` for the next version after release. Stop.
 

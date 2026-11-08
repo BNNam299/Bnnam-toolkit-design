@@ -33,6 +33,7 @@ user, not a run-through.
 5. **Create the output** from `../product-standards/assets/`: prd.md (§0–4, §6 filled; every later section heading + `Chưa làm —
    <skill>`), requirements.md and decisions.md from templates (empty sections → `Chưa làm`), `raw/`. Record the user's choices as
    D-01… (scope, bans, principles, **platform**, **release cycle**). Fill prd.md §1 "Nền tảng và nhịp ra bản".
+**Reader copy first:** carry any hand edits from `docs/product/reader/` into the working files, then rewrite `docs/product/reader/prd.md` for the current state (`product-standards/references/reader-copy.md`; md only — no docx until the version is ready to build); the reply points the user to the reader md.
 6. **Report** in plain Vietnamese: the proof sentence, bans, what is out and why, open questions, next step `product-users`.
    Stop here — even if the user pre-approved everything, the next step runs only when they call it.
 

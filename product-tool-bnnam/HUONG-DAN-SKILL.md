@@ -24,7 +24,8 @@ phần logic / dữ liệu / thanh toán. Bản nào cũng họp kick-off; việ
 | File | Ai đọc |
 |---|---|
 | `docs/product/prd.md`, `requirements.md` | agent của Dev, bộ design, bộ build — đây là bản gốc |
-| `docs/product/export/*.docx` | người đọc — xuất lại từ md sau mỗi lần sửa, không sửa trên docx |
+| `docs/product/reader/prd.md`, `requirements.md` | **bạn đọc và sửa trong lúc làm** — viết lại cuối mỗi bước; phần bạn sửa được đưa vào bản làm việc ở bước sau |
+| `docs/product/export/*.docx` | **bản gửi đi** — xuất khi phiên bản đủ để build (PRD xuất sớm khi bạn duyệt gửi Designer); lúc đó `reader/` bị xoá |
 | `docs/product/decisions.md` | ai chốt gì, ngày nào, vì sao · hàng chờ yêu cầu |
 | Figma / FigJam | luồng, sitemap, wireframe, UI, bảng, sơ đồ — xem bằng mắt, góp ý bằng comment |
 

@@ -34,3 +34,7 @@ Format: `BH-<n> · <dd/mm/yyyy> · <source: test vòng N / dùng thật – dự
 - 08/11/2026 · người dùng (chạy thật market, áp dụng cho product) · agent hỏi duyệt bằng mã (T1, N1) khiến người dùng phải mở file
   tra → chat nói thẳng nội dung cần chốt, mỗi câu hỏi tự đứng được, không dùng FEAT- / D- / § / tên file làm chủ ngữ ·
   `references/writing.md` §8, luật 12
+- 08/11/2026 · người dùng (áp từ market) · PRD và yêu cầu chi tiết là bản làm việc cho agent, người đọc khó → cuối mỗi bước viết lại
+  bản đọc `reader/prd.md` (+ `reader/requirements.md` cho Dev từ product-spec), người dùng sửa thẳng được và phần sửa đi vào bản làm
+  việc trước (`check_product.py --mark-reader`); docx xuất từ bản đọc khi phiên bản đủ để build rồi xoá `reader/` ·
+  `references/reader-copy.md`

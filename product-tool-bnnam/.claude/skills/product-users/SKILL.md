@@ -28,6 +28,7 @@ quickly — the aha moment — because onboarding, paywall placement and activat
 2. **Group the evidence** (`references/users.md` §1): pains, workarounds, triggers, what users praise. Count independent sources.
 3. **Write jobs**, then an **empathy map** per primary persona, then **personas** from the map and a **mental model** table, then **who is not a user**, then the **journey** and **aha moment**.
 4. **Fill prd.md §5**; add new evidence found here as `P#…` in §15; add validation work to §14 if personas are proto.
+**Reader copy first:** carry any hand edits from `docs/product/reader/` into the working files, then rewrite `docs/product/reader/prd.md` for the current state (`product-standards/references/reader-copy.md`; md only — no docx until the version is ready to build); the reply points the user to the reader md.
 5. **Report**: personas (data-based or proto), main job, aha moment and its step count, what would change the picture, next step
    `product-plan`. Stop.
 

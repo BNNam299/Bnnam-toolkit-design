@@ -14,7 +14,8 @@ questions in between ("đang ở đâu rồi?", "cần chốt gì?"), stop-and-a
 2. **Every question stands alone.** Repeat the one or two facts it depends on. One decision per question, options spelled out, your
    suggestion first. Never "bạn thấy sao về mục 8?".
 3. **Short.** What changed, what you need from the user, the options. No file tour, no recap of whole documents. Point to the file
-   to read once, at the end.
+   to read once, at the end — the reader copy for people (`docs/product/reader/*.md` while a version is defined,
+   `docs/product/export/*.docx` once it is ready to build).
 4. **Plain numbers**: rounded, compared, with a two-word source. "nghìn / triệu", not "K / M".
 5. Address the user as "bạn". Decisions are plain words — never "GO / NO-GO".
 

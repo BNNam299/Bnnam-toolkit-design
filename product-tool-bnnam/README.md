@@ -35,14 +35,15 @@ docs/product/
 ├── prd.md            ← PRD: Phần A cấp sản phẩm · Phần B tính năng · Phần C phiên bản
 ├── requirements.md   ← use case, yêu cầu chức năng + tiêu chí nghiệm thu, yêu cầu chất lượng, công thức, quyền & dữ liệu, event
 ├── decisions.md      ← sổ quyết định (ai chốt, ngày, vì sao) + hàng chờ yêu cầu mới
-├── export/           ← prd.docx, requirements.docx
+├── reader/           ← bản đọc (md) cho người trong lúc làm một phiên bản, bạn sửa thẳng được — xoá khi phiên bản đủ để build
+├── export/           ← prd.docx, requirements.docx — xuất từ bản đọc khi phiên bản đủ để build
 └── raw/              ← file của bạn (AI chỉ đọc)
 ```
 Mã số (`BAN-`, `FEAT-`, `UC-`, `FR-`…) khớp với bộ design (`prd-to-ux-flow`) và bộ build (`/ios-spec`), nên chuyển bước không phải
 đặt tên lại.
 
 ## Xuất Word
-Cần Node.js và gói `docx` (đã cài toàn máy ngày 07/11/2026). md là bản gốc; docx xuất lại sau mỗi lần sửa md, không sửa trên docx.
+Cần Node.js và gói `docx` (đã cài toàn máy ngày 07/11/2026). md làm việc là bản gốc cho agent; bạn đọc và sửa bản đọc trong `reader/`, phần sửa được đưa vào bản gốc ở bước sau; docx xuất từ bản đọc khi phiên bản đủ để build, không sửa trên docx.
 
 ## Vài điều bộ luôn giữ
 - Chỉ giữ câu có số, có mã bằng chứng, có quyết định — cắt phần hoa mỹ.

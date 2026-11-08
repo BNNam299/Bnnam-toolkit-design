@@ -1,6 +1,6 @@
 ---
 name: product-standards
-description: Shared rules for every product-definition step - the output layout (docs/product/ with prd.md, requirements.md, decisions.md, export/ and a read-only raw/), the PRD as a living document that grows by version, feature levels (Đề xuất, Đủ để thiết kế, Đủ để build, Đã phát hành), ID rules (BAN, PER, JTBD, FEAT, UC, FR, NFR, BR, PRM, SCR, EVT, D, R, DQ), writing every role understands, who does what in a lead + iOS / Android Dev team, requirement and acceptance-criteria rules, the quality gates and anti-patterns from the team's real PRDs, reading inputs from docs/market and the design toolkit, the missing-data rule, and exporting .docx. Read before any product-kickoff, product-users, product-plan, product-spec or product-detail run, and when the user asks how a PRD or requirement should be written, numbered, reviewed or exported. Vietnamese triggers such as "chuẩn PRD", "viết PRD thế nào", "soát PRD", "xuất PRD ra word", "đánh mã yêu cầu", "tiêu chí nghiệm thu viết sao".
+description: Shared rules for every product-definition step - the output layout (docs/product/ with prd.md, requirements.md, decisions.md as working files, reader/ and export/ for people, read-only raw/), the PRD as a living document that grows by version, feature levels (Đề xuất, Đủ để thiết kế, Đủ để build, Đã phát hành), ID rules (BAN, PER, JTBD, FEAT, UC, FR, NFR, BR, PRM, SCR, EVT, D, R, DQ), writing every role understands, who does what in a lead + iOS / Android Dev team, requirement and acceptance-criteria rules, quality gates, inputs from docs/market and the design toolkit, the missing-data rule, and the reader copy - md rewritten for people each step, docx when the version is ready to build. Read before any product-kickoff, product-users, product-plan, product-spec or product-detail run, and when the user asks how a PRD should be written, numbered, reviewed or exported. Vietnamese triggers such as "chuẩn PRD", "viết PRD thế nào", "soát PRD", "xuất PRD ra word", "bản đọc", "PRD khó đọc", "đánh mã yêu cầu".
 ---
 
 # product-standards — the rules every product step follows
@@ -33,7 +33,9 @@ docs/product/
 ├── prd.md            ← main document; Part A product · Part B features · Part C versions
 ├── requirements.md   ← UC · FR + acceptance criteria · NFR · BR · permissions & data · events · transactions
 ├── decisions.md      ← append-only decision log D-… and the request queue R-…
-├── export/           ← prd.docx, requirements.docx for people (generated from the md, never edited by hand)
+├── reader/           ← reader md for people while a version is defined: prd.md every step, requirements.md from product-spec
+│                       (references/reader-copy.md) — the user may edit it; deleted when the version is ready to build
+├── export/           ← prd.docx, requirements.docx for people, exported from reader/ when the version is ready to build
 └── raw/              ← files the user brings (kick-off minutes, Dev answers, data) — read only
 ```
 Inputs live elsewhere and are read, never edited: `docs/market/` (market toolkit), `design/` and Figma (design toolkit).
@@ -51,6 +53,7 @@ Create missing files from `assets/`. Sections whose step has not run stay as hea
 | The review: 5 gates, 8 anti-patterns from real PRDs, orphan checks, easy-to-miss groups, dark patterns | `references/quality-gates.md` |
 | Gate 0: Apple App Review and Google Play rules, privacy / ATT / MASVS, sensitive categories, paywall checklist, safety for wellbeing apps | `references/policy-and-safety.md` |
 | Templates | `assets/prd.template.md`, `assets/requirements.template.md`, `assets/decisions.template.md` |
+| Reader copy for people (no IDs, plain sentences; md during steps, docx when ready to build; the user's edits) — **every step, before reporting** | `references/reader-copy.md` |
 | Export to .docx | `scripts/export_docx.js` — see "Export" below |
 | A step's method leaves the question open: more frameworks by kind of problem (OST, impact mapping, forces of progress, SCAMPER, assumption mapping, pre-mortem, VPC, North Star tree…) and how to mix them | `references/thinking-toolbox.md` |
 | Mistakes from earlier runs and the rule each became — **read before reporting** | `references/toolkit-lessons.md` |
@@ -87,15 +90,25 @@ Create missing files from `assets/`. Sections whose step has not run stay as hea
 12. **Chat speaks plainly.** Messages to the user — questions, approvals, stop-and-discuss, the final reply — never rely on internal
    IDs (FEAT-, BR-, AC-, D-, M#, §), file paths or skill names: say what is being decided in plain words, each question standing alone
    with the facts it depends on — `references/writing.md` §8.
+13. **Two audiences, two files.** `prd.md` / `requirements.md` are working files for agents and keep IDs, levels and history.
+    People read the **reader md** (`reader/prd.md`, and `reader/requirements.md` for Dev), rewritten in full sentences without
+    internal IDs — `references/reader-copy.md`. Every step ends by rewriting it; the user may edit it, and those edits go into the
+    working files first. When the version is ready to build it becomes `export/*.docx` and `reader/` is deleted.
 
 ## Export — md for agents, docx for people
-The md files are the source: Dev's own agent reads `prd.md` and `requirements.md` directly. The .docx is for people to read and is
-regenerated from the md — changes go into the md, then export again; never edit the .docx.
-`NODE_PATH="$(npm root -g)" node <skill-dir>/scripts/export_docx.js docs/product/prd.md docs/product/export/prd.docx` (same for
+The working md files are the source: Dev's own agent reads `prd.md` and `requirements.md` directly. People get docx made from the
+**reader copies**, not from the working files: when the version is ready to build (end of `product-detail`), export
+`reader/prd.md` and `reader/requirements.md`, check the docx exist, then delete `reader/`. The PRD docx is also exported earlier when
+the user approves the hand-off to design. Command:
+`NODE_PATH="$(npm root -g)" node <skill-dir>/scripts/export_docx.js docs/product/reader/prd.md docs/product/export/prd.docx` (same for
 requirements). It needs the npm package `docx` (installed globally); if the script says it is missing, ask the user before
 installing. Export only after the review in `references/quality-gates.md`; open items stay visible, never exported as if final.
+Never edit the .docx — changes go into the working md, then the reader copy is rewritten.
 
 ## Self-check before any step reports
+- The user's hand edits in `reader/` (if `check_product.py` reports them) carried into the working files; reader md rewritten for
+  the current state and `--mark-reader` run; the reply points the user to the reader md. No docx until the version is ready to
+  build, except the PRD once the hand-off to design is approved.
 - Every question or approval in the reply is understandable without opening a file: no FEAT- / D- / § IDs as the subject,
   options spelled out (`references/writing.md` §8).
 - Run `python <skill-dir>/scripts/check_product.py docs/product` (prefix `PYTHONUTF8=1` on Windows) and fix every LỖI; read each

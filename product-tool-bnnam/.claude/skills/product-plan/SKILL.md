@@ -37,6 +37,7 @@ user pain or a data point.
    "Rẽ nhánh" table; offer to draw it on FigJam (`../product-standards/references/inputs-and-handoffs.md` §6).
 5. **Version roadmap** (§13): what this version must prove, FEATs, metrics, target date in the cycle, and the **retest scope**
    (lead checks UI, Dev checks logic / data / payments).
+**Reader copy first:** carry any hand edits from `docs/product/reader/` into the working files, then rewrite `docs/product/reader/prd.md` for the current state (`product-standards/references/reader-copy.md`; md only — no docx until the version is ready to build); the reply points the user to the reader md.
 6. **Kick-off sheet** (`references/plan.md` §5): give it to the user for the team meeting; Dev fills feasibility and hours. Stop.
 7. **After the meeting** (the user returns with results or minutes in `raw/`): record decisions D-…, update priorities and §13 status
    "đã chốt", drop or postpone what the team cut. Next step `product-spec`.

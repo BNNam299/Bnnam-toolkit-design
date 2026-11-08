@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 """check_product.py — mechanical checks on docs/product/ (IDs, levels, links, AC tags, wording).
 
-Usage: python check_product.py [docs/product]
+Usage: python check_product.py [docs/product]                 check everything
+       python check_product.py [docs/product] --mark-reader   after writing reader/*.md: record them so hand edits can be shown
 Prints one line per finding (file:line · rule · detail) and a summary. Exit 0 = no errors, 1 = errors found.
 It checks form and traceability only; whether a feature is right is still the team's call.
 """
@@ -19,7 +20,8 @@ findings = []
 
 
 def add(level, path, line, rule, detail):
-    findings.append((level, f"{path.name}:{line}", rule, detail))
+    name = f"{path.parent.name}/{path.name}" if path.parent.name == "reader" else path.name
+    findings.append((level, f"{name}:{line}", rule, detail))
 
 
 def read(path):
@@ -47,8 +49,99 @@ def dup_defs(lines, path, rx, kind):
     return seen
 
 
+READER_RULES = [
+    (re.compile(r"\b(FEAT|UC|FR|AC|BR|NFR|BAN|PER|JTBD|SCR|EVT|PRM|DQ|KB)-?\d|\b[DR]-\d+|(?<![\w&])[MP]#\d+|§\s?\d"),
+     "mã nội bộ (FEAT-, FR-, D-, M#, §…) — gọi bằng tên thường"),
+    (re.compile(r"<!--"), "comment HTML — bỏ khỏi bản đọc"),
+    (re.compile(r"[\w/-]+\.(md|kt|swift|py|js|json)\b|product-(kickoff|users|plan|spec|detail|standards)"),
+     "tên file / skill — người đọc không mở được"),
+    (re.compile(r"\b\d+([.,]\d+)?\s?[KM]\b"), "đơn vị K/M — viết 'nghìn' / 'triệu'"),
+]
+# Dev's requirements copy may tag items with IDs in parentheses at the end: "(FR-04, AC-04.2)".
+DEV_TAG = re.compile(r"\((?:[A-Z]{2,5}-[\d.]+(?:,\s*)?)+\)")
+
+
+def check_reader(lines, path, for_dev=False):
+    for i, ln in enumerate(lines, 1):
+        text = DEV_TAG.sub("", ln) if for_dev else ln
+        for rx, msg in READER_RULES:
+            if for_dev and "tên file" in msg:
+                continue
+            if rx.search(text):
+                add("LỖI", path, i, "bản đọc", msg)
+                break
+    arrows = sum(ln.count("→") for ln in lines)
+    if arrows > 3:
+        add("CẢNH BÁO", path, 0, "bản đọc", f"{arrows} mũi tên '→' — viết thành câu đủ chủ vị")
+    words(lines, path)
+
+
+MARK_FILE = ".written"
+hand_edits = []
+
+
+def fingerprint(path):
+    import hashlib
+    return hashlib.sha256(path.read_bytes().replace(b"\r\n", b"\n")).hexdigest()[:16]
+
+
+def read_marks(reader_dir):
+    marks = {}
+    f = reader_dir / MARK_FILE
+    if f.exists():
+        for ln in f.read_text(encoding="utf-8").splitlines():
+            if " " in ln:
+                name, h = ln.split(" ", 1)
+                marks[name] = h.strip()
+    return marks
+
+
+def mark_reader(reader_dir):
+    """Record what the agent just wrote (fingerprint + a copy in reader/.goc/), so later hand edits can be shown."""
+    import shutil
+    files = sorted(reader_dir.glob("*.md"))
+    (reader_dir / MARK_FILE).write_text("".join(f"{p.name} {fingerprint(p)}\n" for p in files), encoding="utf-8")
+    goc = reader_dir / ".goc"
+    goc.mkdir(exist_ok=True)
+    for p in files:
+        shutil.copyfile(p, goc / p.name)
+    print("Đã ghi dấu bản đọc: " + ", ".join(p.name for p in files))
+
+
+def check_hand_edit(path, marks):
+    h = marks.get(path.name)
+    if h is None:
+        add("CẢNH BÁO", path, 0, "bản đọc", "chưa ghi dấu — sau khi viết bản đọc, chạy lại với --mark-reader")
+    elif h != fingerprint(path):
+        add("LỖI", path, 0, "bản đọc đã sửa tay",
+            "người dùng đã sửa bản đọc — phần sửa in ở cuối; đưa vào bản làm việc (hỏi nếu đổi phạm vi / quyết định) rồi mới viết lại")
+        orig = path.parent / ".goc" / path.name
+        if orig.exists():
+            import difflib
+            a = orig.read_text(encoding="utf-8").splitlines()
+            b = path.read_text(encoding="utf-8").splitlines()
+            hand_edits.append((path.name, list(difflib.unified_diff(a, b, "bản agent viết", "bản người dùng sửa", n=0, lineterm=""))[:80]))
+
+
+def check_readers(root):
+    reader_dir, export_dir = root / "reader", root / "export"
+    marks = read_marks(reader_dir)
+    for name, for_dev, needed in (("prd.md", False, True), ("requirements.md", True, False)):
+        p = reader_dir / name
+        if read(p) is not None:
+            check_reader(read(p), p, for_dev)
+            check_hand_edit(p, marks)
+        elif needed and not (export_dir / name.replace(".md", ".docx")).exists():
+            add("CẢNH BÁO", p, 0, "bản đọc", "chưa có bản đọc cho người — viết lại cuối mỗi bước (reader-copy.md)")
+
+
 def main():
-    root = Path(sys.argv[1] if len(sys.argv) > 1 else "docs/product")
+    args = [a for a in sys.argv[1:] if not a.startswith("--")]
+    root = Path(args[0] if args else "docs/product")
+    if "--mark-reader" in sys.argv:
+        if not (root / "reader").exists():
+            print("Không có thư mục reader/"); return 1
+        mark_reader(root / "reader"); return 0
     prd_p, req_p, dec_p = root / "prd.md", root / "requirements.md", root / "decisions.md"
     prd, req, dec = read(prd_p), read(req_p), read(dec_p)
     if prd is None:
@@ -144,9 +237,13 @@ def main():
                 add("LỖI", dec_p, i, "quyết định", "thiếu ngày · ai chốt")
         words(dec, dec_p)
 
+    check_readers(root)
     errors = [f for f in findings if f[0] == "LỖI"]
     for lvl, where, rule, detail in findings:
         print(f"{lvl:9} {where:26} {rule:11} {detail}")
+    for name, diff in hand_edits:
+        print(f"\n--- Phần người dùng sửa trong reader/{name} ---")
+        print("\n".join(diff))
     print(f"\nTổng: {len(errors)} lỗi, {len(findings) - len(errors)} cảnh báo · {len(table)} tính năng")
     return 1 if errors else 0
 

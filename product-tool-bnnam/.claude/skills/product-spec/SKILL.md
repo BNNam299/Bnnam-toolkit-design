@@ -33,8 +33,9 @@ the real UI.
    navigation model, and the first-launch and daily-return flows across screens (`references/spec.md` §3).
 5. **Dev questions** (`references/spec.md` §4) into requirements §8 and a short block in chat for the user to forward.
 6. **Review** (`quality-gates.md` §1–3, §5) → record in prd.md §15; move FEATs that pass to *Đủ để thiết kế*, keep the others and say why.
+**Reader copy first:** carry any hand edits from `docs/product/reader/` into the working files, then rewrite `docs/product/reader/prd.md` and `docs/product/reader/requirements.md` for the current state (`product-standards/references/reader-copy.md`; md only — no docx until the version is ready to build); the reply points the user to the reader md.
 7. **Report and hand off**: which FEATs are ready, open questions, what the designer must read; next step — the design toolkit
-   (`prd-to-ux-flow`), then `product-detail` once the UI exists. Optional: export a draft .docx if the user asks.
+   (`prd-to-ux-flow`), then `product-detail` once the UI exists. When the user approves sending to the designer, export `reader/prd.md` to `export/prd.docx` at once; `reader/` stays.
 
 ## Core rules
 - **Unhappy paths are part of "ready".** A feature without its denied / offline / error / empty branches stays at *Đề xuất*.
