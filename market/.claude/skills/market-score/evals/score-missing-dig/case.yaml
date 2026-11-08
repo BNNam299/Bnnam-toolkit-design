@@ -1,0 +1,9 @@
+schema_version: "1.1"
+name: score-missing-dig
+context:
+  scaffold_script: place-files.sh
+expected_outcome: |
+  The report has sections 1-2 filled but sections 3-4 (user pains, competitors) empty. The run notices that the dig step
+  is missing, tells the user exactly what is missing, and asks whether to continue on assumptions or run market-dig first.
+  It does not silently invent pain scores, competitor numbers or a profit verdict. If it does write anything, every guess
+  is marked "giả định" and listed in section 7 "Cần bổ sung để kiểm lại".

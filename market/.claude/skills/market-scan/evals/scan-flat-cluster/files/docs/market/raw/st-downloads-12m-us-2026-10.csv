@@ -1,0 +1,61 @@
+app,country,month,downloads,revenue_usd,note
+HydroPal (fake),US,2025-11,210000,73500,TEST DATA · Sensor Tower estimate
+HydroPal (fake),US,2025-12,208000,72800,TEST DATA · Sensor Tower estimate
+HydroPal (fake),US,2026-01,205000,71750,TEST DATA · Sensor Tower estimate
+HydroPal (fake),US,2026-02,203000,71050,TEST DATA · Sensor Tower estimate
+HydroPal (fake),US,2026-03,200000,70000,TEST DATA · Sensor Tower estimate
+HydroPal (fake),US,2026-04,199000,69650,TEST DATA · Sensor Tower estimate
+HydroPal (fake),US,2026-05,197000,68950,TEST DATA · Sensor Tower estimate
+HydroPal (fake),US,2026-06,195000,68250,TEST DATA · Sensor Tower estimate
+HydroPal (fake),US,2026-07,193000,67550,TEST DATA · Sensor Tower estimate
+HydroPal (fake),US,2026-08,190000,66500,TEST DATA · Sensor Tower estimate
+HydroPal (fake),US,2026-09,188000,65800,TEST DATA · Sensor Tower estimate
+HydroPal (fake),US,2026-10,186000,65100,TEST DATA · Sensor Tower estimate
+WaterMinder Lite (fake),US,2025-11,150000,75000,TEST DATA · Sensor Tower estimate
+WaterMinder Lite (fake),US,2025-12,151000,75500,TEST DATA · Sensor Tower estimate
+WaterMinder Lite (fake),US,2026-01,149000,74500,TEST DATA · Sensor Tower estimate
+WaterMinder Lite (fake),US,2026-02,148000,74000,TEST DATA · Sensor Tower estimate
+WaterMinder Lite (fake),US,2026-03,148000,74000,TEST DATA · Sensor Tower estimate
+WaterMinder Lite (fake),US,2026-04,147000,73500,TEST DATA · Sensor Tower estimate
+WaterMinder Lite (fake),US,2026-05,146000,73000,TEST DATA · Sensor Tower estimate
+WaterMinder Lite (fake),US,2026-06,146000,73000,TEST DATA · Sensor Tower estimate
+WaterMinder Lite (fake),US,2026-07,145000,72500,TEST DATA · Sensor Tower estimate
+WaterMinder Lite (fake),US,2026-08,144000,72000,TEST DATA · Sensor Tower estimate
+WaterMinder Lite (fake),US,2026-09,144000,72000,TEST DATA · Sensor Tower estimate
+WaterMinder Lite (fake),US,2026-10,143000,71500,TEST DATA · Sensor Tower estimate
+Drink Up (fake),US,2025-11,90000,18000,TEST DATA · Sensor Tower estimate
+Drink Up (fake),US,2025-12,88000,17600,TEST DATA · Sensor Tower estimate
+Drink Up (fake),US,2026-01,87000,17400,TEST DATA · Sensor Tower estimate
+Drink Up (fake),US,2026-02,85000,17000,TEST DATA · Sensor Tower estimate
+Drink Up (fake),US,2026-03,84000,16800,TEST DATA · Sensor Tower estimate
+Drink Up (fake),US,2026-04,82000,16400,TEST DATA · Sensor Tower estimate
+Drink Up (fake),US,2026-05,80000,16000,TEST DATA · Sensor Tower estimate
+Drink Up (fake),US,2026-06,79000,15800,TEST DATA · Sensor Tower estimate
+Drink Up (fake),US,2026-07,77000,15400,TEST DATA · Sensor Tower estimate
+Drink Up (fake),US,2026-08,75000,15000,TEST DATA · Sensor Tower estimate
+Drink Up (fake),US,2026-09,74000,14800,TEST DATA · Sensor Tower estimate
+Drink Up (fake),US,2026-10,72000,14400,TEST DATA · Sensor Tower estimate
+Aqua Desk (fake),US,2025-11,40000,24000,TEST DATA · Sensor Tower estimate
+Aqua Desk (fake),US,2025-12,40000,24000,TEST DATA · Sensor Tower estimate
+Aqua Desk (fake),US,2026-01,41000,24600,TEST DATA · Sensor Tower estimate
+Aqua Desk (fake),US,2026-02,40000,24000,TEST DATA · Sensor Tower estimate
+Aqua Desk (fake),US,2026-03,40000,24000,TEST DATA · Sensor Tower estimate
+Aqua Desk (fake),US,2026-04,39000,23400,TEST DATA · Sensor Tower estimate
+Aqua Desk (fake),US,2026-05,40000,24000,TEST DATA · Sensor Tower estimate
+Aqua Desk (fake),US,2026-06,39000,23400,TEST DATA · Sensor Tower estimate
+Aqua Desk (fake),US,2026-07,39000,23400,TEST DATA · Sensor Tower estimate
+Aqua Desk (fake),US,2026-08,40000,24000,TEST DATA · Sensor Tower estimate
+Aqua Desk (fake),US,2026-09,39000,23400,TEST DATA · Sensor Tower estimate
+Aqua Desk (fake),US,2026-10,39000,23400,TEST DATA · Sensor Tower estimate
+Sip Timer (fake),US,2025-11,22000,3300,TEST DATA · Sensor Tower estimate
+Sip Timer (fake),US,2025-12,21000,3150,TEST DATA · Sensor Tower estimate
+Sip Timer (fake),US,2026-01,21000,3150,TEST DATA · Sensor Tower estimate
+Sip Timer (fake),US,2026-02,20000,3000,TEST DATA · Sensor Tower estimate
+Sip Timer (fake),US,2026-03,19000,2850,TEST DATA · Sensor Tower estimate
+Sip Timer (fake),US,2026-04,19000,2850,TEST DATA · Sensor Tower estimate
+Sip Timer (fake),US,2026-05,18000,2700,TEST DATA · Sensor Tower estimate
+Sip Timer (fake),US,2026-06,18000,2700,TEST DATA · Sensor Tower estimate
+Sip Timer (fake),US,2026-07,17000,2550,TEST DATA · Sensor Tower estimate
+Sip Timer (fake),US,2026-08,17000,2550,TEST DATA · Sensor Tower estimate
+Sip Timer (fake),US,2026-09,16000,2400,TEST DATA · Sensor Tower estimate
+Sip Timer (fake),US,2026-10,16000,2400,TEST DATA · Sensor Tower estimate

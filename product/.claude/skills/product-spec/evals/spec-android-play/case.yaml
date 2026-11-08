@@ -1,0 +1,11 @@
+schema_version: "1.1"
+name: spec-android-play
+context:
+  scaffold_script: place-files.sh
+expected_outcome: |
+  Same app as spec-ios-policy-traps but the platform is Android only (D-05), Dev Android. The run writes the five FEATs up to
+  "Đủ để thiết kế" with Android constraints, and gate 0 applies Google Play rules (policy-and-safety §6) to three planted
+  touchpoint problems: the annual plan shown big as a monthly price, a "buy on the web 30% cheaper" button (Play Billing), and
+  a full-screen interstitial at app open (Play ads). It also adds the notification runtime permission with prominent
+  disclosure and a denied branch, cancellation via the Play Subscription Center, and trial conversion wording. It stops and
+  hands off to design.

@@ -1,0 +1,10 @@
+schema_version: "1.1"
+name: detail-without-ui
+context:
+  scaffold_script: place-files.sh
+expected_outcome: |
+  The PRD has no Figma link, there is no design/ folder and no screenshots in raw/, so the real UI is not available. The
+  run notices this before writing screen rules, tells the user exactly what it needs (Figma access, frames or screenshots,
+  design/flows.md), and asks; it does not invent components, screen rules or onboarding copy, and does not move features
+  to Đủ để build. If it mentions export, it explains the docx package requirement instead of claiming a file was produced
+  without it.

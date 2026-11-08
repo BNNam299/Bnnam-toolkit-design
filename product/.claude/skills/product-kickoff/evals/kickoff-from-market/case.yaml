@@ -1,0 +1,10 @@
+schema_version: "1.1"
+name: kickoff-from-market
+context:
+  scaffold_script: place-files.sh
+expected_outcome: |
+  The run reads docs/market (decision "làm tiếp", hand-off, evidence), creates docs/product with prd.md, requirements.md,
+  decisions.md and raw/, and fills only the kickoff sections of prd.md: problems with market evidence and matching
+  solutions, why now, positioning, success criteria, principles that each rule something out, the proof sentence, in / out
+  / bans / "không được cắt", differentiators pointing to the market report. Later sections stay one line "Chưa làm". It
+  records the choices as decisions and stops after kickoff, naming product-users as the next step.

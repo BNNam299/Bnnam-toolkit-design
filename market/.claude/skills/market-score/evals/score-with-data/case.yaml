@@ -1,0 +1,10 @@
+schema_version: "1.1"
+name: score-with-data
+context:
+  scaffold_script: place-files.sh
+expected_outcome: |
+  Section 5 of market-report.md is filled: a Need Score per cluster with evidence numbers, at least 3 ideas written as
+  one-sentence ideas with an Opportunity Score, a chosen idea with why-now, a "có lời không" table split by country tier
+  with three scenarios, a reference CPI with its source and a break-even CPI, and a "làm được không" table where every
+  capability is an AI rough guess awaiting Dev (no "làm được" conclusion). dev-brief.md is updated to version 2 with
+  thresholds awaiting approval. Tables end with "→ Rút ra", terms are explained in parentheses, assumptions go to section 7.

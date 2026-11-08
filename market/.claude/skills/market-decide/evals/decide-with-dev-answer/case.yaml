@@ -1,0 +1,9 @@
+schema_version: "1.1"
+name: decide-with-dev-answer
+context:
+  scaffold_script: place-files.sh
+expected_outcome: |
+  Steps 1–4 are done (one money threshold already hit → "đổi cách bán"). Dev answered: T1 đạt, T2 không đạt but with a fallback,
+  T3 đạt, T4 chưa rõ, P1 not looked at. The run fills Dev's answers into §5.4 and evidence, checks every §1 threshold, drafts the
+  AI's suggestion with reasons and risks, writes meeting-brief-b5.md (+ .docx if the export works, or says honestly it did not)
+  with T4 and P1 as open risks, and stops for the team meeting — it does not record the team's decision in §6 by itself.

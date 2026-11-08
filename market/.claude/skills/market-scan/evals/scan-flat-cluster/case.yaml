@@ -1,0 +1,10 @@
+schema_version: "1.1"
+name: scan-flat-cluster
+context:
+  scaffold_script: place-files.sh
+expected_outcome: |
+  Step 1 is done for a water-reminder idea whose difference is "tự né giờ họp — chưa app nào làm". The run reads raw/ (12-month
+  downloads of 5 apps, store search notes, keywords) without going online, fills §2 only, and finds two problems early: the whole
+  group is flat or falling over 12 months (an alive-or-dead warning) and one competitor (Aqua Desk) already does the "né giờ họp"
+  difference. It compares every stop threshold, hits at least two, and stops to give the user the choice dừng / đổi hướng / vẫn
+  đào tiếp instead of moving on. Methods actually used are named.

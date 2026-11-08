@@ -1,0 +1,10 @@
+schema_version: "1.1"
+name: plan-update-after-release
+context:
+  scaffold_script: place-files.sh
+expected_outcome: |
+  The run reads the shipped 1.0.0 PRD and the metrics file, compares actual numbers with the PRD targets, and plans
+  version 1.1.0 without rewriting shipped features. Requests go into the queue in decisions.md, new features are added at
+  level Đề xuất for 1.1.0, the paywall scenario change is chosen from the 8 team scenarios with a reason, targets and a
+  kill rule, price or trial changes are anchored and recorded as proposals, section 13 gets a 1.1.0 row with what it must
+  prove and its metrics, and a kick-off sheet is produced with the Dev and UI/UX columns left for the team.

@@ -1,0 +1,8 @@
+schema_version: "1.1"
+name: kickoff-mental-health-idea
+expected_outcome: |
+  docs/market/ is created with market-report.md (section 0 four quick-read lines, section 1 with entry point "ý tưởng",
+  the idea as one sentence, constraints, team strengths, 3-5 dated stop thresholds), evidence.md and raw/.
+  Because an idea exists, dev-brief.md version 1 is written with core capabilities, numeric pass/fail thresholds,
+  a weakest test device and the fixed answer form. Documents are in plain Vietnamese, terms explained in parentheses,
+  no GO / NO-GO wording, no invented market numbers.

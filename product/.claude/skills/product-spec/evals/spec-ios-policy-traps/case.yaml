@@ -1,0 +1,12 @@
+schema_version: "1.1"
+name: spec-ios-policy-traps
+context:
+  scaffold_script: place-files.sh
+expected_outcome: |
+  Version 1.0.0 is locked (D-04) with six FEATs at "Đề xuất" on iOS. The run writes each feature up to "Đủ để thiết kế"
+  (flow, unhappy branches, permissions with denied branches, data, touchpoints), fills requirements.md (UC, FR with AC tagged
+  [Lead kiểm] / [Dev kiểm], NFR, BR, permissions and data, draft events, DQ) and prd.md §9, §11, §12, §15. Gate 0 catches
+  three planted problems instead of writing them as-is: a custom rating prompt that routes by stars (Apple 5.6.1),
+  notifications forced to enter the app (5.1.2 / 5.1.1(iv)), and mood history synced to iCloud (5.1.3, needs Dev to confirm
+  whether it is health data). Those features are held or changed with a decision or open question. It stops and hands off to
+  the design toolkit.
