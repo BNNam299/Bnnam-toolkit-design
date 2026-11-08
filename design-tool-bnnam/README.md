@@ -1,4 +1,4 @@
-# figma-agent-UI
+# design-tool-bnnam — bộ thiết kế (plugin Figma figma-agent-UI + skill)
 
 Plugin Figma + MCP server giúp AI agent (Claude Code, hoặc bất kỳ MCP client nào) **đọc, tạo, sửa và tự chụp màn hình kiểm tra** thiết kế ngay trong file Figma đang mở.
 

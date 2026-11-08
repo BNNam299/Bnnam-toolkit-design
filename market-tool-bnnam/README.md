@@ -1,4 +1,4 @@
-# Bnnam-toolkit-market — bộ nghiên cứu thị trường app
+# market-tool-bnnam — bộ nghiên cứu thị trường app
 
 Bộ skill Claude Code giúp trả lời một câu hỏi: **ý tưởng / dòng app này có đáng làm không, và nếu làm thì nhắm vào đâu.**
 Bộ này dùng riêng, không phụ thuộc bộ khác. Kết quả là tài liệu bạn mang sang bước sau (sản phẩm, thiết kế).

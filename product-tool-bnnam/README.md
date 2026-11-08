@@ -1,4 +1,4 @@
-# Bnnam-toolkit-product — bộ định hình sản phẩm
+# product-tool-bnnam — bộ định hình sản phẩm
 
 Bộ skill Claude Code giúp trả lời: **làm gì, cho ai, tới đâu — và nghiệm thu thế nào.**
 Đầu vào là kết quả bộ market (`docs/market/`). Đầu ra là PRD + yêu cầu chi tiết cho bộ design, Dev và QA.
