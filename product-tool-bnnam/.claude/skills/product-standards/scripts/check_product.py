@@ -9,6 +9,11 @@ It checks form and traceability only; whether a feature is right is still the te
 import io
 import re
 import sys
+for _s in (sys.stdout, sys.stderr):  # Windows consoles default to cp1252 and crash on Vietnamese
+    try:
+        _s.reconfigure(encoding="utf-8")
+    except AttributeError:
+        pass
 from pathlib import Path
 
 LEVELS = ["Đề xuất", "Đủ để thiết kế", "Đủ để build", "Đã phát hành"]

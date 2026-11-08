@@ -10,6 +10,11 @@ It checks form, not judgement: whether a number is right or a conclusion is soun
 import io
 import re
 import sys
+for _s in (sys.stdout, sys.stderr):  # Windows consoles default to cp1252 and crash on Vietnamese
+    try:
+        _s.reconfigure(encoding="utf-8")
+    except AttributeError:
+        pass
 from datetime import date
 from pathlib import Path
 
