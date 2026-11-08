@@ -41,6 +41,7 @@ request.
 7. **Write §3** (pain clusters table + what users praise + workarounds + demand vs trend) and **§4** (comparison table, archetypes,
    free-vs-paid matrix, one block per competitor, price anchor, gaps considered and rejected). Update §0 and evidence.md's quick-read
    line.
+**Reader copy first:** carry any hand edits from `docs/market/reader/` into the working file, then rewrite `docs/market/reader/market-report.md` for the current state (`market-standards/references/reader-copy.md`; md only — no docx until the end); the reply points the user to the reader md.
 8. **Report**: the 2–3 strongest pains and gaps with evidence counts, what data is still missing, next step `market-score`.
 
 ## Core rules

@@ -1,6 +1,6 @@
 ---
 name: market-standards
-description: Shared rules for every market-research step - the output layout (docs/market/ with market-report.md, evidence.md, dev-brief.md and a read-only raw/ folder), writing every role understands (quick-read lines, plain first sentence, terms explained in parentheses at first use), table rules (every column answers a question, derived numbers, max 6 columns, a "→ Rút ra" line under every table), evidence rules (verbatim quotes, one page = one source, tool numbers are estimates, data from 2025 on, never invent), what to do when earlier data is missing, the AppStoreSpy / Sensor Tower data split, the Dev brief (max 3 rounds), and the team meeting brief (md + docx). Read before any market-kickoff, market-scan, market-dig, market-score or market-decide run, and when the user asks how a market document should be written, sourced or fixed. Vietnamese triggers such as "chuẩn tài liệu thị trường", "viết lại cho dễ đọc", "bảng rối quá", "ghi nguồn thế nào", "thiếu số liệu thì sao", "phiếu xin số liệu", "brief cho dev".
+description: Shared rules for every market-research step - output layout (docs/market/: market-report.md as the working file, evidence.md, dev-brief.md, read-only raw/), writing every role understands (quick-read lines, plain first sentence, terms explained at first use), tables (max 6 columns, "→ Rút ra" line), evidence (verbatim, dated, tool numbers are estimates, from 2025 on, never invent), missing earlier data, the AppStoreSpy / Sensor Tower split, the Dev brief, the team meeting brief, and the reader copy - a rewritten, code-free version of the report exported to .docx for people after every step. Read before any market-kickoff, market-scan, market-dig, market-score or market-decide run, and when the user asks how a market document should be written, sourced or fixed. Vietnamese triggers such as "chuẩn tài liệu thị trường", "viết lại cho dễ đọc", "tài liệu máy móc quá", "bản đọc", "xuất docx", "ghi nguồn thế nào", "thiếu số liệu thì sao", "phiếu xin số liệu", "brief cho dev".
 ---
 
 # market-standards — the rules every market step follows
@@ -25,11 +25,12 @@ supplied (`references/data-sources.md`). Big choices are made in a team meeting;
 ## Output — one fixed place, in the app project
 ```
 docs/market/
-├── market-report.md   ← the main report; each step fills its own section
+├── market-report.md   ← the working file (agents and the next steps read it); each step fills its own section
 ├── evidence.md        ← numbered, verbatim evidence (#1, #2 …) the report points to
 ├── dev-brief.md       ← standalone brief for Dev's technical research (Dev's agent reads it too)
 ├── meeting-brief-b4.md / -b5.md ← short brief for the team meeting — people only, never an agent input
-├── export/            ← .docx exports of the meeting briefs (scripts/export_docx.js)
+├── reader/           ← reader md for people while steps run (references/reader-copy.md): market-report.md every step, dev-brief.md when the brief changes — deleted at the end
+├── export/            ← .docx for people, made at the end (dev-brief.docx as soon as sending is approved) + meeting briefs (scripts/export_docx.js)
 └── raw/               ← files the user already has or brings back (exports, screenshots, Dev answers) — read only
 ```
 Create missing files from `assets/` templates. In `market-report.md`, a section whose step has not run yet stays as its heading plus
@@ -53,6 +54,7 @@ Documents are written in **Vietnamese** (the team's language) unless the user as
 | Store-policy flags for sensitive categories (health, kids, location, media) in the brief | `references/dev-brief-writing.md` "Store-policy flags" |
 | Dev brief rounds and deadlines (3 / 2 / 2 working days, max 3 rounds), blocked after round 2 | `references/dev-brief-writing.md` "When it is written" |
 | Meeting brief for the team: content, md + docx export, recording the outcome | `references/meeting-brief.md` |
+| Reader copy for people (rewritten report, no codes / evidence numbers / paths; md during steps, docx at the end; the user's edits) — **every step, before reporting** | `references/reader-copy.md` |
 | Mistakes from earlier runs and the rule each became — **read before reporting** | `references/toolkit-lessons.md` |
 | Mechanical check of the documents (4 quick-read lines, "→ Rút ra", ≤ 6 columns, evidence links, wording, Dev deadlines and rounds) | `scripts/check_market.py docs/market` |
 | Templates | `assets/market-report.template.md`, `assets/evidence.template.md`, `assets/dev-brief.template.md`, `assets/meeting-brief.template.md` |
@@ -91,6 +93,15 @@ Documents are written in **Vietnamese** (the team's language) unless the user as
    in the reply — `references/writing.md` §9. When a step's own method leaves the question open, add a second tool from
    `references/thinking-toolbox.md` (mixing rules §6) and name both.
 
+10. **Two audiences, two files.** `market-report.md` is the working file for agents and keeps codes, evidence numbers and history.
+   People read the **reader md** (`reader/market-report.md`, and `reader/dev-brief.md` for Dev), rewritten in full sentences with no
+   internal codes, evidence numbers, file paths or approval history — `references/reader-copy.md`. Every step ends by rewriting it;
+   the user may edit it, and those edits go back into the working file first. At the end it becomes `export/*.docx` and `reader/` is
+   deleted: one md for machines, one docx for people. The Dev brief's docx is exported as soon as the user approves sending.
+11. **Chat speaks plainly.** Messages to the user — questions, approvals, stop-and-discuss, the final reply — never rely on internal
+   codes (N1, T1, #11, §5), file paths or skill names: say what is being decided in plain words, each question standing alone with
+   the facts it depends on — `references/writing.md` §10.
+
 ## Self-check before any step reports
 - Run `python <skill-dir>/scripts/check_market.py docs/market` (prefix `PYTHONUTF8=1` on Windows) and fix every LỖI; read each
   CẢNH BÁO and fix it or say why it stays. Re-read `references/toolkit-lessons.md` — none of those mistakes repeated.
@@ -105,3 +116,8 @@ Documents are written in **Vietnamese** (the team's language) unless the user as
 - Methods actually used are named where used, listed in "Phương pháp đã dùng", and named in the reply's "Cách làm:" line; nothing
   named that was not applied.
 - The report says which step comes next and which skill to call.
+- Every question or approval in the reply is understandable without opening a file: no N1 / T1 / #11 / § codes as the subject,
+  options spelled out (`references/writing.md` §10).
+- The user's hand edits in the reader md (if `check_market.py` reports them) carried into the working file; reader md rewritten for
+  the current state and `--mark-reader` run; the reply points the user to the reader md. No docx until the end, except the Dev
+  brief once sending is approved.

@@ -62,6 +62,15 @@ Answer form (one block per capability):
 - Ước lượng công làm bản thật: S / M / L / XL
 ```
 
+## Two copies — md for Dev's agent, docx for Dev to read
+- **`dev-brief.md` is the working file** Dev's agent reads next to the repo: full pass / fail lines, devices, the answer form, and
+  pointers into the code. It may be detailed, but it still **points to files instead of restating code** (thresholds, pipelines,
+  class-by-class behaviour): the agent reads the repo itself, and a restatement goes stale with the next commit.
+- **Dev reads the reader copy** `reader/dev-brief.md` → `export/dev-brief.docx`, rewritten every time the brief changes —
+  `reader-copy.md` "Dev brief". About 1–2 pages: what to test, what counts as pass, on which devices, what happens if it fails,
+  how to answer.
+- No market history, approval notes or change logs in either copy beyond the one-line change note at the top of the md.
+
 ## Store-policy flags for the category
 Add a line to the brief when the category triggers stricter App Review, so Dev checks it early: health or wellbeing (medical claims,
 health data — Apple 1.4.1, 5.1.3), apps for children (5.1.4: no third-party analytics or ads), location (5.1.5), user content or

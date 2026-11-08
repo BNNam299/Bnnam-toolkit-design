@@ -35,6 +35,10 @@ together once market, competitors and Dev's research are in. Stopping is a good 
    date, reasons, and the AI's suggestion beside it if different — and update `dev-brief.md` "Kết luận sau họp".
 8. **Write §7**: what the product stage must know, open questions, and the "Cần bổ sung để kiểm lại" table brought up to date (remove
    assumptions now verified, with the evidence number).
+**Reader copy first:** carry any hand edits from `docs/market/reader/` into the working file, then rewrite `docs/market/reader/market-report.md` for the current state (`market-standards/references/reader-copy.md`; md only — no docx until the end); the reply points the user to the reader md.
+**Final hand-over to people** (after the team's decision is recorded): export `reader/market-report.md` and `reader/dev-brief.md` to
+`export/market-report.docx` and `export/dev-brief.docx`, check both exist, then delete `docs/market/reader/` — one md for machines,
+one docx for people (`market-standards/references/reader-copy.md` "Life of the reader copy").
 9. **Report**: the verdict in one sentence, the 3 biggest risks, what to carry to the next toolkit (the whole `docs/market/` folder).
 
 ## Core rules
@@ -50,6 +54,7 @@ together once market, competitors and Dev's research are in. Stopping is a good 
 ## Self-check before reporting
 - Every §1 threshold has a line: đạt / chạm ngưỡng / chưa kiểm được, with evidence.
 - §5.4 shows Dev's answers or states clearly that none arrived.
+- After the decision: `export/market-report.docx` and `export/dev-brief.docx` exist and `reader/` is deleted.
 - `meeting-brief-b5.md` + .docx written, numbers only from the report, unanswered Dev questions listed as risks.
 - §6 (after the meeting): the team's verdict, reasons, risks, who attended and when, the AI's suggestion if different.
 - §7: hand-off list, open questions, assumptions table up to date.

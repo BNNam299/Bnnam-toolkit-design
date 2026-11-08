@@ -35,6 +35,7 @@ discussion, not a run-through.
    the biggest technical risk. Put the deadline as a date, **3 working days** after sending (`dev-brief-writing.md` "When it is
    written": at most 3 rounds, about 1.5 weeks in total). Propose the pass/fail numbers, mark the brief "Bản nháp — chờ duyệt
    ngưỡng", and ask the user to approve before it goes to Dev. No idea yet → no brief; write in §1 that the brief comes after step 4.
+**Reader copy first:** carry any hand edits from `docs/market/reader/` into the working file, then rewrite `docs/market/reader/market-report.md` for the current state (`market-standards/references/reader-copy.md`; md only — no docx until the end); if this step wrote or changed `dev-brief.md`, also rewrite `reader/dev-brief.md`, and export `export/dev-brief.docx` once the user approves sending. The reply points the user to the reader md files.
 6. **Report** in plain Vietnamese: what was recorded, the thresholds, whether the Dev brief is ready to send, next step
    `market-scan`. **Then stop** — even when the user pre-approved everything ("coi như tôi duyệt luôn") or asked to "start the
    research". Pre-approval covers the thresholds and the brief, not the next step: the user calls `market-scan` when ready, after

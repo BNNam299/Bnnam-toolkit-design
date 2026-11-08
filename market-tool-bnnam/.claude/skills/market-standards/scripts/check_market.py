@@ -1,8 +1,10 @@
 #!/usr/bin/env python3
 """check_market.py — mechanical checks on docs/market/ so the agent does not re-read everything by eye.
 
-Usage: python check_market.py [docs/market]
+Usage: python check_market.py [docs/market]                 check everything
+       python check_market.py [docs/market] --mark-reader   after writing reader/*.md: record them so hand edits can be shown
 Prints one line per finding (file:line · rule · detail) and a summary. Exit code 0 = no errors, 1 = errors found.
+If the user edited a reader md since it was marked, the changed lines are printed at the end.
 It checks form, not judgement: whether a number is right or a conclusion is sound is still the agent's and the team's job.
 """
 import io
@@ -25,7 +27,8 @@ findings = []
 
 
 def add(level, path, line, rule, detail):
-    findings.append((level, f"{path.name}:{line}", rule, detail))
+    name = f"{path.parent.name}/{path.name}" if path.parent.name == "reader" else path.name
+    findings.append((level, f"{name}:{line}", rule, detail))
 
 
 def read(path):
@@ -111,8 +114,8 @@ def check_report(lines, path, ids):
 
 def check_brief(lines, path):
     text = "\n".join(lines)
-    if not re.search(r"(Hạn trả lời|trả lời trước):?\**\s*\d{1,2}/\d{1,2}/\d{4}", text):
-        add("LỖI", path, 0, "brief Dev", "chưa ghi 'Hạn trả lời: dd/mm/yyyy'")
+    if not re.search(r"(Hạn trả lời|trả lời trước):?\**\s*\d{1,2}/\d{1,2}/\d{4}", text) and not re.search(r"Không đặt hạn", text, re.I):
+        add("LỖI", path, 0, "brief Dev", "chưa ghi 'Hạn trả lời: dd/mm/yyyy' (hoặc 'Không đặt hạn' nếu bạn yêu cầu)")
     rounds = 1 + len(re.findall(r"^## Câu hỏi mới — Bản 2 · \d", text, re.M)) + len(re.findall(r"^## Vòng thêm · \d", text, re.M))
     extra = len(re.findall(r"^## Vòng (thứ )?[4-9]|^## Bản [3-9]", text, re.M))
     if rounds + extra > 3:
@@ -126,11 +129,91 @@ def check_brief(lines, path):
             pass
     check_words(lines, path)
 
+READER_RULES = [
+    (re.compile(r"(?<![\w&])#\d+"), "số bằng chứng (#..) — bản đọc không dùng, ghi nguồn ngắn bằng chữ"),
+    (re.compile(r"\b[NT]\d\b|\bFEAT-|§\s?\d"), "mã nội bộ (N1, T1, FEAT-, §) — gọi bằng tên thường"),
+    (re.compile(r"<!--"), "comment HTML — bỏ khỏi bản đọc"),
+    (re.compile(r"[\w/-]+\.(md|kt|py|js|json)\b|market-(kickoff|scan|dig|score|decide|standards)"), "tên file / skill — người đọc không mở được"),
+    (re.compile(r"\b\d+([.,]\d+)?\s?[KM]\b"), "đơn vị K/M — viết 'nghìn' / 'triệu'"),
+    (re.compile(r"\bcommit\b|\b(?=[0-9a-f]*\d)(?=[0-9a-f]*[a-f])[0-9a-f]{7,40}\b"), "mã commit / repo — để ở tài liệu cho Dev"),
+]
+
+
+def check_reader(lines, path, for_dev=False):
+    # Dev opens the repo: file names, paths and commits are allowed in the Dev brief's reader copy.
+    rules = [r for r in READER_RULES if not (for_dev and ("tên file" in r[1] or "commit" in r[1]))]
+    for i, ln in enumerate(lines, 1):
+        for rx, msg in rules:
+            if rx.search(ln):
+                add("LỖI", path, i, "bản đọc", msg)
+                break
+    arrows = sum(ln.count("→") for ln in lines)
+    if arrows > 3:
+        add("CẢNH BÁO", path, 0, "bản đọc", f"{arrows} mũi tên '→' — viết thành câu đủ chủ vị")
+    if len(lines) > 220:
+        add("CẢNH BÁO", path, 0, "bản đọc", f"{len(lines)} dòng — bản đọc nên đọc xong trong 5–10 phút")
+    check_words(lines, path)
+
+
+MARK_FILE = ".written"
+
+
+def fingerprint(path):
+    import hashlib
+    return hashlib.sha256(path.read_bytes().replace(b"\r\n", b"\n")).hexdigest()[:16]
+
+
+def read_marks(reader_dir):
+    marks = {}
+    f = reader_dir / MARK_FILE
+    if f.exists():
+        for ln in f.read_text(encoding="utf-8").splitlines():
+            if " " in ln:
+                name, h = ln.split(" ", 1)
+                marks[name] = h.strip()
+    return marks
+
+
+def mark_reader(reader_dir):
+    """Record what the agent just wrote (fingerprint + a copy in reader/.goc/), so later hand edits can be shown."""
+    import shutil
+    files = sorted(p for p in reader_dir.glob("*.md"))
+    (reader_dir / MARK_FILE).write_text("".join(f"{p.name} {fingerprint(p)}\n" for p in files), encoding="utf-8")
+    goc = reader_dir / ".goc"
+    goc.mkdir(exist_ok=True)
+    for p in files:
+        shutil.copyfile(p, goc / p.name)
+    print("Đã ghi dấu bản đọc: " + ", ".join(p.name for p in files))
+
+
+hand_edits = []
+
+
+def check_hand_edit(path, marks):
+    h = marks.get(path.name)
+    if h is None:
+        add("CẢNH BÁO", path, 0, "bản đọc", "chưa ghi dấu — sau khi viết bản đọc, chạy lại với --mark-reader")
+    elif h != fingerprint(path):
+        add("LỖI", path, 0, "bản đọc đã sửa tay",
+            "người dùng đã sửa bản đọc — phần sửa in ở cuối; đưa vào bản làm việc (hỏi nếu đổi kết luận) rồi mới viết lại")
+        orig = path.parent / ".goc" / path.name
+        if orig.exists():
+            import difflib
+            a = orig.read_text(encoding="utf-8").splitlines()
+            b = path.read_text(encoding="utf-8").splitlines()
+            diff = [d for d in difflib.unified_diff(a, b, "bản agent viết", "bản người dùng sửa", n=0, lineterm="")]
+            hand_edits.append((path.name, diff[:80]))
+
 
 def main():
-    root = Path(sys.argv[1] if len(sys.argv) > 1 else "docs/market")
+    args = [a for a in sys.argv[1:] if not a.startswith("--")]
+    root = Path(args[0] if args else "docs/market")
     if not root.exists():
         print(f"Không thấy {root}"); return 1
+    if "--mark-reader" in sys.argv:
+        if not (root / "reader").exists():
+            print("Không có thư mục reader/"); return 1
+        mark_reader(root / "reader"); return 0
     ev_path = root / "evidence.md"
     ev = read(ev_path)
     ids = evidence_ids(ev, ev_path) if ev else set()
@@ -139,7 +222,23 @@ def main():
         check_report(read(rp), rp, ids)
     else:
         add("LỖI", rp, 0, "cấu trúc", "chưa có market-report.md")
+    reader_dir, export_dir = root / "reader", root / "export"
+    marks = read_marks(reader_dir)
+    rd = reader_dir / "market-report.md"
+    if read(rp) is not None:
+        if read(rd) is not None:
+            check_reader(read(rd), rd)
+            check_hand_edit(rd, marks)
+        elif not (export_dir / "market-report.docx").exists():
+            add("CẢNH BÁO", rd, 0, "bản đọc", "chưa có bản đọc cho người — viết lại cuối mỗi bước (reader-copy.md)")
     bp = root / "dev-brief.md"
+    if read(bp) is not None:
+        rdb = reader_dir / "dev-brief.md"
+        if read(rdb) is not None:
+            check_reader(read(rdb), rdb, for_dev=True)
+            check_hand_edit(rdb, marks)
+        elif not (export_dir / "dev-brief.docx").exists():
+            add("CẢNH BÁO", rdb, 0, "bản đọc", "chưa có bản đọc của brief cho Dev — reader-copy.md 'Dev brief'")
     if read(bp) is not None:
         check_brief(read(bp), bp)
     for mb in sorted(root.glob("meeting-brief-*.md")):
@@ -153,6 +252,9 @@ def main():
     errors = [f for f in findings if f[0] == "LỖI"]
     for lvl, where, rule, detail in findings:
         print(f"{lvl:9} {where:28} {rule:12} {detail}")
+    for name, diff in hand_edits:
+        print(f"\n--- Phần người dùng sửa trong reader/{name} ---")
+        print("\n".join(diff))
     print(f"\nTổng: {len(errors)} lỗi, {len(findings) - len(errors)} cảnh báo · {len(ids)} bằng chứng")
     return 1 if errors else 0
 

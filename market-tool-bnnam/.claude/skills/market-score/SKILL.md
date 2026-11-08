@@ -42,6 +42,7 @@ numbers in front of them.
    at top; thresholds awaiting the user's approval) — `../market-standards/references/dev-brief-writing.md`.
 7. **Write §5** — full detail only for the chosen idea; clusters and ideas that were dropped get one line each (score + reason).
    Run the delete test from `../market-standards/references/writing.md` §1. Update §0, check against the step-1 stop thresholds, add assumptions to §7.
+**Reader copy first:** carry any hand edits from `docs/market/reader/` into the working file, then rewrite `docs/market/reader/market-report.md` for the current state (`market-standards/references/reader-copy.md`; md only — no docx until the end); if this step wrote or changed `dev-brief.md`, also rewrite `reader/dev-brief.md`, and export `export/dev-brief.docx` once the user approves sending. The reply points the user to the reader md files.
 8. **Stop and discuss**: present a short **priority table with the AI's view and the user's view side by side** (`references/scoring.md`
    §7) — the user may reorder; where the two differ, write how and why. Then ask: **decide now, or take it to the team?** Team → write
    `meeting-brief-b4.md` + .docx (`../market-standards/references/meeting-brief.md`). Record in §5 who chose (the user or the team) and

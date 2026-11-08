@@ -84,6 +84,9 @@ Create missing files from `assets/`. Sections whose step has not run stay as hea
     HEART, cognitive walkthrough…), say so where it is used ("Cách làm: …"), list it in prd.md §15 "Phương pháp đã dùng", and name
     it in the reply — `references/writing.md` §7. When a step's own method leaves the question open, add a second tool from
     `references/thinking-toolbox.md` (mixing rules §8) and name both.
+12. **Chat speaks plainly.** Messages to the user — questions, approvals, stop-and-discuss, the final reply — never rely on internal
+   IDs (FEAT-, BR-, AC-, D-, M#, §), file paths or skill names: say what is being decided in plain words, each question standing alone
+   with the facts it depends on — `references/writing.md` §8.
 
 ## Export — md for agents, docx for people
 The md files are the source: Dev's own agent reads `prd.md` and `requirements.md` directly. The .docx is for people to read and is
@@ -93,6 +96,8 @@ requirements). It needs the npm package `docx` (installed globally); if the scri
 installing. Export only after the review in `references/quality-gates.md`; open items stay visible, never exported as if final.
 
 ## Self-check before any step reports
+- Every question or approval in the reply is understandable without opening a file: no FEAT- / D- / § IDs as the subject,
+  options spelled out (`references/writing.md` §8).
 - Run `python <skill-dir>/scripts/check_product.py docs/product` (prefix `PYTHONUTF8=1` on Windows) and fix every LỖI; read each
   CẢNH BÁO and fix it or say why it stays. Re-read `references/toolkit-lessons.md` — none of those mistakes repeated.
 - §0 quick-read lines updated; later sections still one line "Chưa làm — …".

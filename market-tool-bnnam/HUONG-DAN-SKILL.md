@@ -31,7 +31,9 @@ Dev trả lời lúc nào cũng được — để vào `docs/market/raw/dev-ans
 ## Đọc gì, gửi gì
 | File | Ai đọc |
 |---|---|
-| `docs/market/market-report.md` | cả team · agent của các bộ sau |
+| `docs/market/reader/market-report.md` | **bạn đọc và sửa trong lúc làm** — bản viết lại dễ đọc, cập nhật cuối mỗi bước; phần bạn sửa được đưa vào bản làm việc ở bước sau |
+| `docs/market/export/market-report.docx`, `dev-brief.docx` | **bản gửi đi** — xuất khi xong bước 5 (brief Dev xuất ngay khi bạn duyệt gửi); lúc đó thư mục `reader/` bị xoá |
+| `docs/market/market-report.md` | bản làm việc — agent của các bước sau và bộ product đọc; có mã, số bằng chứng, lịch sử |
 | `docs/market/meeting-brief-b4.md` / `-b5.md` + `export/*.docx` | người dự họp (5 phút) — agent không dùng file này |
 | `docs/market/dev-brief.md` | Dev và agent của Dev |
 | `docs/market/evidence.md` | khi cần kiểm một nhận định |

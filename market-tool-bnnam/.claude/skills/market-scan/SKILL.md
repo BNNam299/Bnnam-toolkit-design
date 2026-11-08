@@ -36,6 +36,7 @@ looks not worth digging.
 5. **Demand vs trend** check (`references/scan.md` §4).
 6. **Write §2** with the comparison table (≤ 6 columns, derived numbers, "→ Rút ra"), keyword lines, room-for-newcomers line, demand
    vs trend line, and the step conclusion compared with each relevant stop threshold. Add evidence entries. Update §0.
+**Reader copy first:** carry any hand edits from `docs/market/reader/` into the working file, then rewrite `docs/market/reader/market-report.md` for the current state (`market-standards/references/reader-copy.md`; md only — no docx until the end); the reply points the user to the reader md.
 7. **Decide the next move.** Worth digging → say so and point to `market-dig`. A stop threshold is hit, or the market looks not worth
    it → stop and ask the user: dừng / đổi hướng (another keyword, another tier, a narrower segment) / vẫn đào tiếp (recorded as the
    user's choice, with the reason).

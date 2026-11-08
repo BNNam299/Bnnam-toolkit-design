@@ -30,3 +30,13 @@ Format: `BH-<n> · <dd/mm/yyyy> · <source: test vòng N / dùng thật – dự
   compare it with the break-even CPI in one plain sentence · `market-score/references/economics.md` §3, `references/data-sources.md`
 - 08/11/2026 · người dùng · tài liệu đưa kết quả mà không nói đã giải bằng cách nào → dùng phương pháp có tên thì ghi "Cách làm:" tại
   chỗ + phụ lục "Phương pháp đã dùng" + nêu trong câu trả lời · `references/writing.md` §9
+- 08/11/2026 · người dùng (chạy thật ShotGuide) · báo cáo "máy móc, nhiều thông tin con người không đọc, khó hiểu": mã N1/T1, #số
+  mọi câu, lịch sử duyệt, đường dẫn repo / commit, câu điền khuôn, chuỗi "→ ·"; brief Dev 241 dòng chép lại code → tách hai người
+  đọc: `market-report.md` là bản làm việc cho agent, cuối mỗi bước viết lại **bản đọc** `reader/market-report.md` → docx; brief Dev
+  60–120 dòng, trỏ file thay vì kể lại code · `references/reader-copy.md`, `references/dev-brief-writing.md` "Length"
+- 08/11/2026 · người dùng (chạy thật ShotGuide) · trong chat agent hỏi "bạn duyệt T1–T3 chưa, N1–N5 đã duyệt" — người dùng không
+  biết đó là gì, phải hỏi lại hoặc mở file tìm, mất mạch brainstorm → chat nói thẳng nội dung cần chốt, mỗi câu hỏi tự đứng được,
+  không dùng mã / số bằng chứng / § / tên file làm chủ ngữ · `references/writing.md` §10, luật 11
+- 08/11/2026 · người dùng · bản đọc nên là md trong lúc làm (đọc và sửa nhanh), xong hết mới thành docx và xoá md đọc — cuối cùng
+  chỉ còn md cho máy + docx cho người; brief Dev xuất docx ngay khi duyệt gửi; người dùng sửa bản đọc thì phần sửa đi vào bản làm
+  việc trước khi viết lại (`check_market.py --mark-reader` lưu bản gốc, lần kiểm sau in đúng dòng bị sửa) · `references/reader-copy.md`

@@ -6,7 +6,7 @@ PRD là **tài liệu sống**: lớn dần theo từng phiên bản, không vi�
 Tra cứu nhanh theo tình huống và ai làm gì: [HUONG-DAN-SKILL.md](HUONG-DAN-SKILL.md).
 
 ## Cách dùng
-1. Chép thư mục `.claude/skills/` của bộ này vào dự án app (cùng chỗ với bộ market).
+1. Chép cả thư mục `.claude/` của bộ này (gồm `skills/` và `CLAUDE.md` — luật nói chuyện dễ hiểu, luôn được nạp) vào dự án app, hoặc mở Claude Code ngay trong thư mục này.
 2. Tài liệu bạn có sẵn — biên bản kick-off, file Feature / IAP / chỉ số của team, trả lời của Dev, số liệu sau phát hành — để vào
    `docs/product/raw/`.
 3. Gọi theo bảng dưới. Mỗi bước tự kiểm bước trước; thiếu gì sẽ báo và hỏi bạn trước khi viết.

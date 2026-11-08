@@ -31,3 +31,6 @@ Format: `BH-<n> · <dd/mm/yyyy> · <source: test vòng N / dùng thật – dự
   chữ (empathy map, phân tích tác vụ, sitemap cây chữ, luồng tổng); tool demo chỉ vẽ lại và link về · `product-spec/references/spec.md` §3
 - BH-11 · 08/11/2026 · người dùng · tài liệu đưa kết quả mà không nói đã giải bằng cách nào → dùng phương pháp có tên thì ghi "Cách làm:"
   tại chỗ + phụ lục "Phương pháp đã dùng" + nêu trong câu trả lời · `references/writing.md` §7
+- 08/11/2026 · người dùng (chạy thật market, áp dụng cho product) · agent hỏi duyệt bằng mã (T1, N1) khiến người dùng phải mở file
+  tra → chat nói thẳng nội dung cần chốt, mỗi câu hỏi tự đứng được, không dùng FEAT- / D- / § / tên file làm chủ ngữ ·
+  `references/writing.md` §8, luật 12

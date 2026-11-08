@@ -11,6 +11,7 @@ the busiest first.
 5. Tables
 6. Numbers and labels
 7. Name the method you used
+8. Talking with the user in chat
 
 ## 1. Keep only what carries weight
 A sentence stays only if it carries at least one of: a number with its source · an ID (M#, P#, FEAT, UC, FR, D…) · a decision, rule
@@ -95,3 +96,29 @@ was solved, not only the answer.
 - The final reply of every step has one line "Cách làm: <phương pháp> → <ra gì> · <phương pháp> → <ra gì>" — naming them, not only
   "xem phụ lục".
 
+## 8. Talking with the user in chat
+
+The user is a person brainstorming with you, not a parser. They cannot hold a 300-line document in their head and should never have
+to open a file to understand a question. The working files keep their codes (FEAT-…, BR-…, AC-…, D-…, M#12, §8); **the chat never
+depends on them.**
+
+1. **Say the content, not the code.** Never ask "bạn duyệt D-04 chưa?" or "FEAT-03 để Now hay Next?". Write out what is being approved, in
+   one plain line each. If a code helps the user find it later, it may follow in parentheses — the sentence must make sense without it.
+   - Bad: "Cần chốt: ngưỡng T1–T3 và cột Lõi / Mở rộng trong dev-brief.md (N1–N5 đã duyệt)."
+   - Good: "Cần bạn chốt 3 mức đạt cho Dev trước khi gửi:
+     1. Nhận diện người trên iPhone 11 chạy được từ 15 khung hình mỗi giây trở lên.
+     2. Cùng một ảnh, bản iOS phải ra cùng số đo với bản Android (lệch tối đa 1%).
+     3. Đọc góc máy từ ảnh mẫu xong trong 3 giây.
+     Đồng ý, hay muốn đổi mức nào?"
+2. **Every question stands alone.** Assume the user remembers nothing from earlier in the run. Repeat the one or two facts the
+   question depends on ("Bản đầu chỉ có chụp theo ảnh mẫu và chọn 5 tấm đẹp; thư viện ảnh mẫu để bản sau — …").
+3. **One decision per question, with the options spelled out** and your suggestion first. Never "bạn thấy sao về mục 5?".
+4. **Short.** A stop-and-ask message is what changed, what you need from the user, and the options — no recap of the whole
+   document, no file tour. Point to the file once at the end.
+5. **No file paths, skill names, section numbers or method jargon as the subject of a sentence.** "Bước tiếp: viết yêu cầu chi tiết cho từng tính năng" — not
+   "gọi `product-spec` để điền §6–8". Method names go in the single "Cách làm:" line, explained in a few words.
+6. **Numbers rounded and compared, as in the reader copy** ("gấp 3 lần tháng trước"), with a two-word source.
+7. Address the user as "bạn"; decisions are *làm tiếp / đổi hướng / dừng*.
+
+Self-check before sending a message that asks for a decision: read it as someone who has not seen any file — could they answer it
+right now, without scrolling up or opening anything?

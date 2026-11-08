@@ -5,7 +5,7 @@ Bộ này dùng riêng, không phụ thuộc bộ khác. Kết quả là tài li
 Tra cứu nhanh theo tình huống và ai làm gì: [HUONG-DAN-SKILL.md](HUONG-DAN-SKILL.md).
 
 ## Cách dùng
-1. Chép thư mục `.claude/skills/` của bộ này vào dự án app (hoặc mở Claude Code ngay trong thư mục này).
+1. Chép cả thư mục `.claude/` của bộ này (gồm `skills/` và `CLAUDE.md` — luật nói chuyện dễ hiểu, luôn được nạp) vào dự án app, hoặc mở Claude Code ngay trong thư mục này.
 2. Tài liệu bạn đã có (file xuất từ công cụ, ảnh chụp, nghiên cứu cũ) để vào `docs/market/raw/` của dự án app.
 3. Gọi lần lượt 5 bước dưới đây. Mỗi bước tự kiểm bước trước đã xong chưa. Nếu thiếu, bộ sẽ báo thiếu gì và hỏi bạn có cho chạy tiếp không.
 
@@ -22,11 +22,12 @@ Tra cứu nhanh theo tình huống và ai làm gì: [HUONG-DAN-SKILL.md](HUONG-D
 ## Kết quả nằm ở đâu
 ```
 docs/market/
-├── market-report.md   ← báo cáo chính: 4 dòng "đọc nhanh" ở đầu, mỗi bước điền một mục
+├── market-report.md   ← bản làm việc (agent đọc): mỗi bước điền một mục
 ├── evidence.md        ← bằng chứng nguyên văn, đánh số #1, #2… để báo cáo trỏ tới
 ├── dev-brief.md       ← yêu cầu thử nghiệm kỹ thuật, gửi Dev (agent của Dev đọc được) — tối đa 3 lần hỏi, ~1,5 tuần
 ├── meeting-brief-b4.md / -b5.md ← tài liệu họp team, đọc 5 phút (chỉ cho người đọc)
-├── export/            ← bản .docx của tài liệu họp
+├── reader/            ← bản đọc (md) cho người trong lúc làm, bạn sửa thẳng được — xoá khi xong
+├── export/            ← bản .docx để gửi, xuất khi xong: market-report.docx, dev-brief.docx + tài liệu họp
 └── raw/               ← file của bạn (AI chỉ đọc) + trả lời của Dev: raw/dev-answer-<ngày>.md
 ```
 
