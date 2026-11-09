@@ -23,6 +23,7 @@ export type IssueKind =
   | 'orphan-token'
   | 'raw-stroke'
   | 'raw-radius'
+  | 'corner-smoothing'
   | 'primitive-bound'
   | 'stale-paint'
   | 'icon-offcenter'
@@ -47,6 +48,7 @@ export const SEVERITY: Record<IssueKind, Severity> = {
   'hidden-layer': 'nice',
   'raw-stroke': 'should',
   'raw-radius': 'should',
+  'corner-smoothing': 'should',
   'primitive-bound': 'should',
   // The binding looks right but Figma paints the stale colour: broken render.
   'stale-paint': 'block',
@@ -200,7 +202,7 @@ export function toQaMarkdown(report: AuditReport, opts: { file?: string; date?: 
   const groupOf: Record<string, string> = {
     'default-name': 'A', 'blacklisted-name': 'A', 'hidden-layer': 'A', 'detached-instance': 'A',
     'outside-section': 'A', 'variant-explosion': 'A',
-    'raw-fill': 'B', 'raw-text': 'B', 'orphan-token': 'B', 'raw-stroke': 'B', 'raw-radius': 'B', 'primitive-bound': 'B', 'stale-paint': 'B',
+    'raw-fill': 'B', 'raw-text': 'B', 'orphan-token': 'B', 'raw-stroke': 'B', 'raw-radius': 'B', 'corner-smoothing': 'B', 'primitive-bound': 'B', 'stale-paint': 'B',
     'no-autolayout': 'C', 'redundant-wrapper': 'C', 'off-scale-spacing': 'C', 'icon-offcenter': 'C',
     contrast: 'E', 'small-target': 'E',
     lorem: 'F',
@@ -267,6 +269,8 @@ function fixHint(kind: IssueKind): string {
       return 'Bind `color/border/*` variable hoặc paint style';
     case 'raw-radius':
       return 'Bind `radius/*` variable (bind_variables)';
+    case 'corner-smoothing':
+      return 'Corner smoothing 60% cho mọi góc bo (update_nodes radius, hoặc bind_variables fields radius)';
     case 'primitive-bound':
       return 'Đổi sang Semantic token; nếu biến đã ở Semantic mà scopes rỗng thì đặt lại scopes';
     case 'icon-offcenter':

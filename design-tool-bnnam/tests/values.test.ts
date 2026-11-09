@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import {
+  CORNER_SMOOTHING,
   expandSides,
+  hasRoundedCorner,
   gradientTransform,
   matchFontStyle,
   parseColor,
@@ -95,5 +97,17 @@ describe('expandSides', () => {
     expect(expandSides(8)).toEqual([8, 8, 8, 8]);
     expect(expandSides<number>([4, 8])).toEqual([4, 8, 4, 8]);
     expect(expandSides<number>([1, 2, 3, 4])).toEqual([1, 2, 3, 4]);
+  });
+});
+
+describe('corner smoothing rule', () => {
+  it('is 60% for every rounded corner', () => {
+    expect(CORNER_SMOOTHING).toBe(0.6);
+  });
+  it('detects a rounded corner from a single radius or any one corner', () => {
+    expect(hasRoundedCorner({ cornerRadius: 12 })).toBe(true);
+    expect(hasRoundedCorner({ cornerRadius: 0 })).toBe(false);
+    expect(hasRoundedCorner({ cornerRadius: Symbol('mixed'), topLeftRadius: 0, topRightRadius: 16, bottomLeftRadius: 0, bottomRightRadius: 0 })).toBe(true);
+    expect(hasRoundedCorner({})).toBe(false);
   });
 });

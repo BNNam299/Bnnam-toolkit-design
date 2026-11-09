@@ -29,7 +29,7 @@ Types: `frame`, `text`, `rect`, `ellipse`, `svg`, `image`, `instance`, `section`
   "justify": "START",              // primary axis: START | CENTER | END | SPACE_BETWEEN
   "align": "CENTER",               // counter axis: START | CENTER | END | BASELINE
   "fill": "#FFFFFF",               // hex | {var} | {style} | gradient | {image} | array (top first)
-  "radius": 16,                    // n or [tl, tr, br, bl]
+  "radius": 16,                    // n or [tl, tr, br, bl] — the plugin adds corner smoothing 60% (team rule)
   "stroke": { "color": "#E2E8F0", "width": 1, "align": "INSIDE" },   // width n or [t,r,b,l]; dash [4,4]
   "effects": "md",                 // none|sm|md|lg|xl | [{x,y,blur,spread,color,type}] | [{layerBlur}] | [{backgroundBlur}] | {style}
   "layoutGrids": { "preset": "mobile" },   // or [{pattern, count, gutter, margin}] | {style}

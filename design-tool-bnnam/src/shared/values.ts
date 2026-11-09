@@ -1,6 +1,21 @@
 // Pure conversions shared by the plugin and the server. No figma or node APIs
 // here so the functions stay unit-testable.
 
+/** Team rule: every rounded corner uses 60% corner smoothing (Figma's iOS-style squircle). */
+export const CORNER_SMOOTHING = 0.6;
+
+/** True when a node has a non-zero radius on at least one corner. */
+export function hasRoundedCorner(n: {
+  cornerRadius?: unknown;
+  topLeftRadius?: number;
+  topRightRadius?: number;
+  bottomLeftRadius?: number;
+  bottomRightRadius?: number;
+}): boolean {
+  if (typeof n.cornerRadius === 'number') return n.cornerRadius > 0;
+  return [n.topLeftRadius, n.topRightRadius, n.bottomLeftRadius, n.bottomRightRadius].some((r) => typeof r === 'number' && r > 0);
+}
+
 export interface Rgba {
   r: number;
   g: number;

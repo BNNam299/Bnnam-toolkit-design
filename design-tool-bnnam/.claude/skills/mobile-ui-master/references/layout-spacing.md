@@ -99,6 +99,7 @@ From the designer's personal UI notes; numbers are exact.
 | **Same frame, same radius** | Containers inside the same frame have **equal** corner radii | — |
 | **Adjacent radius** | A **large** element's radius = **½ the height of the small element next to it** | an image with radius 22 next to a 44-high button · an info bar 50 high → the container below it has radius 25 |
 | **Equivalent form** | A chip-like bar has **height = 2 × the radius** of the other large frames | chip row 44 high ↔ cards with radius 22 |
+| **Corner smoothing** | **Every** corner radius > 0 has corner smoothing **60%** (Figma `cornerSmoothing = 0.6`) — team rule | card r28, button pill, screen root r44: all 60% |
 
 The measured radius scale of the designer's files (pill / 21 / 28 / 36 / 44) is in `screen-structure.md` §8.
 

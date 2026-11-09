@@ -16,13 +16,13 @@ import {
   type Issue,
   type RGB,
 } from '../../shared/audit';
-import { toHex } from '../../shared/values';
+import { CORNER_SMOOTHING, hasRoundedCorner, toHex } from '../../shared/values';
 import { offCentreIcons } from '../icons';
 import { getNode } from '../util';
 
 const CHECK_GROUPS: Record<string, string[]> = {
   names: ['default-name', 'blacklisted-name'],
-  tokens: ['raw-fill', 'raw-text', 'raw-stroke', 'raw-radius', 'primitive-bound', 'stale-paint'],
+  tokens: ['raw-fill', 'raw-text', 'raw-stroke', 'raw-radius', 'corner-smoothing', 'primitive-bound', 'stale-paint'],
   layout: ['no-autolayout', 'redundant-wrapper', 'off-scale-spacing', 'icon-offcenter'],
   a11y: ['contrast', 'small-target'],
   hygiene: ['hidden-layer', 'orphan-token', 'outside-section', 'variant-explosion'],
@@ -238,6 +238,10 @@ export async function auditDesign(p: AuditInput) {
     }
     if (enabled.has('raw-radius') && !chrome && 'cornerRadius' in n && typeof n.cornerRadius === 'number' && n.cornerRadius > 0) {
       if (!bound(n, 'topLeftRadius') && !bound(n, 'cornerRadius')) push('raw-radius', `radius ${n.cornerRadius} không bind variable`);
+    }
+    if (enabled.has('corner-smoothing') && 'cornerSmoothing' in n && hasRoundedCorner(n as unknown as CornerMixin)) {
+      const cs = (n as unknown as CornerMixin).cornerSmoothing;
+      if (Math.abs(cs - CORNER_SMOOTHING) > 0.005) push('corner-smoothing', `corner smoothing ${Math.round(cs * 100)}% (team: 60%)`);
     }
     if (enabled.has('primitive-bound')) {
       for (const vid of boundIds(n)) {

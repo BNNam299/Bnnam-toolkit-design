@@ -53,6 +53,7 @@ frame.fills = [figma.variables.setBoundVariableForPaint(base, 'color', actionPri
 frame.setBoundVariable('itemSpacing', space2);
 frame.setBoundVariable('paddingLeft', space4);   // same for paddingRight/Top/Bottom
 frame.setBoundVariable('topLeftRadius', radiusMd); // and the other 3 corners
+frame.cornerSmoothing = 0.6;                        // team rule: every rounded corner, 60% smoothing
 ```
 
 ## 4. Auto Layout

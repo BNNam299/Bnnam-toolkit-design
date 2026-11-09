@@ -168,7 +168,7 @@ if (CONFIG.MODE === "explore") {
       const [kind, sz, fx, fy, rot] = LAYOUT[i];
       const n = kind === "ellipse" ? figma.createEllipse() : kind === "rect" ? figma.createRectangle() : figma.createPolygon();
       n.name = `Shape ${i + 1}`; f.appendChild(n); n.resize(L * sz, L * sz); n.x = W * fx; n.y = H * fy; if (rot) n.rotation = rot;
-      if (kind === "rect") n.cornerRadius = L * sz * 0.2;
+      if (kind === "rect") { n.cornerRadius = L * sz * 0.2; n.cornerSmoothing = 0.6; }   // team rule: 60% smoothing
       n.fills = [await paint(p.shapes[i])];
       if (layerBlur) n.effects = [{ type: "LAYER_BLUR", radius: layerBlur, visible: true, blurType: "NORMAL" }];
     }

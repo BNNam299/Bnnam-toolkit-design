@@ -1,6 +1,6 @@
 import type { AnyProps, NumOrVar } from '../shared/schemas';
 import { GRID_PRESETS, toLayoutGrid } from '../shared/grids';
-import { expandSides, parseLetterSpacing, parseLineHeight, weightToStyle } from '../shared/values';
+import { CORNER_SMOOTHING, expandSides, parseLetterSpacing, parseLineHeight, weightToStyle } from '../shared/values';
 import { loadFont, loadNodeFonts, resolveFont } from './fonts';
 import { resolveEffects, resolveFill } from './paints';
 import type { Resources } from './resources';
@@ -158,6 +158,8 @@ async function applyStroke(node: SceneNode, s: NonNullable<AnyProps['stroke']>, 
 }
 
 async function applyRadius(node: SceneNode, radius: NonNullable<AnyProps['radius']>, ctx: ApplyCtx) {
+  // Team rule: any corner radius comes with 60% corner smoothing.
+  if ('cornerSmoothing' in node) (node as CornerMixin).cornerSmoothing = CORNER_SMOOTHING;
   if (!Array.isArray(radius)) {
     await setNum(node, 'cornerRadius', radius, ctx, (v) => ((node as CornerMixin).cornerRadius = v));
     return;

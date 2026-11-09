@@ -90,6 +90,7 @@ then the reference for whichever item fails. Reading a project → `reading-scre
 ### 6. Corner radius
 - Containers in the same frame share one radius. A large element next to a small one takes **½ the small one's height** (button 44 → image r22;
   bar 50 → container r25). Designer scale: pill · 21 list card · 28 sheet/summary card · 36 large card · 44 screen root.
+- **Every rounded corner has corner smoothing 60%** (`cornerSmoothing = 0.6`) — team rule, no exception.
 
 ### 7. Typography
 - System fonts and text styles by role (iOS: Dynamic Type styles; M3: Display / Headline / Title / Body / Label × L/M/S). No ALL CAPS paragraphs,

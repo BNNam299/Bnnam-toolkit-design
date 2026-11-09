@@ -1,6 +1,6 @@
 ---
 name: bnnam-standards
-description: The design team's own standard for its Figma files, winning over generic defaults there - read before acting, who wins when sources disagree (Apple's system numbers first), gates, error groups, consent and stop points, the design/ folder and decision log, reports, seven hard rules; working with the designer (_Fix and _Fix AI copies, own section, main components hands-off, learning from edits), brainstorming; screen naming; the designer's frame (root NONE, Safe-Area per device, background clusters, 402x874 for new projects); team lessons for building screens (image placeholders, vector vs generated image, clone tests); the draft and option rhythm and the lock phase (components, icons, audit, batches). Use whenever you build, edit, name, clone or review screens in the team's files. Vietnamese triggers such as "chuẩn team", "đặt tên màn", "khung màn chuẩn", "safe area", "dựng nháp", "làm option", "chốt màn", "nghiệm thu lô", "clone màn từ ảnh", "bản Fix". For the generic build loop use figma-ui-flow.
+description: The design team's own standard for its Figma files, winning over generic defaults there - read before acting, who wins when sources disagree (Apple's system numbers first), gates, error groups, consent and stop points, the design/ folder and decision log, reports, eight hard rules; working with the designer (_Fix and _Fix AI copies, own section, main components hands-off, learning from edits), brainstorming; screen naming; the designer's frame (root NONE, Safe-Area per device, background clusters, 402x874 for new projects); team lessons for building screens (image placeholders, vector vs generated image, clone tests); the draft and option rhythm and the lock phase (components, icons, audit, batches). Use whenever you build, edit, name, clone or review screens in the team's files. Vietnamese triggers such as "chuẩn team", "đặt tên màn", "khung màn chuẩn", "safe area", "dựng nháp", "làm option", "chốt màn", "nghiệm thu lô", "clone màn từ ảnh", "bản Fix". For the generic build loop use figma-ui-flow.
 ---
 
 # bnnam-standards — how the team works in its Figma files
@@ -30,7 +30,7 @@ adaptation (`iphone-duo-adaptive`, `apple-design-iphone`, `apple-design-ipad`).
 | Gates, roles, six error groups, what to always say, going in circles | `references/team-rules.md` §4–6 |
 | Plan before running, what counts as consent, where to stop | `references/team-rules.md` §7 |
 | The `design/` folder, status block, decision log, `project.yaml` | `references/team-rules.md` §8 |
-| Report format; knowledge as a lens; HIG + Material; one layout for iOS and Android; seven hard rules | `references/team-rules.md` §9–10 |
+| Report format; knowledge as a lens; HIG + Material; one layout for iOS and Android; eight hard rules | `references/team-rules.md` §9–10 |
 | `_Fix` / `_Fix AI`, own section, designer edits win, main components, learning loop, where lessons go | `references/team-rules.md` §12 |
 | Brainstorming options with the designer | `references/team-rules.md` §13 |
 | Name a screen, a suffix, a component, a placeholder layer | `references/naming.md` |

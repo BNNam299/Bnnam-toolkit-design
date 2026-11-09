@@ -229,7 +229,7 @@ Next steps
 ## 10. Using design knowledge — lens, not procedure
 
 ### 10.1 Knowledge is a lens
-Real design **applies thinking**; it doesn't march *step this, then that*. Use knowledge **when it helps a decision**; don't run every model on every job; **don't lecture frameworks** to the user — state the decision and its reason plainly: *"the Capture button sits in the middle because it is the most frequent action"*. No *"every screen must do X"* rule comes from knowledge **except the seven hard rules** in 10.3. Two lenses conflict → choose by the goal of the job and say what you chose. Knowledge conflicts with a team rule → the rule wins; report the conflict. Every decision answers: who uses it · in what context · what goal · what risk · why it beats the alternatives.
+Real design **applies thinking**; it doesn't march *step this, then that*. Use knowledge **when it helps a decision**; don't run every model on every job; **don't lecture frameworks** to the user — state the decision and its reason plainly: *"the Capture button sits in the middle because it is the most frequent action"*. No *"every screen must do X"* rule comes from knowledge **except the eight hard rules** in 10.3. Two lenses conflict → choose by the goal of the job and say what you chose. Knowledge conflicts with a team rule → the rule wins; report the conflict. Every decision answers: who uses it · in what context · what goal · what risk · why it beats the alternatives.
 
 **Three layers, in priority order:**
 1. **Durable principles** — purpose, user control, familiarity, simplicity, accessibility, feedback, error recovery.
@@ -256,12 +256,13 @@ Real design **applies thinking**; it doesn't march *step this, then that*. Use k
 - **Consult both sides when looking for a layout.** The main design leans iOS; Material is not a standard to switch to but a source of solutions to combine. When comparing options (§13) an option may take a Material solution — label it *"Material's solution: …"* so the designer knows the source. The combined layout is still **one set for both platforms**.
 - **Touch areas are the developer's job; design does not check them.** Visible buttons of 32 or 36 are still used; the developer enlarges the hit area in code. Reference numbers for developers: 44pt iOS · 48dp Android · take 48 for both platforms.
 
-### 10.3 Seven hard rules drawn from knowledge — always apply
+### 10.3 Eight hard rules drawn from knowledge — always apply
 
 | Rule | Applies in | Machine-checkable |
 |---|---|---|
 | **Layer opacity only for a disabled composite.** For a lighter colour use a dedicated alpha token | building UI · audit | yes |
 | **Nested corner radius = ½ the height of the adjacent smaller element**; containers in the same frame use equal radii | building UI · audit | yes — **report only, never auto-fix** |
+| **Corner smoothing 60% on every rounded corner** — any corner radius > 0 (frame, rectangle, image, card, button, sheet, screen root) gets `cornerSmoothing = 0.6`; the plugin's `render_tree` / `update_nodes` set it with every radius, a hand-written `execute_code` script sets it next to `cornerRadius` | building UI · audit | yes — auto-fix allowed (`bind_variables` fields radius, or `n.cornerSmoothing = 0.6`) |
 | **Letter spacing = size × 2.5%** when generating a new type scale | style reading (new scale) | yes |
 | ~~Minimum touch area 44 × 44 pt (iOS) · 48 × 48 dp (Android)~~ → **developer's job, design does not check** (tap check off in the audit); the handoff notes remind developers | — | no |
 | **Text contrast WCAG AA: 4.5 : 1 normal text · 3 : 1 large text** (≥ 24px, or ≥ 18.66px bold — WCAG measures in pt: 18pt / 14pt bold) — check light and dark; disabled is only flagged. **With a token system, the system already handles contrast** — the agent only picks and assembles tokens; a failing token pair = the wrong pair was assembled → pick another token, not a defect. A failing raw colour → defect | audit (text contrast · token-pair contrast) | yes |

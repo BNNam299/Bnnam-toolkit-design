@@ -2,7 +2,7 @@
 // Run via execute_code: set CONFIG below, send the whole file as `code` (timeoutMs up to ~120000 on big files).
 // Body of an async function: top-level `await` and `return`, `figma` in scope.
 // Covers: the nine binding counts (raw values) · screen frame structure · meta text in frames (ux-writing principles §2) ·
-//         hard rules (contrast, glyph icons, overflow, radii) · broken instances and duplicate components.
+//         hard rules (contrast, glyph icons, overflow, radii, corner smoothing 60%) · broken instances and duplicate components.
 // Reports per category, never one merged number. Image placeholders are expected — counted separately.
 
 const CONFIG = {
@@ -591,6 +591,10 @@ for (const screen of screens) {
       for (const k of ["paddingTop", "paddingRight", "paddingBottom", "paddingLeft", "itemSpacing"])
         if (num(n[k]) && n[k] > 0 && !B[k]) { if (CONFIG.RAW_SPACING_IN_SCREEN && n.type === "FRAME") rawSpacingIntent++; else raw.spacing++; }
     if (num(n.cornerRadius) && n.cornerRadius > 0 && !B.topLeftRadius) raw.radius++;
+    // team rule: every rounded corner has corner smoothing 60%
+    if (num(n.cornerSmoothing) && Math.abs(n.cornerSmoothing - 0.6) > 0.005
+        && (num(n.cornerRadius) ? n.cornerRadius > 0 : [n.topLeftRadius, n.topRightRadius, n.bottomLeftRadius, n.bottomRightRadius].some(r => num(r) && r > 0)))
+      add("cornerSmoothing", screen, n, { smoothing: `${Math.round(n.cornerSmoothing * 100)}%`, hint: "set 60% — n.cornerSmoothing = 0.6, or bind_variables fields radius" });
     if (Array.isArray(n.strokes) && n.strokes.length && num(n.strokeWeight) && n.strokeWeight > 0 && !B.strokeWeight) raw.stroke++;
     if (Array.isArray(n.effects) && n.effects.length && !n.effectStyleId) raw.effect++;
     if (num(n.opacity) && n.opacity < 1 && !(n.children && n.children.length > 1 && /disable/i.test(n.name))) { raw.opacity++; add("opacity", screen, n, { opacity: n.opacity }); }
@@ -732,7 +736,7 @@ for (const [k, v] of Object.entries(CONFIG.SYSTEMS)) if (!v) notHandled.push(`"$
 
 // ───────────────────────── report
 const mustBeZero = ["rootAutoLayout", "safeArea", "verticalBarNotAtEdge", "statusBarWrongDevice", "duoMarginBelowApple", "duoPaddingNextToBar", "screenName", "fadedCardBackground", "stalePaint", "floatOverText", "outsideSection", "textLostOnShape", "handDrawnStatusBar", "backgroundNotAtBottom", "duplicateBackground", "blurOnSystemSurface", "componentInScreen", "genericFrameName", "devNoteInScreen", "metaText", "placeholderText",
-  "forbiddenWord", "termMismatch", "glyphHealth", "brokenInstance", "contrastText", "tap", "opacity", "group"];
+  "forbiddenWord", "termMismatch", "glyphHealth", "brokenInstance", "contrastText", "cornerSmoothing", "tap", "opacity", "group"];
 const errors = Object.fromEntries(mustBeZero.filter(k => totals[k] && !["tap", "opacity", "group"].includes(k)).map(k => [k, totals[k]]));
 for (const [k, v] of Object.entries(nine)) if (v && (UI || ["opacity", "group", "tap"].includes(k))) errors[k] = v;   // the nine counts — reported per kind
 const nineInfo = UI ? null : nine;                                     // wireframe: fill/text/spacing… are information only

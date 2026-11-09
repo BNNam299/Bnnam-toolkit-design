@@ -74,7 +74,8 @@ for (const n of variants) {
     if (k === "radius") {
       const num = raw === "pill" ? n.height / 2 : r.raw;
       rows.push({ k, before: n.cornerRadius === figma.mixed ? "MIXED" : n.cornerRadius, after: raw, apply: () => {
-        for (const f of ["topLeftRadius", "topRightRadius", "bottomLeftRadius", "bottomRightRadius"]) bindOr(f, num); } });
+        for (const f of ["topLeftRadius", "topRightRadius", "bottomLeftRadius", "bottomRightRadius"]) bindOr(f, num);
+        if ("cornerSmoothing" in n) n.cornerSmoothing = 0.6; } });   // team rule: every rounded corner, 60% smoothing
     } else if (k === "fill" || k === "stroke") {
       const field = k === "fill" ? "fills" : "strokes";
       rows.push({ k, before: (n[field] || []).length ? "yes" : "none", after: raw, apply: async () => {

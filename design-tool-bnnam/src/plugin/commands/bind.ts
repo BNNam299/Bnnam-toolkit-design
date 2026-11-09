@@ -3,7 +3,7 @@
 // dryRun (default) only reports.
 import { exactNumber, nearestColor, type ColorCandidate, type Field, type NumberCandidate } from '../../shared/color';
 import type { BindVariablesInput } from '../../shared/schemas';
-import { parseColor, toHex } from '../../shared/values';
+import { CORNER_SMOOTHING, hasRoundedCorner, parseColor, toHex } from '../../shared/values';
 import { getNode } from '../util';
 
 type Bindable = SceneNode & { setBoundVariable(field: VariableBindableNodeField, v: Variable | null): void };
@@ -148,6 +148,14 @@ export async function bindVariables(p: BindVariablesInput) {
       }
     }
 
+    // Team rule: every rounded corner has 60% corner smoothing.
+    if (fields.has('radius') && 'cornerSmoothing' in n && hasRoundedCorner(n as unknown as CornerMixin)) {
+      const cs = (n as unknown as CornerMixin).cornerSmoothing;
+      if (Math.abs(cs - CORNER_SMOOTHING) > 0.005) {
+        changes.push({ id: n.id, name: n.name, field: 'cornerSmoothing', from: `${Math.round(cs * 100)}%`, to: '60%' });
+        if (!p.dryRun) (n as unknown as CornerMixin).cornerSmoothing = CORNER_SMOOTHING;
+      }
+    }
     if (fields.has('radius') && 'cornerRadius' in n && typeof (n as RectangleNode).cornerRadius === 'number') {
       const r = (n as RectangleNode).cornerRadius as number;
       if (r > 0 && !bv.topLeftRadius && !bv.cornerRadius) {

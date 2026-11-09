@@ -7,6 +7,7 @@ import type { ApplyCtx } from '../apply';
 import { iconWarnings } from '../icons';
 import { solid } from '../paints';
 import { Resources } from '../resources';
+import { CORNER_SMOOTHING } from '../../shared/values';
 import { freeSpot, getContainer, RolledBackError } from '../util';
 import { build, type BuildState } from './render';
 
@@ -58,6 +59,7 @@ export async function createComponentSet(p: CreateComponentSetInput) {
     set.dashPattern = [10, 5];
     set.strokeWeight = 1;
     set.cornerRadius = 5;
+    set.cornerSmoothing = CORNER_SMOOTHING;
     if (spot) {
       set.x = spot.x;
       set.y = spot.y;
