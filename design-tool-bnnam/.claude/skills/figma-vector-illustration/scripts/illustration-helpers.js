@@ -140,6 +140,106 @@ function buildWidget(widget, illustration, content, { pad = [12, 16, 16, 16], ga
   return s;
 }
 
+// ---------------------------------------------------------------- shape checks (read only — run after every pass)
+// Rule 6: a mass built from primitives stacked on each other (circles + rectangles of one colour merged by eye or by a union)
+// instead of one pen-tool path. Reusable geometric parts (buttons, dots, pills, rivets) are fine — name them and say so.
+function stackedPrimitives(root) {
+  const PRIM = new Set(['ELLIPSE', 'RECTANGLE', 'POLYGON', 'STAR']);
+  const colour = (n) => { const f = Array.isArray(n.fills) && n.fills.find((p) => p.visible !== false); return f && f.type === 'SOLID' ? `${f.color.r.toFixed(2)},${f.color.g.toFixed(2)},${f.color.b.toFixed(2)}` : f ? f.type : 'none'; };
+  const hit = (a, b) => { const A = a.absoluteBoundingBox, B = b.absoluteBoundingBox; return A && B && A.x < B.x + B.width && B.x < A.x + A.width && A.y < B.y + B.height && B.y < A.y + A.height; };
+  const out = [];
+  for (const g of [root, ...root.findAll((n) => 'children' in n)]) {
+    if (!('children' in g)) continue;
+    const prims = g.children.filter((c) => PRIM.has(c.type) && !c.isMask);
+    if (g.type === 'BOOLEAN_OPERATION' && g.booleanOperation === 'UNION' && prims.length >= 2)
+      out.push({ id: g.id, name: g.name, why: `union of ${prims.length} primitives — draw the outline as one path unless the shape really is these primitives` });
+    const byColour = {};
+    for (const c of prims) (byColour[colour(c)] = byColour[colour(c)] || []).push(c);
+    for (const [col, list] of Object.entries(byColour)) {
+      const touching = list.filter((a) => list.some((b) => a !== b && hit(a, b)));
+      if (touching.length >= 2) out.push({ id: g.id, name: g.name, why: `${touching.length} overlapping primitives of one colour (${touching.map((n) => n.name).join(', ')}) read as one mass — one path` });
+    }
+  }
+  return out;
+}
+
+// Rule 1: small details laid on a base shape (the group's bottom child) that stick out past it — bracelet stripes past the arm,
+// a highlight past the cap. Report only: an ear or a hand may stick out on purpose; say so in the report.
+function spills(root, tol = 0.5) {
+  const out = [];
+  for (const g of [root, ...root.findAll((n) => n.type === 'GROUP' || n.type === 'FRAME')]) {
+    if (!('children' in g) || g.children.length < 2) continue;
+    const base = g.children[0], B = base.absoluteBoundingBox;
+    if (!B || base.isMask || ('children' in base && base.type !== 'BOOLEAN_OPERATION')) continue;   // a mask already clips its details
+    for (const c of g.children.slice(1)) {
+      const C = c.absoluteBoundingBox; if (!C || c.isMask) continue;
+      if (C.width * C.height > 0.25 * B.width * B.height) continue;               // not a detail
+      const overlaps = C.x < B.x + B.width && B.x < C.x + C.width && C.y < B.y + B.height && B.y < C.y + C.height;
+      const past = Math.max(B.x - C.x, C.x + C.width - B.x - B.width, B.y - C.y, C.y + C.height - B.y - B.height);
+      if (overlaps && past > tol) out.push({ id: c.id, name: c.name, base: base.name, past: Math.round(past * 10) / 10 });
+    }
+  }
+  return out;
+}
+
+// A union / subtract that takes a straight side from a plain rectangle — the fake flat edge on a round cap.
+function fakeEdges(root, tol = 0.5) {
+  const out = [];
+  for (const b of root.findAll((n) => n.type === 'BOOLEAN_OPERATION')) {
+    const O = b.absoluteBoundingBox; if (!O) continue;
+    for (const r of b.children.filter((c) => c.type === 'RECTANGLE')) {
+      const R = r.absoluteBoundingBox, sides = [];
+      if (Math.abs(R.x - O.x) < tol) sides.push('left'); if (Math.abs(R.x + R.width - O.x - O.width) < tol) sides.push('right');
+      if (Math.abs(R.y - O.y) < tol) sides.push('top'); if (Math.abs(R.y + R.height - O.y - O.height) < tol) sides.push('bottom');
+      if (sides.length) out.push({ id: b.id, name: b.name, rect: r.name, sides });
+    }
+  }
+  return out;
+}
+
+// Everything is attached to what holds it — any subject: a limb to its joint, a hand to its wrist, a prop to the hand, a handle to
+// the cup, a lamp to its stand, an object to the surface it rests on. Two checks:
+//   isolated — a visible shape that touches no other shape at all (bounds grown by `gap`): a floating piece
+//   attach   — pairs from YOUR build plan, [['Hand R', 'Arm R'], ['Bag', 'Hand R'], ['Handle', 'Cup']]: each pair must touch
+// Read only. Sparkles, rain, stars float on purpose — leave them out of the pairs and say so if they show up as isolated.
+function floating(root, attach = [], gap = 1) {
+  const SHAPES = new Set(['VECTOR', 'ELLIPSE', 'RECTANGLE', 'POLYGON', 'STAR', 'BOOLEAN_OPERATION', 'LINE']);
+  const leaves = [];
+  const walk = (n) => { if (n.visible === false || n.isMask) return;
+    if (SHAPES.has(n.type)) { leaves.push(n); return; } if ('children' in n) n.children.forEach(walk); };
+  ('children' in root ? root.children : [root]).forEach(walk);
+  const bb = (n) => n.absoluteRenderBounds || n.absoluteBoundingBox;
+  const touch = (A, Bb) => A && Bb && A.x - gap < Bb.x + Bb.width && Bb.x - gap < A.x + A.width && A.y - gap < Bb.y + Bb.height && Bb.y - gap < A.y + A.height;
+  const isolated = leaves.filter((a) => !leaves.some((b) => a !== b && touch(bb(a), bb(b)))).map((n) => ({ id: n.id, name: n.name }));
+  const byName = (nm) => root.findOne((n) => n.name === nm);
+  const pairs = attach.map(([a, b]) => { const A = byName(a), Bn = byName(b);
+    return !A || !Bn ? { pair: `${a} → ${b}`, problem: `missing layer ${!A ? a : b}` } : touch(bb(A), bb(Bn)) ? null : { pair: `${a} → ${b}`, problem: 'not touching — floating or gap' }; }).filter(Boolean);
+  return { isolated, pairs };
+}
+
+// Joins overlap, they do not butt (rule 9): each pair [front, back] from the join list must OVERLAP by at least `min` px — the
+// front part tucks over the back one (sleeve over shoulder, wrist under cuff, leg into hip). Two parts that only touch edge to edge
+// read as flat cut-outs standing next to each other and open a hairline gap at any scale. Bounds-based, so a pass here is necessary,
+// not sufficient — the compare sheet (scripts/compare-sheet.cjs) shows the real join; a fail here is always a real problem.
+function joins(root, pairs = [], min = 2) {
+  const byName = (nm) => root.findOne((n) => n.name === nm);
+  const bb = (n) => n.absoluteRenderBounds || n.absoluteBoundingBox;
+  const out = [];
+  for (const [a, b] of pairs) {
+    const A = byName(a), B = byName(b);
+    if (!A || !B) { out.push({ join: `${a} ↔ ${b}`, problem: `missing layer ${!A ? a : b}` }); continue; }
+    const p = bb(A), q = bb(B);
+    const w = Math.min(p.x + p.width, q.x + q.width) - Math.max(p.x, q.x), h = Math.min(p.y + p.height, q.y + q.height) - Math.max(p.y, q.y);
+    const depth = Math.round(Math.min(w, h) * 10) / 10;
+    if (depth < min) out.push({ join: `${a} ↔ ${b}`, depth, problem: depth < 0 ? 'gap — not touching' : 'butted edge to edge — tuck one under the other' });
+    else {
+      const ia = A.parent.children.indexOf(A), ib = B.parent.children.indexOf(B);
+      if (A.parent === B.parent && ia < ib) out.push({ join: `${a} ↔ ${b}`, depth, problem: `${a} is listed as the front part but sits behind ${b}` });
+    }
+  }
+  return out; // empty = every join overlaps the agreed way
+}
+
 // ---------------------------------------------------------------- zoom check
 // Clones `node` 4× into a temp frame cropped to `area` (node-local {x,y,w,h}); screenshot the returned id, then delete it.
 function zoomCheck(nodes, area, scale = 4) {

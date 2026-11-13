@@ -1,0 +1,11 @@
+schema_version: "1.1"
+name: copy-figure-draft-by-passes
+expected_outcome: |
+  The agent follows the copy passes: the draft straight from vectorize.cjs --auto-plan (scene written in the same step, before any
+  naming), a build sheet + inventory written, one score of the draft with score.cjs plus a compare-sheet.cjs look check, every fixable
+  fault refined in at most two rounds (their own lines in the draft plan) and only what needs the designer reported as not done
+  (never explained away, never ended with an offer of another round); details stay inside their owners, then the lock pass: a names file turned into the final plan by vectorize.cjs --names (body parts
+  grouped back to front, colours copied from the draft, never typed), the final scene rendered and scored, and a Vietnamese report
+  with the score table and the look-check lines. Target: about 8–10 minutes and ~40 turns.
+context:
+  scaffold_script: place-files.sh

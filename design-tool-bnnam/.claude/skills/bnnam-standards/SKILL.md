@@ -1,6 +1,6 @@
 ---
 name: bnnam-standards
-description: The design team's own standard for its Figma files, winning over generic defaults there - read before acting, who wins when sources disagree (Apple's system numbers first), gates, error groups, consent and stop points, the design/ folder and decision log, reports, eight hard rules; working with the designer (_Fix and _Fix AI copies, own section, main components hands-off, learning from edits), brainstorming; screen naming; the designer's frame (root NONE, Safe-Area per device, background clusters, 402x874 for new projects); team lessons for building screens (image placeholders, vector vs generated image, clone tests); the draft and option rhythm and the lock phase (components, icons, audit, batches). Use whenever you build, edit, name, clone or review screens in the team's files. Vietnamese triggers such as "chuẩn team", "đặt tên màn", "khung màn chuẩn", "safe area", "dựng nháp", "làm option", "chốt màn", "nghiệm thu lô", "clone màn từ ảnh", "bản Fix". For the generic build loop use figma-ui-flow.
+description: The design team's own standard for its Figma files, winning over generic defaults there - read before acting, who wins when sources disagree (Apple's system numbers first), gates, error groups, consent and stop points, the design/ folder and decision log, reports, nine hard rules; working with the designer (_Fix and _Fix AI copies, own section, main components hands-off, learning from edits), brainstorming; screen naming; the designer's frame (root NONE, Safe-Area per device, background clusters, 402x874 for new projects); team lessons for building screens (image placeholders, vector vs generated image, clone tests); the draft and option rhythm and the lock phase (components, icons, audit, batches). Use whenever you build, edit, name, clone or review screens in the team's files. Vietnamese triggers such as "chuẩn team", "đặt tên màn", "khung màn chuẩn", "safe area", "dựng nháp", "làm option", "chốt màn", "nghiệm thu lô", "clone màn từ ảnh", "bản Fix". For the generic build loop use figma-ui-flow.
 ---
 
 # bnnam-standards — how the team works in its Figma files
@@ -30,7 +30,7 @@ adaptation (`iphone-duo-adaptive`, `apple-design-iphone`, `apple-design-ipad`).
 | Gates, roles, six error groups, what to always say, going in circles | `references/team-rules.md` §4–6 |
 | Plan before running, what counts as consent, where to stop | `references/team-rules.md` §7 |
 | The `design/` folder, status block, decision log, `project.yaml` | `references/team-rules.md` §8 |
-| Report format; knowledge as a lens; HIG + Material; one layout for iOS and Android; eight hard rules | `references/team-rules.md` §9–10 |
+| Report format; knowledge as a lens; HIG + Material; one layout for iOS and Android; nine hard rules | `references/team-rules.md` §9–10 |
 | `_Fix` / `_Fix AI`, own section, designer edits win, main components, learning loop, where lessons go | `references/team-rules.md` §12 |
 | Brainstorming options with the designer | `references/team-rules.md` §13 |
 | Name a screen, a suffix, a component, a placeholder layer | `references/naming.md` |
@@ -65,7 +65,8 @@ Do not read everything at once: `team-rules.md` §1–7 once per session, then o
    then the proposed document writes.
 7. **Images.** Common UI icons are drawn as vectors right away; illustrations, mascots, logos, photos are empty placeholders until the
    layout is done, then ask once (table with kind, size, content, drawing style, detail level) and fill. 1–2 flat shapes → vector;
-   anything layered or detailed → generated image.
+   anything layered or detailed → generated image. Every vector drawn lean: anchors only where the shape needs them, never at the
+   cost of the drawing (hard rule, `references/team-rules.md` §10.3).
 8. **Say it, don't silently comply.** Contradictions between documents → stop and ask; direction decisions are the designer's; only an
    explicit yes is consent. Never report "done" without numbers; always list *where I had to decide myself*.
 9. **Names come from `flows.md`.** `[Flow-path]_[State]_[Variant]`, suffixes from the table, no `/` or `.` in frame names; wireframe and UI
@@ -114,6 +115,7 @@ for real when the designer says *"chạy thật"*. Python tools run locally (`py
 | `../ux-writing/scripts/textdump.js` | read the copy of existing screens, extract the voice — read only |
 | `../figma-prototype-flow/scripts/prototype.js` | click-through flow on copies; `check` reports stale copies — dry run by default |
 | `../figma-vector-illustration/scripts/illustration-helpers.js` | drawing / fixing a vector illustration: shading paints, masks, contact shadow, rain, glass drops, grouping, widget build, 4× zoom check — helpers to paste, they write |
+| `../figma-vector-illustration/scripts/anchors.js` | any vector (art, icon, logo, background shape): `anchorReport` counts anchors and waste (read only) · `optimizeAnchors` simplifies on a copy within 0.5 px — helpers to paste |
 | `../screen-background/scripts/background.js`, `palette.py` | background from a palette (explore, component, instance at the bottom layer); OKLCH ramps and contrast |
 | `../prd-to-ux-flow/scripts/docx_extract.py` | extract a `.docx` PRD (merged cells, comments, images, embedded Excel) |
 | `../iphone-duo-adaptive/scripts/adaptive.js` | adaptive screen families: missing variants, actions differing between variants, fixed hinge spacer, text too wide — read only |

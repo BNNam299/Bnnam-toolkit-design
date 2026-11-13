@@ -229,7 +229,7 @@ Next steps
 ## 10. Using design knowledge — lens, not procedure
 
 ### 10.1 Knowledge is a lens
-Real design **applies thinking**; it doesn't march *step this, then that*. Use knowledge **when it helps a decision**; don't run every model on every job; **don't lecture frameworks** to the user — state the decision and its reason plainly: *"the Capture button sits in the middle because it is the most frequent action"*. No *"every screen must do X"* rule comes from knowledge **except the eight hard rules** in 10.3. Two lenses conflict → choose by the goal of the job and say what you chose. Knowledge conflicts with a team rule → the rule wins; report the conflict. Every decision answers: who uses it · in what context · what goal · what risk · why it beats the alternatives.
+Real design **applies thinking**; it doesn't march *step this, then that*. Use knowledge **when it helps a decision**; don't run every model on every job; **don't lecture frameworks** to the user — state the decision and its reason plainly: *"the Capture button sits in the middle because it is the most frequent action"*. No *"every screen must do X"* rule comes from knowledge **except the nine hard rules** in 10.3. Two lenses conflict → choose by the goal of the job and say what you chose. Knowledge conflicts with a team rule → the rule wins; report the conflict. Every decision answers: who uses it · in what context · what goal · what risk · why it beats the alternatives.
 
 **Three layers, in priority order:**
 1. **Durable principles** — purpose, user control, familiarity, simplicity, accessibility, feedback, error recovery.
@@ -256,7 +256,7 @@ Real design **applies thinking**; it doesn't march *step this, then that*. Use k
 - **Consult both sides when looking for a layout.** The main design leans iOS; Material is not a standard to switch to but a source of solutions to combine. When comparing options (§13) an option may take a Material solution — label it *"Material's solution: …"* so the designer knows the source. The combined layout is still **one set for both platforms**.
 - **Touch areas are the developer's job; design does not check them.** Visible buttons of 32 or 36 are still used; the developer enlarges the hit area in code. Reference numbers for developers: 44pt iOS · 48dp Android · take 48 for both platforms.
 
-### 10.3 Eight hard rules drawn from knowledge — always apply
+### 10.3 Nine hard rules drawn from knowledge — always apply
 
 | Rule | Applies in | Machine-checkable |
 |---|---|---|
@@ -268,8 +268,10 @@ Real design **applies thinking**; it doesn't march *step this, then that*. Use k
 | **Text contrast WCAG AA: 4.5 : 1 normal text · 3 : 1 large text** (≥ 24px, or ≥ 18.66px bold — WCAG measures in pt: 18pt / 14pt bold) — check light and dark; disabled is only flagged. **With a token system, the system already handles contrast** — the agent only picks and assembles tokens; a failing token pair = the wrong pair was assembled → pick another token, not a defect. A failing raw colour → defect | audit (text contrast · token-pair contrast) | yes |
 | **Frames instead of groups for layout** — never use a Group to arrange anything inside the UI area | building UI · audit | yes |
 | **Placeholder never replaces the label** — every input has a visible label; the placeholder is only an example | wireframe · building UI | partly |
+| **Vector anchors: pen-tool paths, the shape first, then the fewest anchors** — every vector the agent draws or edits (illustration, icon, logo, background shape, widget art, animation rig): each part one pen-tool path following its outline — never a mass of stacked circles and rectangles; a primitive only when the part really is that shape or a reusable geometric piece; anchors only at corners / inflections / extremes / ends, curves drawn by handles; a lighter path only when it stays within 0.5 px (icons ≤ 24 px: 0.25 px) and looks identical at 4× — **optimised ≠ fewest**, never trade the drawing for a lower count (`../figma-vector-illustration/references/anchor-economy.md`) | drawing vectors · audit | yes — **report only** (plugin `vector-anchors`, `audit.js` `vectorAnchors`); fix on a copy with `optimizeAnchors`, checked at 4× |
 
 - **Opacity evidence:** in Carbina the agent faded secondary text with `opacity = 0.55` and `0.7` on the text node instead of binding the `content/secondary` token. The old audit missed it — the fill was still bound to the right variable, only dimmed by layer opacity.
+- **Anchor evidence:** agents write a curve as a loop of straight points — a 2-anchor leaf came out with a hundred. The opposite fails too: a test character built from 57 primitives and 3 paths had few anchors and looked blocky (mustache = bar + circles, cap with a flat edge). Hard to edit, heavy in SVG / VectorDrawable / Lottie, and a morph between poses breaks. The audit only flags it: some shapes do need many anchors, so the fix stays a judged, fidelity-checked step.
 - **Nested radius** is report-only because some designs differ on purpose. Radius is still bound to a variable (System gate); this rule decides **which** variable. The value you need isn't in the system → report.
 
 ### 10.4 Thinking lenses — use when relevant, not mandatory, not machine-checked

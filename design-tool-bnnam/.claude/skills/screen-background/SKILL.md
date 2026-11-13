@@ -120,6 +120,8 @@ that received the background.
 - One big gradient painted on the screen frame — it cannot be changed app-wide and the audit flags it.
 - Shapes inside the frame edge — background blur shows an unblurred band at the edge; let them bleed.
 - Raising a single blur layer forever instead of switching to Combined.
+- A hand-drawn blob traced or computed point by point — background shapes are ellipses / rounded rectangles, or a lean path when a
+  custom form is needed (team hard rule, `../figma-vector-illustration/references/anchor-economy.md`).
 - A light background under a 20 % white overlay with pastel shapes — it comes out as plain base color.
 - Adding a variant directly to the designer's main background set, or merging before they confirm.
 - Background instance not at index 0, or stacked on top of an existing one.

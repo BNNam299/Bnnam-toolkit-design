@@ -46,6 +46,7 @@
 | Viết prompt sinh ảnh (một ảnh hoặc cả bộ ảnh cùng phong cách) | `generating-oneshot-image-prompts` | "prompt ảnh minh hoạ cho 4 màn onboarding" |
 | Sinh một icon / mascot / sticker nền trong suốt | `app-asset-generator` | "làm mascot con mèo nền trong" |
 | Vẽ / sửa minh hoạ vector ngay trên Figma (cảnh widget, màn rỗng, onboarding): bóng không lòi, mưa tự nhiên, gom nhóm | `figma-vector-illustration` | "vẽ lại minh hoạ widget thời tiết, bóng đang bị lòi ra" |
+| Vẽ vector đúng cách cho mọi hình — minh hoạ, icon, logo, hình nền: mỗi bộ phận vẽ bằng pen tool theo dáng (không chồng hình tròn / chữ nhật thành mảng), điểm neo chỉ đặt nơi hình cần, rút gọn trên bản sao mà hình vẫn y nguyên (lệch ≤ 0,5 px). Trước khi vẽ agent hỏi: chép theo ảnh mẫu / vẽ sáng tạo / sửa hình cũ, và hình tĩnh hay sẽ làm Lottie. Chép ảnh mẫu: giữ cách tô của ảnh, chấm độ giống từng bộ phận, phần chưa đạt báo "chưa xong" chứ không tự cho qua. Vẽ sáng tạo (cùng phong cách, chủ đề mới): agent viết sẵn prompt để bạn tự sinh ảnh bằng ChatGPT (khuyên dùng), bạn chọn 1 ảnh rồi agent chép thành vector; hoặc agent tự dựng từ khối lớn → chi tiết, mọi bộ phận phải gắn vào đâu đó, 2–3 dấu hiệu nhận diện. Luật cứng của team | `figma-vector-illustration` | "icon này nhiều anchor point quá, tối ưu giúp" |
 
 ### Kiểm tra và bàn giao
 | Việc | Gọi | Câu mẫu |

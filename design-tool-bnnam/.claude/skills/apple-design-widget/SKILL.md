@@ -26,7 +26,7 @@ layouts) is gone.
 | Quick action menu | `../apple-hig/references/home-screen-quick-actions.md` |
 | Push notifications (content, actions, marketing) | `../apple-hig/references/notifications.md`, `managing-notifications.md` · copy: `../ux-writing/SKILL.md` |
 | Background component for the surface frame | `../screen-background/SKILL.md` |
-| Vector art inside the widget (scene, shading, rain, grouping, Illustration + Content structure) | `../figma-vector-illustration/SKILL.md` |
+| Vector art inside the widget (scene, shading, rain, grouping, Illustration + Content structure, lean paths / anchors) | `../figma-vector-illustration/SKILL.md` |
 | **Layout ideas**: kit anatomy and layer names, 13 Home Screen patterns from Apple and real apps (search + shortcuts, action grid, trending, people row, status, quick play, re-order), size growth, branding, all states, Lock Screen and StandBy patterns, gallery copy, pattern picker by app type | `references/widget-patterns.md` |
 | Control Center / Lock Screen / Action button **controls** (iOS 18+) | `../apple-hig/references/controls.md` |
 | Android widgets, or one widget for iOS and Android | `../android-design-widget/SKILL.md` · comparison: `../android-design-widget/references/widget-platform-comparison.md` |

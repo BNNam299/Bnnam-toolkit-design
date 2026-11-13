@@ -169,6 +169,7 @@ Two kinds of icon side by side: **font glyphs** (SF Symbols, Material Symbols �
 | Letter spacing · line height | keep **0** · **AUTO** | — |
 | Switch library | **forbidden** | forbidden |
 | Bind `content/*` colours · rename the layer | allowed | allowed |
+| Simplify paths (anchors) | — | allowed on a copy, within 0.25 px, checked at 4× — `../figma-vector-illustration/references/anchor-economy.md` |
 
 **Why absolute:** one pass of applying text styles filtered by `type === "TEXT"` switched **193 glyphs** to a regular text font → no character at that code point → empty boxes, invisible at canvas zoom.
 

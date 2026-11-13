@@ -2,7 +2,7 @@
 // Run via execute_code: set CONFIG below, send the whole file as `code` (timeoutMs up to ~120000 on big files).
 // Body of an async function: top-level `await` and `return`, `figma` in scope.
 // Covers: the nine binding counts (raw values) · screen frame structure · meta text in frames (ux-writing principles §2) ·
-//         hard rules (contrast, glyph icons, overflow, radii, corner smoothing 60%) · broken instances and duplicate components.
+//         hard rules (contrast, glyph icons, overflow, radii, corner smoothing 60%, vector anchors) · broken instances and duplicate components.
 // Reports per category, never one merged number. Image placeholders are expected — counted separately.
 
 const CONFIG = {
@@ -83,6 +83,59 @@ const CONFIG = {
   NO_BLUR_SURFACE: /live ?activity|dynamic ?island|widget|lock ?screen/i,
   MAX_ITEMS: 30,                   // max detail items per category in the result
 };
+
+// ───────────────────────── vector anchors (team hard rule: the shape first, then the fewest anchors) — report only
+// Same signals as the plugin's vector-anchors check (src/shared/anchors.ts): curves drawn as runs of short straight pieces,
+// collinear / duplicate anchors, very dense paths. The fix is figma-vector-illustration › anchors.js on a copy, checked at 4×.
+function anchorWaste(d, tol = 0.5) {
+  const tok = String(d).match(/[MLHVCQZmlhvcqz]|-?(?:\d+\.?\d*|\.\d+)(?:e[-+]?\d+)?/g) || [];
+  const subs = []; let cur = null, cmd = null, last = { x: 0, y: 0 }, i = 0;
+  const N = () => parseFloat(tok[i++]), D = (a, b) => Math.hypot(a.x - b.x, a.y - b.y);
+  const line = (p, a, b) => { const dx = b.x - a.x, dy = b.y - a.y, l = Math.hypot(dx, dy); return l < 1e-9 ? D(p, a) : Math.abs(dx * (p.y - a.y) - dy * (p.x - a.x)) / l; };
+  while (i < tok.length) {
+    if (/^[A-Za-z]$/.test(tok[i])) cmd = tok[i++]; else if (!cmd || /z/i.test(cmd)) { i++; continue; }
+    const rel = cmd === cmd.toLowerCase(), C = cmd.toUpperCase(), pt = () => { const x = N(), y = N(); return rel ? { x: last.x + x, y: last.y + y } : { x, y }; };
+    if (C === "Z") { if (cur) { if (D(last, cur.start) > 1e-6) cur.segs.push({ t: "L", p: cur.start }); cur.closed = true; last = cur.start; cur = null; } continue; }
+    if (C === "M") { const p = pt(); cur = { start: p, segs: [], closed: false }; subs.push(cur); last = p; cmd = rel ? "l" : "L"; continue; }
+    if (!cur) { cur = { start: last, segs: [], closed: false }; subs.push(cur); }
+    let g;
+    if (C === "L") g = { t: "L", p: pt() };
+    else if (C === "H") { const x = N(); g = { t: "L", p: { x: rel ? last.x + x : x, y: last.y } }; }
+    else if (C === "V") { const y = N(); g = { t: "L", p: { x: last.x, y: rel ? last.y + y : y } }; }
+    else if (C === "C") { const c1 = pt(), c2 = pt(); g = { t: "C", c1, c2, p: pt() }; }
+    else if (C === "Q") { const q = pt(), p = pt(); g = { t: "C", c1: { x: last.x + (q.x - last.x) * 2 / 3, y: last.y + (q.y - last.y) * 2 / 3 }, c2: { x: p.x + (q.x - p.x) * 2 / 3, y: p.y + (q.y - p.y) * 2 / 3 }, p }; }
+    if (g) { cur.segs.push(g); last = g.p; }
+  }
+  let anchors = 0, removable = 0, runs = 0, runAnchors = 0;
+  for (const s of subs) {
+    anchors += s.segs.length === 0 ? 1 : s.segs.length + (s.closed ? 0 : 1);
+    const n = s.segs.length; if (n < 2) continue;
+    const xs = [s.start.x, ...s.segs.map(g => g.p.x)], ys = [s.start.y, ...s.segs.map(g => g.p.y)];
+    const diag = Math.hypot(Math.max(...xs) - Math.min(...xs), Math.max(...ys) - Math.min(...ys)) || 1;
+    const from = k => (k === 0 ? s.start : s.segs[k - 1].p), straight = (a, g) => g.t === "L" || (line(g.c1, a, g.p) < 0.05 && line(g.c2, a, g.p) < 0.05);
+    const turns = []; let keep = s.start;
+    for (let k = 0; k < n; k++) {
+      const nx = k + 1 < n ? k + 1 : (s.closed ? 0 : -1); if (nx < 0) break;
+      const a = from(k), v = s.segs[k].p, g2 = s.segs[nx];
+      if (D(a, v) < 0.05) { removable++; turns.push(null); continue; }
+      const st = straight(a, s.segs[k]) && straight(v, g2);
+      if (st && line(v, keep, g2.p) <= tol && (v.x - keep.x) * (g2.p.x - v.x) + (v.y - keep.y) * (g2.p.y - v.y) > 0) removable++; else keep = v;
+      if (st && D(a, v) < 0.15 * diag && D(v, g2.p) < 0.15 * diag) {
+        const ax = (v.x - a.x) / D(a, v), ay = (v.y - a.y) / D(a, v), bx = (g2.p.x - v.x) / D(v, g2.p), by = (g2.p.y - v.y) / D(v, g2.p);
+        const ang = Math.atan2(ax * by - ay * bx, ax * bx + ay * by) * 180 / Math.PI;
+        turns.push(Math.abs(ang) > 2 && Math.abs(ang) < 40 ? Math.sign(ang) : null);
+      } else turns.push(null);
+    }
+    let run = 0, sign = 0; const flush = () => { if (run >= 4) { runs++; runAnchors += run; } run = 0; };
+    for (const t of turns) { if (t !== null && (run === 0 || t === sign)) { sign = t; run++; } else { flush(); if (t !== null) { sign = t; run = 1; } } }
+    flush();
+  }
+  const why = [];
+  if (runs) why.push(`${runs} curve(s) drawn as ${runAnchors} straight points`);
+  if (removable >= 2) why.push(`${removable} collinear / duplicate anchors`);
+  if (!why.length && anchors >= 150) why.push("unusually dense — traced or flattened?");
+  return why.length ? { anchors, why: why.join(" · ") } : null;
+}
 
 // ───────────────────────── recognition
 const isGlyphIcon = n => {
@@ -595,6 +648,12 @@ for (const screen of screens) {
     if (num(n.cornerSmoothing) && Math.abs(n.cornerSmoothing - 0.6) > 0.005
         && (num(n.cornerRadius) ? n.cornerRadius > 0 : [n.topLeftRadius, n.topRightRadius, n.bottomLeftRadius, n.bottomRightRadius].some(r => num(r) && r > 0)))
       add("cornerSmoothing", screen, n, { smoothing: `${Math.round(n.cornerSmoothing * 100)}%`, hint: "set 60% — n.cornerSmoothing = 0.6, or bind_variables fields radius" });
+    // team rule: vector anchors — the shape first, then the fewest anchors (report only; fix on a copy with anchors.js, checked at 4×)
+    if (n.type === "VECTOR") {
+      let w = null; try { const all = n.vectorPaths.map(p => anchorWaste(p.data)).filter(Boolean);
+        if (all.length) w = { anchors: all.reduce((s, x) => s + x.anchors, 0), why: all.map(x => x.why).join(" | ") }; } catch (e) { w = null; }
+      if (w) add("vectorAnchors", screen, n, { ...w, hint: "simplify on a copy — figma-vector-illustration › anchors.js optimizeAnchors, compare at 4×; keep anchors the shape needs" });
+    }
     if (Array.isArray(n.strokes) && n.strokes.length && num(n.strokeWeight) && n.strokeWeight > 0 && !B.strokeWeight) raw.stroke++;
     if (Array.isArray(n.effects) && n.effects.length && !n.effectStyleId) raw.effect++;
     if (num(n.opacity) && n.opacity < 1 && !(n.children && n.children.length > 1 && /disable/i.test(n.name))) { raw.opacity++; add("opacity", screen, n, { opacity: n.opacity }); }
@@ -749,6 +808,7 @@ if (totals.noticeLooksLikeCard) decide.push(`${totals.noticeLooksLikeCard} notic
 if (totals.deadEndCandidate) decide.push(`${totals.deadEndCandidate} "see more / how to…" links — check the destination screen in flows.md`);
 if (totals.contrastTokenPair) decide.push(`${totals.contrastTokenPair} text/background token pairs with too little contrast — pick another token from the system (detail: contrastTokenPair)`);
 if (totals.contrastSurface) decide.push(`${totals.contrastSurface} surfaces less than 1.2 from their background`);
+if (totals.vectorAnchors) decide.push(`${totals.vectorAnchors} vectors with wasted anchors (curves drawn point by point, collinear points, traced paths) — simplify on a copy within 0.5 px, keep what the shape needs — report only (detail: vectorAnchors)`);
 if (totals.adjacentRadius) decide.push(`${totals.adjacentRadius} adjacent radius pairs off from ½ height — report only`);
 if (totals.concentricRadius) decide.push(`${totals.concentricRadius} rounded blocks not concentric with their frame (inner radius ≠ outer radius − padding) — report only`);
 if (totals.caseCheck) decide.push(`${totals.caseCheck} texts may break the capitalization rule — check proper names`);

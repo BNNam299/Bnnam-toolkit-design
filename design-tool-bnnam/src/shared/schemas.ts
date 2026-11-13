@@ -520,6 +520,46 @@ export const SetDevStatusInput = z.object({
   description: z.string().optional(),
 });
 
+// figma-vector-illustration: build named vector groups from a scene file written by scripts/vectorize.cjs (copy jobs).
+export const BuildVectorsInput = z.object({
+  path: z.string().describe('Absolute path of the scene JSON written by vectorize.cjs (read by the server — coordinates never pass through the agent)'),
+  groups: z.array(z.string()).optional().describe('Build only these groups (one cluster at a time); default: every group in the scene'),
+  parentId: NodeId.optional().describe('Build into this frame; default: the top-level frame named like scene.frame.name, or a new one'),
+  x: z.number().optional().describe('Position of a NEW frame (default: a free spot)'),
+  y: z.number().optional(),
+});
+
+// a part's linear gradient: handles as fractions of the part's own box, stops back → front
+export const BuildVectorsPaint = z.object({
+  type: z.literal('linear'),
+  from: z.tuple([z.number(), z.number()]),
+  to: z.tuple([z.number(), z.number()]),
+  stops: z.array(z.object({ color: z.string().regex(/^#[0-9a-fA-F]{6}$/), alpha: z.number().min(0).max(1).optional(), pos: z.number().min(0).max(1) })).min(2),
+});
+export type BuildVectorsPaint = z.infer<typeof BuildVectorsPaint>;
+export const BuildVectorsPart = z.object({
+  name: z.string(),
+  fill: z.string().regex(/^#[0-9a-fA-F]{6}$/),
+  x: z.number(),
+  y: z.number(),
+  d: z.string().min(1),
+  windingRule: z.enum(['NONZERO', 'EVENODD']).default('NONZERO'),
+  paint: BuildVectorsPaint.optional().describe('Linear gradient instead of the flat fill (fill stays as the fallback colour)'),
+  opacity: z.number().min(0).max(1).optional().describe('Layer opacity — a shade laid over its base'),
+  blend: z.enum(['NORMAL', 'MULTIPLY', 'SCREEN', 'OVERLAY', 'SOFT_LIGHT', 'DARKEN', 'LIGHTEN', 'COLOR_BURN', 'COLOR_DODGE']).optional(),
+});
+export const BuildVectorsScene = z.object({
+  frame: z.object({ name: z.string(), width: z.number(), height: z.number() }),
+  groups: z.array(z.object({ name: z.string(), parts: z.array(BuildVectorsPart.passthrough()) })),
+});
+export type BuildVectorsParams = {
+  frame: { name: string; width: number; height: number };
+  groups: { name: string; parts: z.infer<typeof BuildVectorsPart>[] }[];
+  parentId?: string;
+  x?: number;
+  y?: number;
+};
+
 export const ExportAssetsInput = z.object({
   ids: z.array(NodeId).min(1),
   format: z.enum(['PNG', 'JPG', 'SVG', 'PDF']).default('PNG'),

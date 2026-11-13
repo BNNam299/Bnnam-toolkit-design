@@ -1,0 +1,9 @@
+schema_version: "1.1"
+name: copy-ink-outline-figure
+expected_outcome: |
+  A copy of an ink-outline (retro / sticker) figure built the way its artist would: the ink is one outline with holes placed in
+  front of the colour parts it frames (the colours run under it, so no dark sliver shows between a colour and its line), outlines
+  are long smooth curves placed by their curve, the bubble, the figure and its hands are named groups, fine detail (spark lines,
+  dot pattern) is kept or reported, and a Vietnamese report with the score table.
+context:
+  scaffold_script: place-files.sh

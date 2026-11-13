@@ -2,7 +2,7 @@
 // bridge, and drives it with the official MCP client.
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { StdioClientTransport } from '@modelcontextprotocol/sdk/client/stdio.js';
-import { existsSync, mkdtempSync, readFileSync } from 'node:fs';
+import { existsSync, mkdtempSync, readFileSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
@@ -116,6 +116,7 @@ describe('MCP server', () => {
         'annotate',
         'audit_design',
         'bind_variables',
+        'build_vectors',
         'clone_node',
         'create_component_set',
         'create_styles',
@@ -309,6 +310,52 @@ describe('figma-ui-flow tools with server-side work', () => {
     const css = readFileSync(out, 'utf8');
     expect(css).toContain('--color-text-primary: var(--color-gray-900);');
     expect(css).toContain('[data-theme="dark"]');
+  });
+
+  it('build_vectors reads the scene file on the server and sends only the asked groups', async () => {
+    const dir = mkdtempSync(join(tmpdir(), 'scene-'));
+    const file = join(dir, 'scene.json');
+    writeFileSync(file, JSON.stringify({
+      frame: { name: 'Hero · vector', width: 200, height: 300 },
+      groups: [
+        { name: 'Legs', parts: [{ name: 'Leg L', fill: '#94c203', x: 10, y: 200, d: 'M 0 0 L 20 0 L 20 80 L 0 80 Z', windingRule: 'NONZERO', anchors: 4 }] },
+        { name: 'Head', parts: [{ name: 'Face', fill: '#fdbaa5', x: 40, y: 20, d: 'M 0 0 C 10 -5 30 -5 40 0 L 40 60 L 0 60 Z', anchors: 4 }] },
+      ],
+    }));
+    const r = await client.callTool({ name: 'build_vectors', arguments: { path: file, groups: ['Head'] } });
+    expect(r.isError).toBeFalsy();
+    const sent = received.filter((x) => x.command === 'build_vectors').at(-1)!.params;
+    expect(sent.frame).toEqual({ name: 'Hero · vector', width: 200, height: 300 });
+    expect(sent.groups).toEqual([{ name: 'Head', parts: [{ name: 'Face', fill: '#fdbaa5', x: 40, y: 20, d: 'M 0 0 C 10 -5 30 -5 40 0 L 40 60 L 0 60 Z', windingRule: 'NONZERO' }] }]);
+  });
+
+  it('build_vectors passes gradients, opacity, blend and nested group names through', async () => {
+    const dir = mkdtempSync(join(tmpdir(), 'scene-'));
+    const file = join(dir, 'scene.json');
+    const paint = { type: 'linear', from: [0.5, 0], to: [0.5, 1], stops: [{ color: '#f8a796', pos: 0 }, { color: '#f69481', alpha: 1, pos: 1 }] };
+    writeFileSync(file, JSON.stringify({
+      frame: { name: 'Girl · reference', width: 100, height: 100 },
+      groups: [{ name: 'Head/Eye L', parts: [
+        { name: 'Skin', fill: '#f8a796', x: 0, y: 0, d: 'M 0 0 L 10 0 L 10 10 Z', paint },
+        { name: 'Shade', fill: '#201829', x: 0, y: 0, d: 'M 0 0 L 10 0 L 10 10 Z', opacity: 0.2, blend: 'MULTIPLY' }] }],
+    }));
+    const r = await client.callTool({ name: 'build_vectors', arguments: { path: file } });
+    expect(r.isError).toBeFalsy();
+    const sent = received.filter((x) => x.command === 'build_vectors').at(-1)!.params;
+    expect(sent.groups[0].name).toBe('Head/Eye L');
+    expect(sent.groups[0].parts[0].paint).toEqual(paint);
+    expect(sent.groups[0].parts[1]).toMatchObject({ opacity: 0.2, blend: 'MULTIPLY' });
+  });
+
+  it('build_vectors refuses a relative path and an unknown group', async () => {
+    const rel = await client.callTool({ name: 'build_vectors', arguments: { path: 'scene.json' } });
+    expect(rel.isError).toBe(true);
+    const dir = mkdtempSync(join(tmpdir(), 'scene-'));
+    const file = join(dir, 'scene.json');
+    writeFileSync(file, JSON.stringify({ frame: { name: 'X', width: 10, height: 10 }, groups: [{ name: 'Body', parts: [] }] }));
+    const bad = await client.callTool({ name: 'build_vectors', arguments: { path: file, groups: ['Hat'] } });
+    expect(bad.isError).toBe(true);
+    expect(JSON.stringify(bad.content)).toMatch(/Body/);
   });
 
   it('export_assets writes one file per scale', async () => {

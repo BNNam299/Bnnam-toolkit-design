@@ -43,6 +43,7 @@ This skill is about **mechanics**: which tool, which parameters, what comes back
 | Bulk fix | `bind_variables`, `rename_by_rule` — **both `dryRun: true` by default** |
 | Handoff | `annotate`, `set_dev_status`, `export_tokens`, `export_assets` |
 | Show the user | `select_nodes{ids, zoom}` |
+| Copy art into vectors (figma-vector-illustration only) | `build_vectors{path, groups}` — builds named vector groups from a scene file its `scripts/vectorize.cjs` wrote |
 | Anything else in the Plugin API | `execute_code` (last resort) |
 | Generated images | `gemini-image-mcp`: `bridge_status` → `image_generate{prompt, savePath, aspectRatio}` → local path into `image.src` / `fill.image` |
 

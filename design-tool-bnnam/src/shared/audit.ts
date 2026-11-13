@@ -29,7 +29,8 @@ export type IssueKind =
   | 'icon-offcenter'
   | 'lorem'
   | 'outside-section'
-  | 'variant-explosion';
+  | 'variant-explosion'
+  | 'vector-anchors';
 
 export type Severity = 'block' | 'should' | 'nice';
 
@@ -56,6 +57,8 @@ export const SEVERITY: Record<IssueKind, Severity> = {
   lorem: 'should',
   'outside-section': 'nice',
   'variant-explosion': 'should',
+  // Team hard rule 9 — a signal to look at, never auto-fixed: the shape decides how many anchors it needs.
+  'vector-anchors': 'nice',
 };
 
 export const SEVERITY_LABEL: Record<Severity, string> = { block: '🔴 Chặn', should: '🟡 Nên sửa', nice: '🔵 Gợi ý' };
@@ -201,7 +204,7 @@ export function toQaMarkdown(report: AuditReport, opts: { file?: string; date?: 
   const verdict = report.severity.block > 0 ? '🔴 Chưa bàn giao được' : '🟢 Sẵn sàng bàn giao';
   const groupOf: Record<string, string> = {
     'default-name': 'A', 'blacklisted-name': 'A', 'hidden-layer': 'A', 'detached-instance': 'A',
-    'outside-section': 'A', 'variant-explosion': 'A',
+    'outside-section': 'A', 'variant-explosion': 'A', 'vector-anchors': 'A',
     'raw-fill': 'B', 'raw-text': 'B', 'orphan-token': 'B', 'raw-stroke': 'B', 'raw-radius': 'B', 'corner-smoothing': 'B', 'primitive-bound': 'B', 'stale-paint': 'B',
     'no-autolayout': 'C', 'redundant-wrapper': 'C', 'off-scale-spacing': 'C', 'icon-offcenter': 'C',
     contrast: 'E', 'small-target': 'E',
@@ -283,5 +286,7 @@ function fixHint(kind: IssueKind): string {
       return 'Đưa frame vào Section theo flow';
     case 'variant-explosion':
       return 'Chuyển bớt trục variant sang boolean/instance-swap property hoặc mode';
+    case 'vector-anchors':
+      return 'Rút gọn điểm neo trên bản sao (figma-vector-illustration › anchors.js optimizeAnchors), soát 4× — hình phải giữ nguyên';
   }
 }

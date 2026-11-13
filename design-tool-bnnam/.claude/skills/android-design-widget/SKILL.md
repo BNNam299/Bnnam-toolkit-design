@@ -77,7 +77,7 @@ re-order card…) → `../apple-design-widget/references/widget-patterns.md` —
 2. Choose size buckets: default span, min, max; list what each breakpoint adds (§2) — sketch 2 × 1 (or 1 × 1), 2 × 2, 4 × 2, 4 × 4.
 3. Build frames at the dp sizes from the table, container edge-to-edge, system radius, Material roles for every colour (§3, §5).
    In Figma the widget is an auto layout and every cluster of related elements is its own named auto-layout frame (art · text group ·
-   value row · actions); only art that bleeds past the padding may sit absolute behind Content — `../figma-vector-illustration/SKILL.md` rules 3–5.
+   value row · actions); only art that bleeds past the padding may sit absolute behind Content — `../figma-vector-illustration/SKILL.md` rules 3–5; paths lean (rule 6).
 4. Draw states: loading, empty, before login, error, after action, refresh (§6); light, dark and one dynamic-colour preview.
 5. Write the picker name + description and the preview; note the in-app pin moment (§7).
 6. Check the Tier 2 list, then Tier 1 if targeted (`references/android-widget-guidelines.md` §3, §11). When the same widget ships

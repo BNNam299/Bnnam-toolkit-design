@@ -1,0 +1,10 @@
+schema_version: "1.1"
+name: copy-soft-shaded-figure-lean
+expected_outcome: |
+  A copy of a soft-shaded figure (gradients on skin and hair, see-through shadows) built the way its artist would: outlines are long
+  smooth curves (no pixel staircase, no part with hundreds of anchors), every part placed by its curve, the tone steps the draft
+  lists joined as one part with a gradient, shadows over a base as a see-through tint where the reference shows one, holes left as
+  holes (background-coloured regions dropped or asked about, never painted), the face nested as Head with Eye / Mouth groups inside,
+  objects at two depths as two named groups instead of colour patches, fine lines kept, and a Vietnamese report with the score table.
+context:
+  scaffold_script: place-files.sh

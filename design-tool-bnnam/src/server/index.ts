@@ -485,6 +485,25 @@ tool('clone_node', {
   input: S.CloneNodeInput,
 });
 
+tool('build_vectors', {
+  description: `Copy jobs of figma-vector-illustration only: build named vector groups from a scene JSON written by its scripts/vectorize.cjs (one pen-tool path per part, fill or linear gradient, opacity / blend, position; a group named "Head/Eye L" is nested inside "Head"). Pass path (absolute, read by the server so coordinates never pass through the agent) and optionally groups to build one cluster at a time; a group that already exists in the frame is replaced in place. Returns ids and anchor counts per part. Not for UI screens.`,
+  input: S.BuildVectorsInput,
+  timeoutMs: () => 120000,
+  prepare: async (args) => {
+    if (!isAbsolute(args.path)) throw new Error('path phải là đường dẫn tuyệt đối');
+    const scene = S.BuildVectorsScene.parse(JSON.parse(readFileSync(args.path, 'utf8')));
+    const groups = args.groups?.length ? scene.groups.filter((g) => args.groups!.includes(g.name)) : scene.groups;
+    if (!groups.length) throw new Error(`Không có nhóm nào khớp ${JSON.stringify(args.groups)}. Có: ${scene.groups.map((g) => g.name).join(', ')}`);
+    return {
+      frame: scene.frame,
+      groups: groups.map((g) => ({ name: g.name, parts: g.parts.map((p) => ({ name: p.name, fill: p.fill, x: p.x, y: p.y, d: p.d, windingRule: p.windingRule, paint: p.paint, opacity: p.opacity, blend: p.blend })) })),
+      parentId: args.parentId,
+      x: args.x,
+      y: args.y,
+    } satisfies S.BuildVectorsParams;
+  },
+});
+
 tool('execute_code', {
   description: `Run JavaScript against the Figma Plugin API for anything the other tools do not cover (components/variants, variables and modes, styles, prototyping, constraints, boolean ops, vector edits, bulk edits...).
 The code is the body of an async function with globals \`figma\` and \`h\`; use top-level await and \`return\` a JSON-friendly value (nodes are summarized automatically). console.log output is not returned.

@@ -107,6 +107,8 @@ then the reference for whichever item fails. Reading a project → `reading-scre
 ### 9. Iconography
 - One icon family and style, consistent stroke/optical weight/bounding box; label any icon that is not universal; selected states change fill/weight
   without moving layout. Glyph meaning differs per platform (back, share, overflow, delete, menu, check).
+- A vector icon is drawn lean — pen-tool paths per part (primitives only for geometric pieces), anchors only where the shape needs them, strokes stay strokes; the shape stays exact
+  (team hard rule, `../figma-vector-illustration/references/anchor-economy.md`).
 
 ## Workflow — visual review of a screen
 

@@ -16,6 +16,7 @@ import {
   type Issue,
   type RGB,
 } from '../../shared/audit';
+import { analyzeAnchors, anchorFinding } from '../../shared/anchors';
 import { CORNER_SMOOTHING, hasRoundedCorner, toHex } from '../../shared/values';
 import { offCentreIcons } from '../icons';
 import { getNode } from '../util';
@@ -25,7 +26,7 @@ const CHECK_GROUPS: Record<string, string[]> = {
   tokens: ['raw-fill', 'raw-text', 'raw-stroke', 'raw-radius', 'corner-smoothing', 'primitive-bound', 'stale-paint'],
   layout: ['no-autolayout', 'redundant-wrapper', 'off-scale-spacing', 'icon-offcenter'],
   a11y: ['contrast', 'small-target'],
-  hygiene: ['hidden-layer', 'orphan-token', 'outside-section', 'variant-explosion'],
+  hygiene: ['hidden-layer', 'orphan-token', 'outside-section', 'variant-explosion', 'vector-anchors'],
   content: ['lorem'],
 };
 
@@ -35,6 +36,12 @@ const CHECK_GROUPS: Record<string, string[]> = {
 const INTERACTIVE = /^(Button|Tab(\/|$)|Chip|Link|Input|Field|Row|Item|Toggle|Checkbox|Radio|Segment|FAB)/;
 
 const isScene = (n: BaseNode): n is SceneNode => 'visible' in n;
+
+// A vector inside an instance is inherited — reported once, on the main component.
+const insideInstance = (n: BaseNode): boolean => {
+  for (let p = n.parent; p; p = p.parent) if (p.type === 'INSTANCE') return true;
+  return false;
+};
 
 const VECTOR_TYPES = new Set<string>(['VECTOR', 'BOOLEAN_OPERATION', 'ELLIPSE', 'LINE', 'RECTANGLE', 'STAR', 'POLYGON']);
 
@@ -281,6 +288,16 @@ export async function auditDesign(p: AuditInput) {
 
     // G1 — hygiene
     if (enabled.has('hidden-layer') && n.visible === false) push('hidden-layer');
+    // Team hard rule 9 — anchors: flag curves drawn point by point, collinear / duplicate anchors, traced-looking paths
+    if (enabled.has('vector-anchors') && n.type === 'VECTOR' && !insideInstance(n)) {
+      const stats = (n as VectorNode).vectorPaths.map((vp) => analyzeAnchors(vp.data));
+      const sum = stats.reduce(
+        (s, x) => ({ anchors: s.anchors + x.anchors, removable: s.removable + x.removable, polylineRuns: s.polylineRuns + x.polylineRuns, polylineAnchors: s.polylineAnchors + x.polylineAnchors }),
+        { anchors: 0, removable: 0, polylineRuns: 0, polylineAnchors: 0 },
+      );
+      const detail = anchorFinding(sum);
+      if (detail) push('vector-anchors', detail);
+    }
   }
 
   // Orphan styles: defined locally but referenced by nothing in the whole
