@@ -4,6 +4,7 @@
 //     around it) — parts that move together stay one unit, and a blink or a mouth swap is one layer;
 //   · a part may carry a linear gradient (`paint`), its own `opacity` and `blend` (shading laid over a base the way designers draw it).
 import type { BuildVectorsParams, BuildVectorsPaint } from '../../shared/schemas';
+import { isStageOf, stageFrameName } from '../../shared/stage';
 import { solid } from '../paints';
 import { freeSpot, getSceneNode } from '../util';
 
@@ -34,7 +35,8 @@ export async function buildVectors(p: BuildVectorsParams) {
     if (n.type !== 'FRAME') throw new Error(`parentId ${p.parentId} là ${n.type}, cần FRAME`);
     frame = n;
   } else {
-    const found = figma.currentPage.children.find((c) => c.type === 'FRAME' && c.name === p.frame.name) as FrameNode | undefined;
+    // the frame may already carry a stage ("Hotdog · vector · 1 thô") — still the same frame
+    const found = figma.currentPage.children.find((c) => c.type === 'FRAME' && (c.name === p.frame.name || (p.stage !== undefined && isStageOf(c.name, p.frame.name)))) as FrameNode | undefined;
     if (found) frame = found;
     else {
       frame = figma.createFrame();
@@ -48,6 +50,7 @@ export async function buildVectors(p: BuildVectorsParams) {
       frame.y = spot.y;
     }
   }
+  if (p.stage !== undefined) frame.name = stageFrameName(p.frame.name, p.stage);
   // the holder of a nested group = the group named by the path before the last "/" (searched from the frame down)
   const holderOf = (path: string[]): GroupNode | null => {
     let at: Holder = frame;

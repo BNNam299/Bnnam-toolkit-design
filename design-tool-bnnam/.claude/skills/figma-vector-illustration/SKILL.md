@@ -48,7 +48,7 @@ how the work is made and checked:
 | Question | Why it matters |
 |---|---|
 | **What kind of job?** · **Copy** a reference (image, screenshot, sprite) · **Create** new art from a description · **Fix** existing art | each kind has its own standard to check against — `references/draw-loop.md` §1. Never check creative work by "overlay and it lines up" |
-| **Create only — who makes the concept?** · **You generate it** in your image tool (ChatGPT or any) from a prompt I write — recommended · **I build it directly** in Figma | an image model is good at composition, pose and natural shapes; the agent is good at clean, lean vectors. Route A turns creative work into a copy job (`references/draw-loop.md` §3) |
+| **Create only — who makes the concept?** · **You generate it** in your image tool (ChatGPT or any) from a prompt I write — recommended · **I build it directly** in Figma | an image model is good at composition, pose and natural shapes; the agent is good at clean, lean vectors. Route A turns creative work into a copy job (`references/draw-loop.md` §3). Say the trade-off in the option itself, in plain words: A = the most natural result (copies land within a few % of their image), B = no extra tool, but stiffer (a self-built taco came out lumpy and flat beside the set it joined) |
 | **Static, or animated later (Lottie)?** If animated: which parts move? | static → parts grouped for easy editing; animated → one layer per moving part, pivots at joints, joint covers, equal anchors between poses (`references/draw-loop.md` §5). Never rig art nobody will animate |
 
 **Copy jobs are reference work.** The team copies existing art — its own, stock art, another product's character — to study and
@@ -290,7 +290,7 @@ draft first, names last).
 | `scripts/vectorize.cjs --plan plan.json --out scene.json [--groups Head] [--render draft.png] [--dark] [--no-clean]` | every part of the plan → one whole, lean path (hidden parts filled in, seams closed, fill = the region's flat colour, clean fit), seconds (≈ 20 s for a 1254 px image of 400 parts); a part's `draw` (path, `{rect}`, `{ellipse}`) replaces its outline; `--dark` also renders `<render>-dark.png` on Figma's dark canvas (holes, seams) |
 | `scripts/fit-shapes.cjs` (used by vectorize) | the clean step: each piece → rect · rounded rect · pill / circle / ellipse (rotatable, may continue under a part in front) · straight-sided polygon; close calls go to the style's shape family; matched sets drawn from one model; nothing fits → traced outline kept |
 | `scripts/vectorize.cjs --names names.json --plan draft.json --to plan.json` | lock pass: names + groups from a small file of draft ids (`from`, `drop`); seeds, colours and boxes are copied, never typed |
-| `build_vectors { path, groups, parentId }` (figma-agent) | reads the scene file and builds / replaces those groups in the frame (`parentId` = the `frameId` of the first build, so every stage lands in the same frame) — coordinates never pass through the agent; places each part by its curve (not its handles), builds gradients, opacity, blend, and nests `Head/Eye L` inside `Head` |
+| `build_vectors { path, groups, parentId, stage }` (figma-agent) | reads the scene file and builds / replaces those groups in the frame (`parentId` = the `frameId` of the first build, so every stage lands in the same frame; `stage` = "1 thô" / "2 khối" / "3 chi tiết" / "4 chốt" shows in the frame name, `""` on the last build = final name) — coordinates never pass through the agent; places each part by its curve (not its handles), builds gradients, opacity, blend, and nests `Head/Eye L` inside `Head` |
 | `scripts/score.cjs --plan plan.json --draw draw.png [--groups Head] [--only p07,p12] --diff diff.png` | the same parts scored against the reference crop; `--only` re-scores just the refined parts |
 | `scripts/compare-sheet.cjs --plan plan.json --draw draw.png --checks checks.json --out sheet.png` | rule 9 look check: one image, reference \| drawing at 2× for every join, hard part and a grid of neighbouring regions (`checks.json`: `joins`, `hard`, `grid`); `--ref` instead of `--plan` for any reference, no reference (create route B) → the drawing alone. Look once, answer every cell |
 | `scripts/contour.cjs --img ref.png --color "#hex" --box x,y,w,h --scale 4 --src-px 2.8` | one outline on its own (checking a single shape); `vectorize.cjs` uses the same tracing |
@@ -395,6 +395,8 @@ your own · anchors before → after with the max deviation, and any vector kept
   comes (`references/draw-loop.md` §2).
 - Upscaling the reference before drawing (9× the pixels, every step 9× slower), or reducing a soft-shaded image to N flat colours with
   a script of your own (jagged edges, banded shading).
+- Raising `srcPx` to calm a noisy (JPEG) reference — curves come out as straight-sided polygons. The draft already writes `"smooth"`
+  for compressed images; keep it.
 - Every region in the background's colour dropped as a hole — a white face or belly punched out; decide each one, check `--dark`.
 
 ## Self-check before reporting

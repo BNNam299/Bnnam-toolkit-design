@@ -527,6 +527,7 @@ export const BuildVectorsInput = z.object({
   parentId: NodeId.optional().describe('Build into this frame; default: the top-level frame named like scene.frame.name, or a new one'),
   x: z.number().optional().describe('Position of a NEW frame (default: a free spot)'),
   y: z.number().optional(),
+  stage: z.string().optional().describe('Drawing stage shown in the frame name, e.g. "1 thô" → "<scene frame name> · 1 thô"; "" = the final name (lock). Omit to leave the name alone'),
 });
 
 // a part's linear gradient: handles as fractions of the part's own box, stops back → front
@@ -558,6 +559,7 @@ export type BuildVectorsParams = {
   parentId?: string;
   x?: number;
   y?: number;
+  stage?: string;
 };
 
 export const ExportAssetsInput = z.object({

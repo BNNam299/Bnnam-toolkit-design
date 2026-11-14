@@ -486,7 +486,7 @@ tool('clone_node', {
 });
 
 tool('build_vectors', {
-  description: `Copy jobs of figma-vector-illustration only: build named vector groups from a scene JSON written by its scripts/vectorize.cjs (one pen-tool path per part, fill or linear gradient, opacity / blend, position; a group named "Head/Eye L" is nested inside "Head"). Pass path (absolute, read by the server so coordinates never pass through the agent) and optionally groups to build one cluster at a time; a group that already exists in the frame is replaced in place. Returns ids and anchor counts per part. Not for UI screens.`,
+  description: `Copy jobs of figma-vector-illustration only: build named vector groups from a scene JSON written by its scripts/vectorize.cjs (one pen-tool path per part, fill or linear gradient, opacity / blend, position; a group named "Head/Eye L" is nested inside "Head"). Pass path (absolute, read by the server so coordinates never pass through the agent) and optionally groups to build one cluster at a time; a group that already exists in the frame is replaced in place. Pass stage ("1 thô", "2 khối", "3 chi tiết"; "" at lock) and the frame name shows it — no separate rename. Returns ids and anchor counts per part. Not for UI screens.`,
   input: S.BuildVectorsInput,
   timeoutMs: () => 120000,
   prepare: async (args) => {
@@ -500,6 +500,7 @@ tool('build_vectors', {
       parentId: args.parentId,
       x: args.x,
       y: args.y,
+      stage: args.stage,
     } satisfies S.BuildVectorsParams;
   },
 });

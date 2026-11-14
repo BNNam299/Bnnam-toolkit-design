@@ -82,11 +82,11 @@ current state; the run keeps going on its own (no question between stages) and t
 | **2 · khối** (masses) | the full build of the same plan: hidden parts filled in, seams closed, smooth outlines, clean shapes; replaces stage 1 in place | `--plan draft.json --out draft-scene.json --render draft.png` → `build_vectors` (same frame) | + ~30 s |
 | **3 · chi tiết** (details) | refine round 1: the fix list from the check — draws, joins, hard parts, faces, fine lines | Edit `draft.json` → rebuild → `build_vectors` | + 2–3 min |
 | **4 · chốt** (lock) | names, groups (`Head/Eye L`), gradients / overlays, holes dropped, `Draft` deleted, round 2 + finish; the frame gets its final name | `--names` → `--plan plan.json … --dark` → `build_vectors` | + 1–2 min |
-Mechanics: the first `build_vectors` creates the frame and returns its `frameId` — pass it as `parentId` on every later build (the
-stage label changes the frame's name, so finding it by name would make a new frame). Each `build_vectors` replaces the group of the
-same name in place (`Draft` in stages 1–3). After each build, rename the frame in one `execute_code` line
-(`(await figma.getNodeByIdAsync(id)).name = "<Subject> · vector · 2 khối"`; the final name has no stage tag) and write **one line**
-in the chat in the designer's language ("Xong khối, đang làm chi tiết") — no screenshots, no questions. A stage that fails to build is
+Mechanics: **every build carries its stage** — `build_vectors { path, parentId, stage: "1 thô" | "2 khối" | "3 chi tiết" | "" }`;
+the plugin names the frame `<Subject> · vector · <stage>` (`""` at lock = the plain final name). No separate rename: a test run
+renamed by hand once and then forgot for every later picture. The first build creates the frame and returns its `frameId` — pass it
+as `parentId` on every later build. Each `build_vectors` replaces the group of the same name in place (`Draft` in stages 1–3). After
+each build write **one line** in the chat in the designer's language ("Xong khối, đang làm chi tiết") — no screenshots, no questions. A stage that fails to build is
 reported in that line and the run goes on from the last good stage.
 **Never upscale the reference.** The scripts read the image at its own size; a 3× upscale made every step 9× slower (a 34-minute run)
 and adds nothing — small features are kept by the draft's detail rules, and a source too small to tell is a size-check question (pass
@@ -125,12 +125,12 @@ colour, the lock pass copies it. A colour that looks wrong is fixed by measuring
 2. **Stage 1 · rough, one command**: `node scripts/vectorize.cjs --auto-plan draft.json --img <ref> [--crop x,y,w,h] --scale <n>
    --name "<Subject> · vector" --out draft-scene.json --rough` (seconds, even for a big image) → every flat-colour region becomes a
    part `p01, p02…` (biggest first = furthest back, one group `Draft`, one part per line), `draft.labels.png` with the numbers on the
-   reference, and a rough scene of plain polygons. **Build it at once** (`build_vectors`, keep the `frameId`), rename the frame
-   `… · 1 thô`, one chat line. This is the **first** command after the size check: no `--palette`, no metadata or pixel probes before
+   reference, and a rough scene of plain polygons. **Build it at once** (`build_vectors { path, stage: "1 thô" }`, keep the
+   `frameId`), one chat line. This is the **first** command after the size check: no `--palette`, no metadata or pixel probes before
    it, no `--crop` unless the image holds more than the subject (the background is skipped anyway).
    **Do not probe pixels, crop zooms or write measuring scripts** — a test run spent 10 of its 16 minutes doing that.
 3. **Stage 2 · masses**: `node scripts/vectorize.cjs --plan draft.json --out draft-scene.json --render draft.png` →
-   `build_vectors { path, parentId: <frameId> }` (replaces the rough `Draft` in place) → frame `… · 2 khối`, one chat line. Each part
+   `build_vectors { path, parentId: <frameId>, stage: "2 khối" }` (replaces the rough `Draft` in place), one chat line. Each part
    is now one lean pen-tool path, filled with the reference's colour, **whole**: what a part in front hides is filled in within its own
    outline; seams between touching parts are closed; outlines are long smooth curves with corners only where the reference turns
    sharply. Leave `simplify` alone (it only loosens how far a refit may move from the trace, default 1 original px).
@@ -181,8 +181,8 @@ Kinds of fix:
   the edge in the reference gets `"inside": false`. vectorize already keeps auto-detected details inside their owner and refuses
   clean shapes that poke out — its "kept inside" line lists them.
 
-Each round: `vectorize.cjs --plan draft.json --out draft-scene.json --render draft.png` (seconds), `build_vectors` (with `parentId`;
-after round 1 the frame is `… · 3 chi tiết` + one chat line),
+Each round: `vectorize.cjs --plan draft.json --out draft-scene.json --render draft.png` (seconds), `build_vectors` (with `parentId`,
+`stage: "3 chi tiết"`) + one chat line,
 `score.cjs --plan draft.json --only <the parts you touched> --draw …`, the compare sheet once on the touched cells.
 After round 2, what still fails goes to the report with its evidence (rule 8) **only when it needs the designer**: the source is
 too small to tell, the reference is ambiguous (two readings of one shape), or a choice is theirs (keep the grain? merge two tones?).
@@ -197,6 +197,7 @@ files (11/2026) showed the tool's grouping and names were better than the origin
 was weaker in five places. The draft command now prints one line for each when it sees it; act on them at lock:
 | Draft line | What the artist did | At lock |
 |---|---|---|
+| `compression noise (… ‰ speckle) → "smooth": 2` | a JPEG / re-saved image: its speckle made every traced edge wobble, and a test run spent a whole extra round (11 min) smoothing by hand after the designer said "lines not clean" | nothing — `smooth` is already in the plan and carries to lock; one part still wobbly → `"simplify"` on that part. **Never raise `srcPx` for noise** (curves turn into straight-sided polygons) and never `--no-clean` the whole picture |
 | `ink style: p01, p11 …` | ink-outline art (retro, sticker): the colours underneath, the ink **one outline with holes on top** — colours run under it, no seam can open. Drawn at the back, every colour must fit the line exactly and misses show as hairlines (a globe showed black slivers) | the draft already puts the ink last; keep its group **last** (`Body ink` in front of everything it frames) |
 | `tone steps: p14 + p17 …` | soft gradient art: **one shape with one gradient** (the same skin gradient reused on face, neck, arms) — a palette cut it into bands with hard seams | join the bands into one part with `"gradient": true` — the stops and direction are measured |
 | — (you see it) | shading as a **see-through layer over the base**: one dark tint at 10–20 % for every shadow on the figure, blush / lips in multiply | the shade part gets `"overlay": true` (tint = `"shadowTint"` in names.json, else the darkest colour; `"overlay": "#hex"` to pick) and `"blend": "MULTIPLY"` where the reference multiplies |
@@ -226,9 +227,9 @@ never become anchors), and a `draw` that is a pasted trace is refitted and warne
    **Keep the reference's rendering**: a shade region stays its own part only where the reference has one.
 2. `node scripts/vectorize.cjs --names names.json --plan draft.json --to plan.json` — seeds, colours, boxes and tweaks are copied;
    it refuses a draft part that is neither used nor dropped, and warns when one part joins clearly different colours.
-3. `vectorize.cjs --plan plan.json --out scene.json --render final.png --dark` → `build_vectors` (same frame, `parentId`) → delete
-   the `Draft` group (`delete_nodes`) so the clean result **replaces** the draft — one frame, no leftover (a draft left behind doubles
-   every pixel the score and the designer see) → frame `… · 4 chốt` + one chat line → `score.cjs --plan plan.json` once more
+3. `vectorize.cjs --plan plan.json --out scene.json --render final.png --dark` → `build_vectors` (same frame, `parentId`,
+   `stage: "4 chốt"`) → delete the `Draft` group (`delete_nodes`) so the clean result **replaces** the draft — one frame, no leftover
+   (a draft left behind doubles every pixel the score and the designer see) → one chat line → `score.cjs --plan plan.json` once more
    (joined parts are completed together, so check them). `draw` and `clean` carry over from the draft plan. **Look at
    `final-dark.png` once**: the figure on Figma's dark canvas — a fill dropped as a hole, a seam between parts, a white part that
    touches the white background all show there and nowhere else (the score compares on the reference's own background).
@@ -237,7 +238,7 @@ never become anchors), and a `draw` that is a pasted trace is refitted and warne
    the reference's strength at 1×. Reference flat → none. Route A: the concept was generated without texture on purpose, so the
    finish comes from the **style reference's** build sheet. Run `spills` and `joins` (now with the final names) once here too. Lottie: note which finish the player cannot render.
 5. `anchorReport` (simplify on a copy where wasted); 4× zoom for seams; Lottie: pivots and joint covers on the moving parts (§5).
-   Last: the frame gets its final name (`<Subject> · vector`, no stage tag).
+   Last: the last `build_vectors` of the run passes `stage: ""` — the frame gets its final name (`<Subject> · vector`, no stage tag).
    Report: the score table, the look-check lines (cell → what was seen → fixed / not done), parts not done, guessed parts, time and
    turns used.
 
@@ -278,13 +279,21 @@ Use when the designer chooses it or has no image tool. SKILL rule 7 applies thro
 3. **Build big to small** on the picked silhouette: main mass → secondary forms joined at their joints → covering forms (clothes over
    the body, a lid over a jar) → props held by what holds them → details → the finish layer from the build sheet. The compare
    sheet runs on the exported drawing alone (`--draw` only); `checks.json` boxes are then in that PNG's px. One pen-tool path per part (rule 6), shading on the shape
-   (rule 1), named groups (rule 3).
+   (rule 1), named groups (rule 3). Three things a self-built drawing gets wrong in every style (a taco built beside a glossy
+   sticker croissant, 11/2026: lumpy filling, flat shell, bumpy ink line):
+   - **A mass of many small things** (a filling, foliage, hair, a crowd, clouds) is **one silhouette mass** in its base colour with
+     a few overlapping items breaking its edge and top, in two or three sizes — never a row of equal bumps.
+   - **Rendering depth is counted, not guessed**: per main mass, list the reference's tone layers from the build sheet (base · shade ·
+     light · highlight · rim · gloss…) and give each new mass the same count and kinds; fewer layers reads flat beside the set.
+   - **An outline follows the simplified silhouette**, not every bump inside it; its weight is measured from the reference.
 4. **Creative checklist, every round** — answer each line with what you saw, not "ok":
    | Check | How |
    |---|---|
    | Reads at real size | screenshot at 1×: can you tell what it is in one glance? |
    | Values separate | greyscale copy (temp, deleted after): main forms still separate light / dark |
-   | Style match | the five style lines hold; placed **beside** existing art in the file, it looks like the same set |
+   | Style match | the five style lines hold; **placed beside the style reference at the same scale, one screenshot of both** — it looks like the same set. Not done = not finished: never report "not compared yet" |
+   | Rendering depth | each main mass carries the reference's tone layers, same count and kinds (build sheet) |
+   | Masses of many things | one base mass + a few overlapping items in 2–3 sizes; no row of equal bumps; the outline follows the simplified edge |
    | Not the reference's skeleton | pose, layout and silhouette differ from the reference subject's |
    | Attached | `floating(root, pairs)` empty; nothing peeks out from behind another part |
    | Joins overlap | `joins(root, list)` empty; each join cell of the compare sheet (`--draw` alone) drawn the way the build sheet says |
@@ -292,7 +301,9 @@ Use when the designer chooses it or has no image tool. SKILL rule 7 applies thro
    | Build sheet | taper, corners, edges, inner lines match the sheet line by line; the finish layer is there if the sheet lists one |
    | Identifiers | 2–3, readable; nothing else competing |
    | Clean shapes | shape checks of §1 empty or reasoned; no seams at 4× |
-5. **Report** the checklist with what you saw per line, and which choices you made yourself.
+5. **Report** the checklist with what you saw per line, and which choices you made yourself. Then say plainly that route A (a
+   concept image, copied) gives a more natural result and offer it for the next subject — copying now reaches 0.99 of its reference,
+   a self-built drawing is only as good as these checks.
 
 ### Silhouette stop (route B; route A's options play the same role)
 - Each option is **one solid shape, one fill, no strokes**, at the real size.

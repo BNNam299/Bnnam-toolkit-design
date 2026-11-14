@@ -28,6 +28,7 @@
 // { "img": "C:/abs/ref.png", "crop": [x, y, w, h],          // reference px; omit crop = whole image
 //   "scale": 4,                                              // drawing px per reference px
 //   "srcPx": 1,                                              // size of one ORIGINAL pixel in this image (a 2× screenshot → 2)
+//   "smooth": 2,                                       // optional: traced outlines read at this size (auto-plan sets it on JPEG noise)
 //   "frame": { "name": "Hero · vector" },
 //   "groups": [                                              // back → front; parts inside a group back → front
 //     { "name": "Legs", "parts": [
@@ -81,6 +82,7 @@ function args() {
     else if (k === '--auto-plan') o.autoPlan = a[++i];
     else if (k === '--scale') o.scale = +a[++i];
     else if (k === '--src-px') o.srcPx = +a[++i];
+    else if (k === '--smooth') o.smooth = +a[++i];
     else if (k === '--name') o.name = a[++i];
     else if (k === '--render') o.render = a[++i];
     else if (k === '--names') o.names = a[++i];
@@ -245,7 +247,20 @@ async function build(o) {
         if (k < Infinity) take.push(i, k); }
       if (!take.length) break;
       for (let t = 0; t < take.length; t += 2) { const i = take[t], k = take[t + 1], x = i % W, y = (i / W) | 0, b = flat[k].bb; owner[i] = k; flat[k].mask[i] = 1; claimed[i] = 1;
-        if (b[2] < b[0]) { b[0] = b[2] = x; b[1] = b[3] = y; } else { if (x < b[0]) b[0] = x; if (x > b[2]) b[2] = x; if (y < b[1]) b[1] = y; if (y > b[3]) b[3] = y; } } } }
+        if (b[2] < b[0]) { b[0] = b[2] = x; b[1] = b[3] = y; } else { if (x < b[0]) b[0] = x; if (x > b[2]) b[2] = x; if (y < b[1]) b[1] = y; if (y > b[3]) b[3] = y; } } }
+    // ENCLOSED leftovers: a patch no part claims, sealed off from the background (spots on a nori sheet the palette dropped as too
+    // small) became a see-through hole — white specks in the part on any backdrop. It is remembered for the back-most part around it,
+    // whatever its size, and only filled into that part's TRACED outline: put into the mask, it also changed what the clean-shape
+    // step accepted (a curved bun, its holes gone, passed as a rectangle). A patch reaching the background or the image edge stays.
+    const seen = new Uint8Array(W * H);
+    for (let i0 = 0; i0 < W * H; i0++) { if (seen[i0] || owner[i0] >= 0 || bg[i0]) continue;
+      const st = [i0], patch = []; seen[i0] = 1; let k = Infinity, open = false;
+      while (st.length) { const i = st.pop(), x = i % W, y = (i / W) | 0; patch.push(i);
+        if (x === 0 || y === 0 || x === W - 1 || y === H - 1) open = true;
+        for (const j of [x + 1 < W ? i + 1 : -1, x > 0 ? i - 1 : -1, y + 1 < H ? i + W : -1, y > 0 ? i - W : -1]) { if (j < 0) continue;
+          if (bg[j]) open = true; else if (owner[j] >= 0) { if (owner[j] < k) k = owner[j]; } else if (!seen[j]) { seen[j] = 1; st.push(j); } } }
+      if (open || k === Infinity) continue;
+      (flat[k].patches || (flat[k].patches = [])).push(patch); } }
   // the TOP part at each pixel (front-most mask covering it): "everything drawn in front of part k" = top > k. Built once — the old
   // per-part union of every later mask grew with parts² × pixels and was most of a 3-minute build
   const top = new Int16Array(W * H).fill(-1);
@@ -267,8 +282,13 @@ async function build(o) {
       .map((l) => l.map((p) => ({ x: (p.x + 0.5) / U + mx0, y: (p.y + 0.5) / U + my0 })));
   };
   // traced outline → long smooth curves (anchors.js fitOutline: reads the outline at the size of a few original pixels, so pixel
-  // stairs never become anchors); `simplify` (original px) only loosens the fidelity bound for one visibly wobbly part
-  const leanTrace = (raw, simp) => fitOutline(raw, { unit: srcPx, tol: (simp || 1) * srcPx }).d;
+  // stairs never become anchors); `simplify` (original px) only loosens the fidelity bound for one visibly wobbly part.
+  // plan "smooth" (px, written by --auto-plan when the reference carries compression noise): traced outlines are read at that size
+  // instead — a JPEG's speckle made every edge wobble at srcPx 1 and a test run spent a whole extra round smoothing by hand. Only the
+  // traced outlines: raising srcPx instead also loosened the clean-shape check, and curved masses came out as straight-sided polygons
+  // (2 px: as clean to the eye as 3, without the thin strokes next to a smoothed mass losing score — measured on 4 compressed refs)
+  const SM = Math.max(srcPx, +plan.smooth || 0);
+  const leanTrace = (raw, simp) => fitOutline(raw, { unit: SM, tol: (simp || 1) * SM }).d;
   // a `draw` string that is really a pasted trace (a long run of short straight pieces) gets the same treatment — typed coordinates
   // of a staircase are the teeth the designer sees
   // (stairs turn left, right, left… so the polyline signal misses them — count short straight pieces instead)
@@ -340,6 +360,10 @@ async function build(o) {
     else for (const c of components(m, W, H, bb)) {
       if (c.n < Math.max(2, 2 * srcPx * srcPx)) continue;
       const cm = new Uint8Array(W * H); for (const i of c.idx) cm[i] = 1;
+      // leftover patches this piece encloses (see ENCLOSED above): drawn as part of it, not as a hole
+      if (f.patches) for (const pt of f.patches) {
+        if (!pt.every((i) => { const x = i % W, y = (i / W) | 0; return x > c.x0 && x < c.x1 && y > c.y0 && y < c.y1; })) continue;
+        if (pt.some((i) => cm[i - 1] || cm[i + 1] || cm[i - W] || cm[i + W])) for (const i of pt) cm[i] = 1; }
       const loops = traceMask(cm, c.x0, c.y0, c.x1, c.y1, f.p.line || f.p.pattern ? 1 : 4);
       if (!loops.length) continue;
       const big = loops.reduce((a, b) => (Math.abs(area(b)) > Math.abs(area(a)) ? b : a));
@@ -540,7 +564,12 @@ async function build(o) {
   if (big.length) { console.log('draw hints (crop px, corners only — copy into the plan as "draw", round off what is round):');
     for (const p of big) console.log(`  ${p.name}: ${p.drawHint}`); }
   for (const w of warnings) console.log('⚠ ' + w);
-  console.log(`scene → ${o.out} · frame ${scene.frame.width}×${scene.frame.height} · build it: build_vectors { path: "${o.out.replace(/\\/g, '/')}" }`);
+  // the build call with its stage, ready to copy — the frame name then shows how far the drawing is (a test run forgot to rename it)
+  { const p = `path: "${path.resolve(o.out).replace(/\\/g, '/')}"`, draft = scene.groups.length === 1 && scene.groups[0].name === 'Draft';
+    console.log(`scene → ${o.out} · frame ${scene.frame.width}×${scene.frame.height} · build it: ` + (o.rough
+      ? `build_vectors { ${p}, stage: "1 thô" } (keep the frameId it returns: parentId of every later build)`
+      : draft ? `build_vectors { ${p}, parentId, stage: "2 khối" } (first full build) · stage "3 chi tiết" in refine rounds`
+        : `build_vectors { ${p}, parentId, stage: "4 chốt" } · stage "" on the run's last build (final frame name)`)); }
 }
 
 // scene → PNG at frame size, white background (preview, and the drawing score.cjs reads when Figma is not open)
@@ -577,6 +606,16 @@ async function autoPlan(o) {
   { const st = []; for (let x = 0; x < W; x++) st.push(x, 0, x, H - 1); for (let y = 0; y < H; y++) st.push(0, y, W - 1, y);
     while (st.length) { const y = st.pop(), x = st.pop(); if (x < 0 || y < 0 || x >= W || y >= H || bg[y * W + x] || !isBg(x, y)) continue;
       bg[y * W + x] = 1; st.push(x + 1, y, x - 1, y, x, y + 1, x, y - 1); } }
+  // COMPRESSION NOISE: a JPEG (or a re-saved screenshot) carries speckle — single pixels a few levels off both neighbours, which
+  // match each other. Flat, anti-aliased and soft-shaded art have almost none (11 clean references ≤ 0.1 ‰, a glossy soft-shaded
+  // one 2.6 ‰); compressed ones 6–31 ‰. Above 5 ‰ the traced outlines are read smoother ("smooth" in the plan, see build); the
+  // clean-shape step and the details are untouched
+  let smooth = o.smooth !== undefined ? o.smooth : 0, speckle = 0;
+  { const L = (x, y) => { const [r, g, b] = im.at(x, y); return 0.299 * r + 0.587 * g + 0.114 * b; }; let n = 0, sp = 0;
+    for (let y = 0; y < H; y++) for (let x = 1; x < W - 1; x++) { const i = y * W + x; if (bg[i] || bg[i - 1] || bg[i + 1]) continue; n++;
+      const a = L(x - 1, y), b = L(x + 1, y), v = L(x, y); if (Math.abs(a - b) < 4 && Math.abs(v - a) > 6 && Math.abs(v - a) < 40) sp++; }
+    speckle = n ? 1000 * sp / n : 0;
+    if (o.smooth === undefined && speckle >= 5) smooth = Math.round(2 * Math.max(1.5, Math.min(2, 2 * Math.min(W, H) / 600)) * srcPx) / 2; }
   // label every pixel with its nearest kept colour (within 40) — the same rule vectorize/score apply through plan.palette
   const lab = new Int16Array(W * H).fill(-1), dist = new Float32Array(W * H);
   for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) { if (bg[y * W + x]) continue; const [r, g, b] = im.at(x, y);
@@ -698,7 +737,7 @@ async function autoPlan(o) {
     palette, groups: [{ name: 'Draft', parts }] };
   // one part per line: easy to read, and easy to tweak one part in place during refine
   fs.writeFileSync(o.autoPlan, '{"img":' + JSON.stringify(plan.img) + (plan.crop ? ',"crop":' + JSON.stringify(plan.crop) : '') +
-    `,"scale":${plan.scale},"srcPx":${plan.srcPx},"frame":${JSON.stringify(plan.frame)},\n"palette":${JSON.stringify(palette)},\n"groups":[{"name":"Draft","parts":[\n` +
+    `,"scale":${plan.scale},"srcPx":${plan.srcPx}${smooth ? `,"smooth":${smooth}` : ''},"frame":${JSON.stringify(plan.frame)},\n"palette":${JSON.stringify(palette)},\n"groups":[{"name":"Draft","parts":[\n` +
     parts.map((p) => JSON.stringify(p)).join(',\n') + '\n]}]}\n');
   // labels image: reference ×k, each region outlined + its number
   const k = Math.max(2, Math.min(6, Math.round(900 / Math.max(W, H))));
@@ -711,6 +750,7 @@ async function autoPlan(o) {
   const labels = o.autoPlan.replace(/\.json$/i, '') + '.labels.png';
   await sharp(base).composite([{ input: Buffer.from(svg + '</svg>') }]).png().toFile(labels);
   console.log(`${parts.length} regions → draft plan ${o.autoPlan} · labels ${labels}`);
+  if (smooth && o.smooth === undefined) console.log(`compression noise (${speckle.toFixed(1)} ‰ speckle) → outlines read smoother: "smooth": ${smooth} in the plan (keep it; the clean shapes and the details are not affected). Never raise srcPx for noise — that turns curves into straight-sided polygons`);
   const lines = parts.filter((p) => p.line), pats = parts.filter((p) => p.pattern);
   if (lines.length || pats.length) console.log(`kept fine detail: ${lines.map((p) => `${p.name} line`).concat(pats.map((p) => `${p.name} pattern of ${p.pattern} dots`)).join(' · ')} — name them at lock, never drop them unasked`);
   if (inkNotes.length) console.log(`ink style: ${inkNotes.join(', ')} frames the colours → placed IN FRONT (one outline with holes over the colour parts, which run under it — no seam can open). Keep the ink group last at lock`);
@@ -753,7 +793,7 @@ function nameParts(o) {
   if (left.length) errors.push(`not used or dropped: ${left.join(' ')}`);
   if (errors.length) { for (const e of errors) console.log('✗ ' + e); process.exit(1); }
   const plan = { img: draft.img, ...(draft.crop ? { crop: draft.crop } : {}), scale: draft.scale, srcPx: draft.srcPx,
-    ...(draft.palette ? { palette: draft.palette } : {}), frame: { name: names.frame || (draft.frame && draft.frame.name) || 'Vector' }, groups,
+    ...(draft.smooth ? { smooth: draft.smooth } : {}), ...(draft.palette ? { palette: draft.palette } : {}), frame: { name: names.frame || (draft.frame && draft.frame.name) || 'Vector' }, groups,
     ...(names.shadowTint ? { shadowTint: names.shadowTint } : {}) };
   // nested groups ("Head/Eye L") come right after their holder and before the next top-level group — the stack order is the scene order
   for (let i = 0; i < groups.length; i++) { const nm = groups[i].name; if (!nm.includes('/')) continue; const top = nm.split('/')[0].trim();
