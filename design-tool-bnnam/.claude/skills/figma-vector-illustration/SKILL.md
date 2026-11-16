@@ -79,7 +79,8 @@ a tilted leaf. Instead:
 | Shadow, highlight, volume on one shape (pot body, rim, leaf half-shade, building wall) | **Extra gradient fills stacked on that same shape** — e.g. side shade = horizontal gradient transparent → dark 20–28 %; contact shadow under a rim = vertical gradient dark 35–45 % → 0 within the top 18 %; highlight sliver = hard-stop band of white 20 % | The paint can't leave the path, gradients follow rotation, edges stay soft. Developers map it 1 : 1 to stacked gradients on one SwiftUI path. |
 | A detail drawn as its own line / shape that must stay within a shape (leaf midrib, reflections on glass, pattern on fabric) | **Mask group**: a copy of the shape as the bottom child with `isMask = true`, details above it | The detail can be any length; the mask trims it. |
 | A shadow cast by one object onto another (pot on sill, cup on table, car on road) | **Mask by the receiving surface** + **ellipse with a radial gradient** (centre 30 % → 14 % at 55 % → 0) under the object's base | A shadow only exists on the surface that receives it. A flat solid ellipse looks pasted on and spills onto whatever is behind. |
-| Shapes that really must merge or cut (a cloud from puffs, a window hole) | Boolean union / subtract | Fine for geometry. **Do not** use Boolean Intersect for shading: on rotated shapes the clones' transforms drift and the edge comes out hard. |
+| Shapes that really must merge or cut (a cloud from puffs, a window hole) | Boolean union / subtract | Fine for geometry. |
+| A flat shade band, or a piece joined to a bigger shape (dark half of a bottle, a collar of the body) | **Duplicate the base in place and cut it** (rule 10) — `"cut"` at lock, `build_vectors` intersects the duplicate and flattens it | The shade's outer edge IS the base's edge: nothing gaps or pokes out. Only a duplicate made in place; a clone that is rotated or moved drifts and comes out hard. |
 
 Dark = a darker, warmer tone of the object, never black. Remove duplicates while you are there (two identical rims stacked is common).
 Copying soft-shaded art (skin, hair, cloth with smooth light), do what its artist did: **one shape with one gradient** for a tone that
@@ -259,6 +260,41 @@ the answers:
    check its "shape family" and "matched set" lines against your build sheet, and set `"family"` / `"same"` in the plan when they
    disagree. Create: pick the family before drawing and build every feature of a kind from it.
 
+### 10. Think in layers: base whole, everything else on top of it (any flat or semi-flat style)
+How the team's designers build every object, and the order the lock pass follows:
+1. **Plan the stack before drawing.** Which object is lowest, which is highest. The lowest is the one later objects hide most of
+   (a bottle's neck under its body): its hidden part is free — draw it whole and let the front object cover the rest, never cut an
+   edge to fit a neighbour (`"under"` continues it under the front part).
+2. **Each object starts as ONE whole shape in its base colour** — the tone of the bigger or simpler region; the smaller one is cut
+   out on top. Never two halves butted together (`"also"` takes the other tones' pixels into the base's silhouette, the colour stays).
+3. **A shade = a duplicate of the base, cut** (`"cut": "<base>"`): only the shade's inner edge is new; where it meets the base's
+   outline it is the base's own edge. The same for a piece the image shows joined to a bigger shape (a collar cut from the body).
+4. **Lights and small details are drawn new, on top** (bubbles, shines, a seal), then the object is grouped; the next object goes
+   above it, built the same way.
+5. **Few shapes — not every colour region is a shape.** One colour of one object is ONE shape, even where something crosses it (a
+   shine strip under a label, a cap's light and its neck's light under a dark band). A faint tint on a small part is left out unless
+   it reads at the real size (a collar's shade). Geometric bits are primitives (bubbles, a seal: ellipses; a label: rounded rect).
+   The designer's bottle: 16 shapes; the tool's first try: 19 tiles. Count yours against the reference's construction, not its
+   colour regions.
+6. **Redraw every base before anything is cut from it** — a few anchors, symmetric where the reference is. A cut copies the base's
+   edge, wobble included; a test that cut from traced bases came out lumpy although every part "passed" the score. For a knife only
+   the line between light and dark is drawn (the draft prints it as `edge inside the base`); the rest runs outside the base.
+7. **Static or animated decides how the cut is made** (asked first): animated → `"shading": "cut"` (default) — one clean path per
+   part, no masks; static art and icons → `"shading": "mask"` may be used (the shade sits in a mask of its base and follows later
+   edits of the base).
+8. **Where two shapes meet on the outline, they share ONE point and the curve runs on.** The neck's flare ends exactly where the
+   shoulder starts — same coordinate in both paths, the handles on either side in one line — and the rest of the upper shape tucks
+   inside the lower one. Two shapes that merely overlap meet with a kink or a step the designer sees first. Every build prints
+   `⚠ JOINT — A → B at x,y (12° vs 1°)` where the outline turns sharper than the reference as it passes between parts: fix each
+   (look first — a real corner there is kept). The same holds inside: the line between light and dark runs on through a flange or
+   a rim (a cap's light edge bulges with the rim), never a square step.
+9. **A primitive only where the reference IS that primitive.** Bubbles, a seal, a button: ellipse / pill / rect. A highlight with
+   a pointed end or a flat side (a drop, a half-moon) is drawn as a path — 3–6 anchors. The clean step no longer fits an ellipse
+   to a lopsided piece its own outline fits clearly better (mirror test), but a highlight you write as `{ellipse}` is still wrong.
+Test (champagne bottle, 11/2026): the tool's draft cut the cap, foil and label into tiles butted together. Rebuilt with rule 10 and
+redrawn bases: 16 shapes as in the designer's file, every part passes, nothing to seal. **Judge it beside the designer's own
+version when there is one** — shape count, how it is split, clean symmetric outlines — not by the score alone.
+
 ## Running the scripts
 **`scripts/illustration-helpers.js`** is a library of Figma Plugin API functions, not a script to run as is. Read it, paste **only the
 helpers you need** at the top of the code you send to **`execute_code{code, timeoutMs}`**, then call them and `return` the numbers you
@@ -286,10 +322,10 @@ looks and decides; the scripts measure and trace; **never type path coordinates 
 draft first, names last).
 | Script / command | Does |
 |---|---|
-| `scripts/vectorize.cjs --auto-plan draft.json --img ref.png --scale 4 --out draft-scene.json --rough` | **stage 1, seconds**: the draft plan + a rough scene (plain polygons) to build at once so the whole picture shows; without `--rough` the same command builds the full draft. The draft in one command: every flat-colour region → part `p01…` with seed + measured colour, traced, then **fitted to clean shapes**; a labels image, the scene, a preview, and *draw hints* for the big parts still traced — build it at once (`--palette` lists the colours only). It also reads how the art is built: `ink style` (ink placed in front), `tone steps` (bands to join as one gradient), `background colour inside the figure` (holes or parts?), `kept fine detail` (lines, dot patterns) |
-| `scripts/vectorize.cjs --plan plan.json --out scene.json [--groups Head] [--render draft.png] [--dark] [--no-clean]` | every part of the plan → one whole, lean path (hidden parts filled in, seams closed, fill = the region's flat colour, clean fit), seconds (≈ 20 s for a 1254 px image of 400 parts); a part's `draw` (path, `{rect}`, `{ellipse}`) replaces its outline; `--dark` also renders `<render>-dark.png` on Figma's dark canvas (holes, seams) |
-| `scripts/fit-shapes.cjs` (used by vectorize) | the clean step: each piece → rect · rounded rect · pill / circle / ellipse (rotatable, may continue under a part in front) · straight-sided polygon; close calls go to the style's shape family; matched sets drawn from one model; nothing fits → traced outline kept |
-| `scripts/vectorize.cjs --names names.json --plan draft.json --to plan.json` | lock pass: names + groups from a small file of draft ids (`from`, `drop`); seeds, colours and boxes are copied, never typed |
+| `scripts/vectorize.cjs --auto-plan draft.json --img ref.png --scale 4 --out draft-scene.json --rough` | **stage 1, seconds**: the draft plan + a rough scene (plain polygons) to build at once so the whole picture shows; without `--rough` the same command builds the full draft. The draft in one command: every flat-colour region → part `p01…` with seed + measured colour, traced, then **fitted to clean shapes**; a labels image, the scene, a preview, and *draw hints* for the big parts still traced — build it at once (`--palette` lists the colours only). It also reads how the art is built: `ink style` (ink placed in front), `tone steps` (bands to join as one gradient), `background colour inside the figure` (holes or parts?), `kept fine detail` (lines, dot patterns). A reference the draft would lose (compressed thin ink, heavy grain) is **prepared first, by the script** (`reference prepared …`: 2× + flat colours, or denoise) — the plan reads the prepared image; `--no-prep` turns it off |
+| `scripts/vectorize.cjs --plan plan.json --out scene.json [--groups Head] [--render draft.png] [--dark] [--no-clean]` | every part of the plan → one whole, lean path (hidden parts filled in, seams closed, fill = the region's flat colour, clean fit), seconds (≈ 20 s for a 1254 px image of 400 parts); a part's `draw` (path, `{rect}`, `{ellipse}`) replaces its outline; `--dark` also renders `<render>-dark.png` on Figma's dark canvas (holes, seams); every build prints `⚠ NOT DRAWN …` for areas of the reference no part covers and `⚠ JOINT …` where the outline kinks between two parts (`scripts/joints.cjs`) — answer each one |
+| `scripts/fit-shapes.cjs` (used by vectorize) | the clean step: each piece → rect · rounded rect · pill / circle / ellipse (rotatable, may continue under a part in front) · straight-sided polygon; close calls go to the style's shape family; matched sets drawn from one model; a lopsided piece (not its own mirror image) that its outline fits clearly better gets no primitive; nothing fits → traced outline kept |
+| `scripts/vectorize.cjs --names names.json --plan draft.json --to plan.json` | lock pass: names + groups from a small file of draft ids (`from`, `drop`); seeds, colours and boxes are copied, never typed. Rule 10: `"also"` (base takes other parts' silhouette), `"cut"` (shade = duplicate of the base, cut), `"under"` (base continues under a front part), top-level `"shading": "cut" \| "mask"` |
 | `build_vectors { path, groups, parentId, stage }` (figma-agent) | reads the scene file and builds / replaces those groups in the frame (`parentId` = the `frameId` of the first build, so every stage lands in the same frame; `stage` = "1 thô" / "2 khối" / "3 chi tiết" / "4 chốt" shows in the frame name, `""` on the last build = final name) — coordinates never pass through the agent; places each part by its curve (not its handles), builds gradients, opacity, blend, and nests `Head/Eye L` inside `Head` |
 | `scripts/score.cjs --plan plan.json --draw draw.png [--groups Head] [--only p07,p12] --diff diff.png` | the same parts scored against the reference crop; `--only` re-scores just the refined parts |
 | `scripts/compare-sheet.cjs --plan plan.json --draw draw.png --checks checks.json --out sheet.png` | rule 9 look check: one image, reference \| drawing at 2× for every join, hard part and a grid of neighbouring regions (`checks.json`: `joins`, `hard`, `grid`); `--ref` instead of `--plan` for any reference, no reference (create route B) → the drawing alone. Look once, answer every cell |
@@ -326,7 +362,8 @@ draft first, names last).
    temp frame. A 170 pt screenshot hides every spill this skill is about. Copy jobs: `score.cjs` per part too — "it lines up" is
    never a check. Then the look check (rule 9): `joins` + `compare-sheet.cjs`, every cell answered; the finish layer last. Loop
    steps 3–7 until a round finds nothing — rounds per kind in `references/draw-loop.md` §1.
-8. **Report** in the user's language (below).
+8. **Final check, then report** in the user's language (below). Copy: the final check of `references/draw-loop.md` §2 (pass 4,
+   step 6) runs after the last change, every time — its table goes in the report.
 
 ## Report
 ```
@@ -391,12 +428,20 @@ your own · anchors before → after with the max deviation, and any vector kept
 - Ink outline at the back of ink-outline art — every colour must then fit the line exactly; the misses show as dark slivers.
 - A whole face as one flat group of 20+ layers — no `Eye L` / `Mouth` groups to blink or swap.
 - Seams, creases and halftone dots dropped as crumbs.
+- An object drawn as tiles butted together (a light half beside a dark half, a label white beside its shade) — draw the base
+  whole and cut the shade from a duplicate of it (rule 10).
 - Nothing on the canvas for minutes while the agent perfects the draft off-screen — build the rough stage first, then each stage as it
   comes (`references/draw-loop.md` §2).
-- Upscaling the reference before drawing (9× the pixels, every step 9× slower), or reducing a soft-shaded image to N flat colours with
-  a script of your own (jagged edges, banded shading).
-- Raising `srcPx` to calm a noisy (JPEG) reference — curves come out as straight-sided polygons. The draft already writes `"smooth"`
-  for compressed images; keep it.
+- Preparing the reference with a script of your own — upscaling, median, reducing to N colours, raising `srcPx`, `--no-clean` on
+  the whole picture. The draft prepares a compressed or grainy reference itself (`reference prepared …`) and writes `"smooth"` for
+  JPEG speckle; an old note or habit saying otherwise is out of date.
+- A `NOT DRAWN` area left unanswered — a cream wave and a bottle label vanished from test drawings this way.
+- A `JOINT` left unanswered, or two parts that only overlap where the outline passes between them (neck → shoulder, arm → hand):
+  every part passes the score and the designer still sees the kink. One shared point, the curve running on (rule 10.8).
+- A highlight drawn as an ellipse because ellipses are the style's family — a drop or half-moon is a path (rule 10.9).
+- A flange, rim or lip drawn as a hard rectangle with a few px of radius, with the light / dark edge stepping across it — the
+  designer's rim bulges in a soft curve and the light edge bulges with it.
+- Reporting without the final check: a picture built once with no stages, a score from before the last fix, anchors never counted.
 - Every region in the background's colour dropped as a hole — a white face or belly punched out; decide each one, check `--dark`.
 
 ## Self-check before reporting
@@ -421,6 +466,13 @@ your own · anchors before → after with the max deviation, and any vector kept
   at 4× against the original (max deviation ≤ 0.5 px, icons ≤ 0.25 px).
 - [ ] Copy: the four stages were built into one frame as they came (rough within a minute); the frame carries its final name.
 - [ ] Copy: the `--dark` preview looked at once — no punched-out fill, no seam.
+- [ ] Copy: the final check ran after the LAST change (`references/draw-loop.md` §2 pass 4, step 6) and its table is in the report:
+  all stages built (also on a prepared reference), score re-run on the final export, `anchorReport` done, no `NOT DRAWN` left
+  unanswered.
+- [ ] Rule 10: a layer plan was written before lock (lowest → highest); every two-tone object is one whole base + parts cut from
+  it (`"cut"`), none butted in halves; animated art has no masks; no `JOINT` left unanswered; no highlight with a point or a
+  flat side drawn as an ellipse.
+- [ ] Copy: the reference was never prepared by hand — only the draft's own `reference prepared` step (or `--no-prep`, reported).
 - [ ] Copy: the draft's readings acted on — ink group in front, tone steps joined as one gradient, holes dropped (or asked) one by one,
   fine lines / patterns named; objects at two depths are two named groups; faces nested (`Head/Eye L`…).
 - [ ] Original untouched; temp zoom frames deleted.

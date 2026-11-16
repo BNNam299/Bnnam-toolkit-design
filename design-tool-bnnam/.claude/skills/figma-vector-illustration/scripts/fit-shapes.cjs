@@ -129,14 +129,15 @@ function context(mask, W, H, comp, opts) {
     const far = x < comp.x0 - 2 || x > comp.x1 + 2 || y < comp.y0 - 2 || y > comp.y1 + 2;
     cells.push([x, y, v, far ? false : isEdge(x, y), hid, far]); }
   // two scores: `tol` ignores the edge band (decides IF a shape is accepted), `full` counts every pixel (decides WHICH shape wins)
-  const score = (sh) => { let i = 0, u = 0, fi = 0, fu = 0, bad = 0, spill = 0, miss = 0;
+  const score = (sh) => { let i = 0, u = 0, fi = 0, fu = 0, bad = 0, spill = 0, miss = 0; const deep = [];
     for (const [x, y, v, e, hid] of cells) { const s = sh.inside(x + 0.5, y + 0.5);
       if (allowed && s && !allowed[y * W + x]) spill++;
       if (hid) continue;                                   // under a part in front: free either way
       if (s && !v) bad++;
       if (v && !s && !e) miss++;
+      if (s !== v && !e) deep.push(y * W + x);
       if (s || v) fu++; if (s && v) fi++; if (e) continue; if (s || v) u++; if (s && v) i++; }
-    sh.full = fu ? fi / fu : 0; sh.iou = u ? i / u : 1; sh.bad = bad; sh.spill = spill; sh.miss = miss; return sh; };
+    sh.full = fu ? fi / fu : 0; sh.iou = u ? i / u : 1; sh.bad = bad; sh.spill = spill; sh.miss = miss; sh.deep = biggestBlob(deep, W); return sh; };
   // stretch a pill / ellipse along its axis into the hidden area (each end separately), as long as it lands on nothing visible
   const extend = (make, p) => {
     if (pad === 2) return make(p);
@@ -148,6 +149,29 @@ function context(mask, W, H, comp, opts) {
     let best = at(e1, e2); if (score(best).bad - base.bad > lim) best = e2 >= e1 ? at(0, e2) : at(e1, 0);
     return best; };
   return { srcPx, inC, cells, score, extend, occluded: pad > 2 };
+}
+// the biggest 8-connected clump of mismatch pixels beyond the edge band: one clump = one place where the shape is NOT the piece
+// (a pointed end or a flat side an ellipse rounds off), not anti-aliasing spread thinly round the whole outline
+function biggestBlob(idx, W) {
+  if (!idx.length) return 0;
+  const set = new Set(idx), seen = new Set(); let best = 0;
+  for (const i0 of idx) { if (seen.has(i0)) continue; let n = 0; const st = [i0]; seen.add(i0);
+    while (st.length) { const i = st.pop(); n++; const x = i % W;
+      for (const dy of [-W, 0, W]) for (const dx of [-1, 0, 1]) { if (!dx && !dy) continue; if ((dx < 0 && x === 0) || (dx > 0 && x === W - 1)) continue;
+        const j = i + dy + dx; if (set.has(j) && !seen.has(j)) { seen.add(j); st.push(j); } } }
+    if (n > best) best = n; }
+  return best;
+}
+// how alike the piece is to its own mirror image across its long axis and across its short axis (IoU, pixel centres)
+function symmetry(comp, W) {
+  const a = axes(comp, W), c = Math.cos(a.th), s = Math.sin(a.th), own = new Set(comp.idx);
+  const res = [];
+  for (const flip of ['long', 'short']) { let hit = 0;
+    for (const i of comp.idx) { const dx = i % W + 0.5 - a.mx, dy = ((i / W) | 0) + 0.5 - a.my; let u = dx * c + dy * s, v = -dx * s + dy * c;
+      if (flip === 'long') v = -v; else u = -u;
+      const x = Math.floor(a.mx + u * c - v * s), y = Math.floor(a.my + u * s + v * c); if (own.has(y * W + x)) hit++; }
+    res.push(hit / (2 * comp.n - hit)); }
+  return res;
 }
 // principal axis + extents of the piece's pixels along / across it (th0: use this angle instead of the piece's own)
 function axes(comp, W, th0) {
@@ -199,7 +223,17 @@ function fitComponent(mask, W, H, comp, opts) {
   // a detail that lives inside another part must not poke out of it (spill = pixels outside the owner + its own pixels)
   // a big mass carries the style's character (a head that tapers, a coat that flares): a primitive replaces it only when it is
   // nearly exact — otherwise it stays traced and the agent draws it from the build sheet (`draw`)
-  const ok = cands.filter((c) => c.iou >= minIoU && c.full >= (big ? 0.97 : 0.8) && c.spill <= srcPx * srcPx)
+  // A rect, ellipse or pill is the same as its mirror image across both axes. A piece that is not (a highlight with a pointed end, a
+  // half-moon with a flat top: 0.78 against ≥ 0.88 for real bubbles) AND that its own outline fits clearly better is not that
+  // primitive — it came out as an ellipse only because ellipses were the style's family (bottle test 16/11). A hand-drawn pill eye
+  // that a 14-corner outline happens to hug better is still symmetric and stays a pill (witch bench). Beaten by an outline of many
+  // corners, the piece is a curved free shape: no primitive and no faceted polygon — it is traced with curves.
+  const lopsided = Math.min(...symmetry(comp, W)) < 0.85;
+  const poly = cands.find((c) => c.type === 'polygon');
+  const beaten = (c) => lopsided && !!poly && c !== poly && poly.full - c.full >= 0.05;
+  const anyBeaten = cands.some((c) => beaten(c) && c.iou >= minIoU);
+  const ok = cands.filter((c) => c.iou >= minIoU && c.full >= (big ? 0.97 : 0.8) && c.spill <= srcPx * srcPx && !beaten(c))
+    .filter((c) => !(c === poly && anyBeaten && c.anchors > 6))
     .map((c) => ({ type: c.type, d: c.d, iou: Math.round(c.iou * 1000) / 1000, full: Math.round(c.full * 1000) / 1000, anchors: c.anchors, params: c.params }));
   if (!ok.length) return null;
   return { ...pick(ok), ok, margin: margin(ok), occluded: ctx.occluded };

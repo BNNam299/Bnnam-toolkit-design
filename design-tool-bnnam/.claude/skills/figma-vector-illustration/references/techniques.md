@@ -20,7 +20,7 @@ Each section: the complaint, the cause, the fix that was accepted, the numbers t
 ## 1. Shadow band spilling past the pot
 **Complaint:** "các phần bóng vẽ chưa được tinh tế … shape đặt gọn vào" — a dark band under the rim stuck out at both rounded ends.
 **Cause:** the band was a 29 × 2 rectangle over a 29 pt rim with radius 3 and a 24 pt tapered body. Also the rim was duplicated.
-**Tried and rejected:** Boolean Intersect (body clone ∩ rectangle). On shapes with rotation the clones landed offset, and the result has a
+**Tried and rejected:** Boolean Intersect (body clone ∩ rectangle) *for soft side shading on rotated shapes*. (A flat shade band cut from a duplicate made **in place** is the designer's way and is what `"cut"` does — SKILL rule 10.) On shapes with rotation the clones landed offset, and the result has a
 hard straight edge that reads as a stripe.
 **Accepted:** stack paints on the body itself:
 | Paint | Gradient | Stops |

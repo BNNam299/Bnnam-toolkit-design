@@ -88,12 +88,15 @@ renamed by hand once and then forgot for every later picture. The first build cr
 as `parentId` on every later build. Each `build_vectors` replaces the group of the same name in place (`Draft` in stages 1–3). After
 each build write **one line** in the chat in the designer's language ("Xong khối, đang làm chi tiết") — no screenshots, no questions. A stage that fails to build is
 reported in that line and the run goes on from the last good stage.
-**Never upscale the reference.** The scripts read the image at its own size; a 3× upscale made every step 9× slower (a 34-minute run)
-and adds nothing — small features are kept by the draft's detail rules, and a source too small to tell is a size-check question (pass
-0+1, step 1). A sharp image is not an easier one: what decides the draft is how many flat colour areas it has. A soft-shaded image
-(gloss, gradients, soft rims) splits into hundreds of regions and many `tone steps` — copy it as base shapes with gradients and
-see-through overlays (lock); **never reduce it to N flat colours with a script of your own** (a test run did: jagged edges, banded
-shading, and the reduction itself cost minutes).
+**Never prepare the reference yourself — the draft does it.** When the draft would lose part of the picture (thin ink and blends of
+a compressed sticker, heavy grain on painted art), `--auto-plan` fixes the image itself and prints one line, `reference prepared
+(flat | denoise): … % lost → …`: thin lines / blends → 2× upscale, every pixel snapped to the art's flat colours, median; grain →
+denoised at its own size. The plan then reads the prepared image (its `srcPx` and `scale` already set) — build from it as usual. A
+clean reference is not touched. Test runs that wrote this step themselves lost minutes, once scrambled a colour channel, and once
+followed an old note to raise `srcPx` + `--no-clean` (forbidden, below). So: no upscaling, no median, no colour reduction, no
+`srcPx` change of your own; if the prepared image is wrong for the picture (look at `<draft>.prep.png` once), rerun with `--no-prep`
+and say so in the report. A soft-shaded image (gloss, gradients, soft rims) is never snapped to flat colours — it splits into many
+regions and `tone steps`; copy it as base shapes with gradients and see-through overlays (lock).
 
 **Why a clean step:** flat art is rectangles, rounded rectangles, circles and straight-sided shapes. Tracing a small or soft reference
 gives wobbly outlines of them (a 120 px sprite traced at 4×: every pixel stair became a 4 px wave, 14 of 32 parts passed). The same
@@ -197,6 +200,13 @@ files (11/2026) showed the tool's grouping and names were better than the origin
 was weaker in five places. The draft command now prints one line for each when it sees it; act on them at lock:
 | Draft line | What the artist did | At lock |
 |---|---|---|
+| `one colour split by a part across it: p07+p12 (across p03)` | one thing seen on both sides of what crosses it — a shine strip under a label, a cap's light and its neck's light under a band — is ONE shape drawn under it (rule 10.5) | the same thing → one part, both ids in `from`, drawn whole; two different things (two eyes, two bubbles) stay two — look |
+| `subtle tint: p11 on p33 (Δ 23)` | a faint tone on a small part (a collar's shade) — the designer left it out | leave it out (join it into the part it sits on, or drop it) unless it reads at the real size |
+| `edge inside the base (draw this line …)` (a part with `"cut"`) | the designer marks only the light / dark line on the duplicate and deletes the rest | the knife's `draw`: that line with a few points and curves, closed anywhere outside the base |
+| `⚠ <base> is a base and still traced` | the base is drawn clean first, then duplicated | give the base a `draw` (few anchors, symmetric where the reference is) before judging anything cut from it |
+| `reference prepared (flat \| denoise): … % lost → …` | — (the source was compressed or grainy, the art itself is clean) | nothing — the plan reads the prepared image; every stage is still built (stage 1 from it, not skipped). Look at `.prep.png` once; wrong → `--no-prep` |
+| `⚠ NOT DRAWN — n area(s) … colour box seed` (printed by every build) | the area is part of the picture (a cream wave on a peach backdrop, a label near the backdrop's colour) — a test drawing lost one and nobody saw it | answer **each** one: a real area → a new part in the plan with that `color`, `seeds: [seed]` and `box`; truly backdrop (a backdrop card the designer does not want, a watermark) → say so in the report. None may stay unanswered |
+| `⚠ JOINT — A → B at x,y (12° vs 1°)` (every full build) | where the outer outline passes from part A to part B it turns sharper than the reference does there: the two shapes overlap instead of meeting (the bottle's neck flare and shoulder, 16/11) | look at the spot on the render; a kink the reference does not have → end A exactly where B starts (one shared coordinate in both `draw`s, handles in one line) and tuck the rest of A inside B; rebuild until the line is gone or the reference really turns there (say so) |
 | `compression noise (… ‰ speckle) → "smooth": 2` | a JPEG / re-saved image: its speckle made every traced edge wobble, and a test run spent a whole extra round (11 min) smoothing by hand after the designer said "lines not clean" | nothing — `smooth` is already in the plan and carries to lock; one part still wobbly → `"simplify"` on that part. **Never raise `srcPx` for noise** (curves turn into straight-sided polygons) and never `--no-clean` the whole picture |
 | `ink style: p01, p11 …` | ink-outline art (retro, sticker): the colours underneath, the ink **one outline with holes on top** — colours run under it, no seam can open. Drawn at the back, every colour must fit the line exactly and misses show as hairlines (a globe showed black slivers) | the draft already puts the ink last; keep its group **last** (`Body ink` in front of everything it frames) |
 | `tone steps: p14 + p17 …` | soft gradient art: **one shape with one gradient** (the same skin gradient reused on face, neck, arms) — a palette cut it into bands with hard seams | join the bands into one part with `"gradient": true` — the stops and direction are measured |
@@ -218,6 +228,15 @@ Outlines are smoothed for you: traced parts are fitted as long curves read at a 
 never become anchors), and a `draw` that is a pasted trace is refitted and warned about. Never paste a traced outline into `draw`.
 
 **Pass 4 — lock.**
+0. **Layer plan first (SKILL rule 10)** — a few lines, before names.json: the stack from lowest to highest object (lowest = the one
+   the others hide most), and per object its base (the whole silhouette, in the tone of the bigger / simpler region), what is cut
+   from it, what is drawn new on top. Example (champagne bottle): `Neck` = base light orange, whole, continues under the body
+   (`"under"`) · `Neck shade` cut from Neck · shines on top → `Body` = Glass whole incl. the collar region (`"also"`) · `Glass shade`
+   cut · shine strip whole under the label · bubbles → `Label` whole + `Label shade` cut → `Collar` cut from Glass + its shade cut
+   from Collar → `Seal` on top. In names.json:
+   `{ "name": "Neck", "from": ["p06", "p09"], "also": ["p04"], "under": ["p33", "p01"] }, { "name": "Neck shade", "from": ["p04"],
+   "cut": "p06" }` (ids or names). A part redrawn whole may need its old `draw` turned off (`"draw": false`). Animated art: no
+   masks (`"shading": "cut"`, the default); static art and icons may use `"shading": "mask"`.
 1. **Names, in one small file.** Read the labels image once and write `names.json` — only names, draft ids and the readings above:
    `{ "frame": "Hero · vector", "shadowTint": "#201829", "groups": [{ "name": "Legs", "parts": [{ "name": "Leg L", "from": ["p03",
    "p17"], "gradient": true }, { "name": "Leg shade", "from": ["p21"], "overlay": true }] }, { "name": "Head", "parts": [...] },
@@ -239,8 +258,20 @@ never become anchors), and a `draw` that is a pasted trace is refitted and warne
    finish comes from the **style reference's** build sheet. Run `spills` and `joins` (now with the final names) once here too. Lottie: note which finish the player cannot render.
 5. `anchorReport` (simplify on a copy where wasted); 4× zoom for seams; Lottie: pivots and joint covers on the moving parts (§5).
    Last: the last `build_vectors` of the run passes `stage: ""` — the frame gets its final name (`<Subject> · vector`, no stage tag).
-   Report: the score table, the look-check lines (cell → what was seen → fixed / not done), parts not done, guessed parts, time and
-   turns used.
+6. **Final check — always, before the report** (a check, not another round: what it finds is fixed inside the two rounds already
+   allowed, or reported as not done). Test runs skipped it three ways: one picture built once with no stages, two never scored after
+   their last fix, one never counted anchors. Each line below gets its evidence in the report:
+   | Check | Evidence |
+   |---|---|
+   | stages | the frame went 1 thô → 2 khối → (3 chi tiết) → 4 chốt → final name — also when the reference was prepared or a part was redrawn by hand |
+   | score after the LAST change | `score.cjs --plan plan.json` on an export taken after the last build (finish layer, hand edits in Figma included) — the table in the report is this one |
+   | anchors | `anchorReport` on the final frame: no `polylineRuns`, no `removable`, dense vectors reasoned |
+   | nothing lost | the last build printed no `NOT DRAWN`, or each one is answered |
+   | joints clean | the last build printed no `JOINT`, or each one is answered (a real corner of the reference) |
+   | dark | `final-dark.png` looked at once |
+   It costs about a minute; skipping it is how a finished-looking drawing reached the designer with its last edit unchecked.
+   Report: the score table, the look-check lines (cell → what was seen → fixed / not done), the final check table, parts not done,
+   guessed parts, time and turns used.
 
 ## 3. Create — route A: concept image first · route B: the agent builds · silhouette stop
 Most real jobs are **"the same style, a new subject"** (a new character, object or scene for a set that exists). Read the style first,
@@ -320,10 +351,13 @@ Build order for any figure: body / torso → legs → arms → head → face →
 attachments → details.
 
 **Static** (the default when the answer is "static"):
+- Shades may sit in a mask of their base (`"shading": "mask"`) — they follow later edits of the base; or cut, as for animation.
 - Group parts for easy editing (`Head`, `Body`, `Handle`…); a part may be one shape when nobody moves it.
 - No pivots, no joint covers, no splitting into segments — that is work nobody uses. Parts are still attached (rule 7).
 
 **Animated later (Lottie)** — only when the designer said so, and only for the parts they named as moving:
+- No masks: shades and joined pieces are cut from a duplicate of their base (`"shading": "cut"`, SKILL rule 10) — clean paths a
+  player animates as they are; objects stay whole under what covers them, so nothing behind shows a hole when a part moves.
 - Each moving part is its own named layer or group (`Arm L upper`, `Arm L lower`, `Hand L`, `Lid`), nothing merged across a joint.
 - Pivot at the joint: the joint end is rounded and sits **under** the covering part (sleeve, body); a small circle in the part's
   colour covers each joint so a rotation never shows a gap.

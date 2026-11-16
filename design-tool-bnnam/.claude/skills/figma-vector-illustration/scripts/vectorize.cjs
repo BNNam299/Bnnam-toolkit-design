@@ -23,6 +23,9 @@
 //   that matches it (fit-shapes.cjs: rect · rounded rect · pill / circle / ellipse · straight polygon). Big parts nothing fits are
 //   listed with a draw hint (corners in crop px); the agent tidies the hint into a part's "draw" (a path string, { rect: [x, y, w,
 //   h, r] }, { ellipse: [cx, cy, rx, ry] }, or an array of them) — a few numbers, never a traced outline typed out.
+//   Every full build also checks the JOINTS (joints.cjs): where the outer outline passes from one part to the next and turns
+//   sharper than the reference there, it prints `⚠ JOINT — A → B at x,y` (two shapes overlapping instead of sharing a point).
+//   --no-joints skips it.
 //
 // plan.json:
 // { "img": "C:/abs/ref.png", "crop": [x, y, w, h],          // reference px; omit crop = whole image
@@ -67,6 +70,7 @@ const sharp = require('sharp');
 const { simplifyPath, fitOutline, pathBounds, parsePath, countAnchors } = require(path.join(__dirname, 'anchors.js'));
 const { blur, marching, area } = require(path.join(__dirname, 'contour.cjs'));
 const { components, fitComponent, fitAs, pick, dpClosed } = require(path.join(__dirname, 'fit-shapes.cjs'));
+const { jointCheck } = require(path.join(__dirname, 'joints.cjs'));
 
 function args() {
   const a = process.argv.slice(2), o = { top: 16 };
@@ -88,8 +92,11 @@ function args() {
     else if (k === '--names') o.names = a[++i];
     else if (k === '--to') o.to = a[++i];
     else if (k === '--no-clean') o.clean = false;
+    else if (k === '--no-prep') o.prep = false;
+    else if (k === '--prep') o.prep = a[++i];
     else if (k === '--rough') o.rough = true;
     else if (k === '--dark') o.dark = true;
+    else if (k === '--no-joints') o.noJoints = true;
   }
   return o;
 }
@@ -134,8 +141,10 @@ function nearestOf(palette, at, W, H) {
   const pc = palette.map(hex), idx = new Int16Array(W * H);
   for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) { const [r, g, b] = at(x, y); let bi = 0, bd = Infinity;
     pc.forEach((c, i) => { const d = Math.hypot(r - c[0], g - c[1], b - c[2]); if (d < bd) { bd = d; bi = i; } }); idx[y * W + x] = bi; }
-  return { own: (names) => { const set = new Set(names.map((n) => palette.findIndex((p) => p.toLowerCase() === String(n).toLowerCase())).filter((i) => i >= 0));
-    return set.size ? (x, y) => set.has(idx[y * W + x]) : () => true; } };
+  // a colour the agent added that is not in the palette (re-measured by hand) has no pixels "nearest" to it: joined with a palette
+  // colour in one part (a white collar + its lavender shade), the white was filtered out entirely — then the part is not filtered
+  return { own: (names) => { const ids = names.map((n) => palette.findIndex((p) => p.toLowerCase() === String(n).toLowerCase())), set = new Set(ids.filter((i) => i >= 0));
+    return set.size && ids.every((i) => i >= 0) ? (x, y) => set.has(idx[y * W + x]) : () => true; } };
 }
 
 // `draw` in a plan part: the agent's own clean shape for a part the fit cannot do, in CROP reference px (same space as box / seeds):
@@ -206,14 +215,21 @@ async function build(o) {
   const flat = [];
   plan.groups.forEach((g, gi) => g.parts.forEach((p, pi) => flat.push({ g, gi, p, pi })));
   const near = nearestOf(plan.palette, (x, y) => im.at(x, y), W, H);
+  // the BACKDROP itself: the corner colour (within 8) connected to the image border. No part may take it unless the part is that colour —
+  // a white collar on a white backdrop flooded into the backdrop within its box (tol 40) and came out as a white rectangle
+  const c0 = im.at(0, 0), backdrop = new Uint8Array(W * H);
+  { const isB = (i) => { const [r, g, b, a] = im.at(i % W, (i / W) | 0); return a < 128 || Math.hypot(r - c0[0], g - c0[1], b - c0[2]) <= 8; };
+    const st = []; for (let x = 0; x < W; x++) st.push(x, (H - 1) * W + x); for (let y = 0; y < H; y++) st.push(y * W, y * W + W - 1);
+    while (st.length) { const i = st.pop(); if (backdrop[i] || !isB(i)) continue; backdrop[i] = 1; const x = i % W;
+      if (x > 0) st.push(i - 1); if (x < W - 1) st.push(i + 1); if (i >= W) st.push(i - W); if (i < W * H - W) st.push(i + W); } }
   // every part's own mask first (needed to know what lies in front of whom)
   for (const f of flat) {
     const names = f.p.colors || [f.p.color], cols = names.map(hex), t = f.p.tol || 30, [bx, by, bw, bh] = f.p.box || [0, 0, W, H];
     const m = new Uint8Array(W * H); let n = 0, x0 = W, y0 = H, x1 = -1, y1 = -1;
     const set = (x, y) => { m[y * W + x] = 1; n++; if (x < x0) x0 = x; if (x > x1) x1 = x; if (y < y0) y0 = y; if (y > y1) y1 = y; };
     const inBox = (x, y) => x >= Math.max(0, bx) && y >= Math.max(0, by) && x < Math.min(W, bx + bw) && y < Math.min(H, by + bh);
-    const own = near.own(names);
-    const match = (x, y) => { const [r, g, b, a] = im.at(x, y); return a >= 128 && cols.some((c) => Math.hypot(r - c[0], g - c[1], b - c[2]) <= t) && own(x, y); };
+    const own = near.own(names), isBackdrop = cols.some((c) => Math.hypot(c[0] - c0[0], c[1] - c0[1], c[2] - c0[2]) <= 8);
+    const match = (x, y) => { const [r, g, b, a] = im.at(x, y); return a >= 128 && (isBackdrop || !backdrop[y * W + x]) && cols.some((c) => Math.hypot(r - c[0], g - c[1], b - c[2]) <= t) && own(x, y); };
     const seeds = f.p.seeds || (f.p.seed ? [f.p.seed] : null);
     if (seeds) { // flood fill from each seed over matching pixels (4-neighbour)
       const stack = [];
@@ -229,6 +245,8 @@ async function build(o) {
     // image (a 1254 px reference with ~400 parts took 3 minutes per build when each part scanned every pixel several times)
     f.mask = m; f.n = n; f.bb = n ? [x0, y0, x1, y1] : [0, 0, -1, -1];
   }
+  const warnings0 = [];
+  const cutBases = new Set(plan.groups.flatMap((g) => g.parts.map((p) => p.cut).filter(Boolean)));
   const grownBB = (bb, d) => [Math.max(0, bb[0] - d), Math.max(0, bb[1] - d), Math.min(W - 1, bb[2] + d), Math.min(H - 1, bb[3] + d)];
   const eachIn = (bb, fn) => { for (let y = bb[1]; y <= bb[3]; y++) for (let x = bb[0], i = y * W + bb[0]; x <= bb[2]; x++, i++) fn(i, x, y); };
   // background = pixels no part claims and that match the corner colour (or are transparent) — seams may grow, background may not
@@ -263,6 +281,13 @@ async function build(o) {
       (flat[k].patches || (flat[k].patches = [])).push(patch); } }
   // the TOP part at each pixel (front-most mask covering it): "everything drawn in front of part k" = top > k. Built once — the old
   // per-part union of every later mask grew with parts² × pixels and was most of a 3-minute build
+  // "also": ["Neck shade"] — a BASE drawn whole: its shape takes in the pixels of the named parts too (the dark foil is part of the
+  // neck's silhouette), its colour stays its own (fill is read from its own pixels). The shade is then cut from it ("cut").
+  for (const f of flat) if (f.p.also && f.n) for (const nm of [].concat(f.p.also)) {
+    const q = flat.find((x) => x.p.name === nm);
+    if (!q) { warnings0.push(`${f.g.name} / ${f.p.name}: also "${nm}" — no such part`); continue; }
+    const qm = q.own || q.mask; eachIn(q.bb, (i) => { if (qm[i] && !f.mask[i]) { f.mask[i] = 1; f.n++; } });
+    f.bb = [Math.min(f.bb[0], q.bb[0]), Math.min(f.bb[1], q.bb[1]), Math.max(f.bb[2], q.bb[2]), Math.max(f.bb[3], q.bb[3])]; }
   const top = new Int16Array(W * H).fill(-1);
   flat.forEach((f, k) => { const m = f.mask; eachIn(f.bb, (i) => { if (m[i]) top[i] = k; }); });
   const frontOf = (k) => { const fr = new Uint8Array(W * H); for (let i = 0; i < W * H; i++) if (top[i] > k) fr[i] = 1; return fr; };
@@ -296,7 +321,7 @@ async function build(o) {
     for (const sp of parsePath(d)) sp.segs.forEach((g, k) => { segs++; const a = k ? sp.segs[k - 1].p : sp.start; if (g.t === 'L' && Math.hypot(g.p.x - a.x, g.p.y - a.y) < 2 * srcPx) short++; });
     if (segs < 12 || short < 0.3 * segs) return d;
     const r = fitOutline(d, { unit: srcPx }); if (r.after < r.before) warnings.push(`draw of ${r.before} anchors looked traced (stairs) → refit to ${r.after} smooth anchors (max ${r.maxDev} px) — write a few corners and curves, never a trace`); return r.d; };
-  const warnings = [];
+  const warnings = [...warnings0];
   const ownIdx = new Int16Array(W * H).fill(-1);
   flat.forEach((f, k) => { const ow = f.own; eachIn(f.ownBB, (i) => { if (ow[i]) ownIdx[i] = k; }); });
   const ownerOf = flat.map((f, k) => {
@@ -330,15 +355,60 @@ async function build(o) {
       if (h.length >= 3) eachIn(bb, (i, x, y) => { if (!m[i] && front[i] && inHull(h, x + 0.5, y + 0.5)) { m[i] = 1; added++; } });
       if (added) f.completed = added;
     }
+    // "under": ["Glass"] — the part goes on UNDER the named parts in front (a bottle's neck into its body): the designer draws the
+    // base whole and lets the front part hide the rest, so no edge has to be cut to fit. Hidden pixels are free: the part is
+    // continued straight in, away from its own centre, "underPx" original px deep (default 8)
+    if (!o.rough && f.p.under) {
+      let sx = 0, sy = 0, sn = 0; eachIn(bb, (i, x, y) => { if (m[i]) { sx += x; sy += y; sn++; } });
+      const cx = sx / sn, cy = sy / sn, depth = (+f.p.underPx || 8) * srcPx; m = Uint8Array.from(m); let added = 0;
+      for (const nm of [].concat(f.p.under)) {
+        const j = flat.findIndex((q) => q.p.name === nm);
+        if (j <= k) { warnings.push(`${f.g.name} / ${f.p.name}: under "${nm}" — no such part in front of it (it must come later in the plan)`); continue; }
+        const fm = flat[j].mask, fb = flat[j].bb, add = [];
+        eachIn(bb, (i, x, y) => { if (!m[i]) return;
+          if (!((x > 0 && fm[i - 1]) || (x < W - 1 && fm[i + 1]) || (y > 0 && fm[i - W]) || (y < H - 1 && fm[i + W]))) return;
+          let dx = x - cx, dy = y - cy; const L = Math.hypot(dx, dy) || 1; dx /= L; dy /= L;
+          for (let t = 1; t <= depth; t++) { const qx = Math.round(x + dx * t), qy = Math.round(y + dy * t);
+            if (qx < 0 || qy < 0 || qx >= W || qy >= H || !fm[qy * W + qx]) break; add.push(qy * W + qx); } });
+        for (const i of add) if (!m[i]) { m[i] = 1; added++; }
+        bb = [Math.min(bb[0], fb[0]), Math.min(bb[1], fb[1]), Math.max(bb[2], fb[2]), Math.max(bb[3], fb[3])];
+      }
+      // close the gaps between the rays (they spread apart) so the continued part is solid
+      for (let it = 0; it < 2; it++) { const nm = Uint8Array.from(m);
+        eachIn(bb, (i, x, y) => { if (m[i] || x === 0 || y === 0 || x === W - 1 || y === H - 1) return;
+          if ((m[i - 1] && m[i + 1]) || (m[i - W] && m[i + W])) { nm[i] = 1; added++; } }); m = nm; }
+      if (added) f.underPx = added;
+    }
     // close seams: grow one original pixel into unclaimed non-background pixels (anti-aliased borders) and under the parts in front
     { const grow = Math.max(1, Math.round(srcPx));
       for (let it = 0; it < grow; it++) { const nm = Uint8Array.from(m); bb = grownBB(bb, 1);
         eachIn(bb, (i, x, y) => { if (m[i] || bg[i] || (claimed[i] && !front[i])) return;
           if ((x > 0 && m[i - 1]) || (x < W - 1 && m[i + 1]) || (y > 0 && m[i - W]) || (y < H - 1 && m[i + W])) nm[i] = 1; });
         m = nm; } }
+    // "cut": "<base>" — the designer's way to draw a shade (or a piece joined to a bigger shape, like a collar of the body): duplicate
+    // the WHOLE base, mark the shade's edge on it, delete the rest. So only the edge that crosses the base is read from the image; where
+    // the shade meets the base's outline, the cutter runs past it and the base's own edge is kept (build_vectors intersects a
+    // duplicate of the base with this cutter — nothing can gap or poke out, and no seam has to be grown)
+    let cutter = null;
+    if (!o.rough && f.p.cut) {
+      const j = flat.findIndex((q) => q.p.name === f.p.cut);
+      if (j < 0 || j >= k || !flat[j].final) warnings.push(`${f.g.name} / ${f.p.name}: cut "${f.p.cut}" — no such part behind it (the base comes earlier in the plan)`);
+      else { const B = flat[j].final; cutter = Uint8Array.from(m); let cb = bb;
+        for (let it = 0; it < Math.max(3, Math.round(3 * srcPx)); it++) { const nm = Uint8Array.from(cutter); cb = grownBB(cb, 1);
+          eachIn(cb, (i, x, y) => { if (cutter[i] || B[i]) return;
+            if ((x > 0 && cutter[i - 1]) || (x < W - 1 && cutter[i + 1]) || (y > 0 && cutter[i - W]) || (y < H - 1 && cutter[i + W])) nm[i] = 1; });
+          cutter = nm; }
+        // a knife has no holes: what the lights on top hide inside it is cut too (they sit in front anyway)
+        { const [x0, y0, x1, y1] = cb, out = new Uint8Array(W * H), st = [];
+          for (let x = x0; x <= x1; x++) st.push(y0 * W + x, y1 * W + x); for (let y = y0; y <= y1; y++) st.push(y * W + x0, y * W + x1);
+          while (st.length) { const i = st.pop(); if (out[i] || cutter[i]) continue; out[i] = 1; const x = i % W, y = (i / W) | 0;
+            if (x > x0) st.push(i - 1); if (x < x1) st.push(i + 1); if (y > y0) st.push(i - W); if (y < y1) st.push(i + W); }
+          eachIn(cb, (i) => { if (!cutter[i] && !out[i]) cutter[i] = 1; }); }
+        f.cutBB = cb; f.cutOf = flat[j].p.name; }
+    }
     // containment: keep the detail within its owner's full outline (+1 original px) and its own pixels
     let allowed = null;
-    if (!o.rough && ownerOf[k] >= 0 && flat[ownerOf[k]].final) {
+    if (!o.rough && !cutter && ownerOf[k] >= 0 && flat[ownerOf[k]].final) {
       const ow = flat[ownerOf[k]]; let abb = ow.finalBB;
       allowed = Uint8Array.from(ow.final);
       for (let it = 0; it < Math.max(1, Math.round(srcPx)); it++) { const nm = Uint8Array.from(allowed); abb = grownBB(abb, 1);
@@ -349,6 +419,15 @@ async function build(o) {
       eachIn(bb, (i) => { if (!allowed[i]) m[i] = 0; });
       f.insideOf = ow.p.name;
     }
+    // a BASE (something is cut from it, or it takes in other parts with "also") is one solid shape, the way the designer draws it:
+    // slivers left between it and the parts on it (label, shine edges) are not holes — fill every hole that does not reach the box edge
+    if (!o.rough && f.p.complete !== false && (f.p.also || cutBases.has(f.p.name))) {
+      const [x0, y0, x1, y1] = bb, out = new Uint8Array(W * H), st = [];
+      for (let x = x0; x <= x1; x++) st.push(y0 * W + x, y1 * W + x); for (let y = y0; y <= y1; y++) st.push(y * W + x0, y * W + x1);
+      while (st.length) { const i = st.pop(); if (out[i] || m[i]) continue; out[i] = 1; const x = i % W, y = (i / W) | 0;
+        if (x > x0) st.push(i - 1); if (x < x1) st.push(i + 1); if (y > y0) st.push(i - W); if (y < y1) st.push(i + W); }
+      m = Uint8Array.from(m); eachIn(bb, (i) => { if (!m[i] && !out[i]) m[i] = 1; });
+    }
     f.final = m; f.finalBB = bb;
     if (!emit) continue;
     // Each connected piece of the part: trace it (upsampled U× and lightly blurred — thin features survive, corners stay square),
@@ -356,9 +435,12 @@ async function build(o) {
     // after all parts are measured (the style's shape family, matched sets). A piece nothing fits keeps its traced outline.
     // `draw` in the plan overrides it all. Rough draft: the trace becomes a plain polygon (no fit, no smoothing) — seconds, not minutes.
     const pieces = [];
+    const tm = cutter || m, tbb = cutter ? f.cutBB : bb;   // a cut part traces its cutter
     if (f.p.draw) pieces.push({ kind: 'drawn', d: leanDraw(drawnPath(f.p.draw)) });
-    else for (const c of components(m, W, H, bb)) {
+    else for (const c of components(tm, W, H, tbb)) {
       if (c.n < Math.max(2, 2 * srcPx * srcPx)) continue;
+      // a knife piece holding none of the shade's own pixels is only what a light on top hid on the OTHER side — no cut there
+      if (cutter && !c.idx.some((i) => f.own[i])) continue;
       const cm = new Uint8Array(W * H); for (const i of c.idx) cm[i] = 1;
       // leftover patches this piece encloses (see ENCLOSED above): drawn as part of it, not as a hole
       if (f.patches) for (const pt of f.patches) {
@@ -369,12 +451,22 @@ async function build(o) {
       const big = loops.reduce((a, b) => (Math.abs(area(b)) > Math.abs(area(a)) ? b : a));
       if (o.rough) { pieces.push({ kind: 'traced', d: loops.map((l) => 'M ' + dpClosed(l, 0.75 * srcPx).map((p) => p.map((v) => Math.round(v * 100) / 100).join(' ')).join(' L ') + ' Z').join(' '),
         multi: loops.length > 1, hint: '' }); continue; }
-      const fit = o.clean === false || f.p.clean === false ? null : fitComponent(m, W, H, c, { srcPx, loop: big, allowed, hidden: front });
+      const fit = o.clean === false || f.p.clean === false || cutter ? null : fitComponent(tm, W, H, c, { srcPx, loop: big, allowed, hidden: front });
       if (fit) { pieces.push({ kind: 'fit', fit, comp: c }); continue; }
       const raw = loops.map((l) => 'M ' + l.map((p) => `${p.x.toFixed(3)} ${p.y.toFixed(3)}`).join(' L ') + ' Z').join(' ');
       // a starting point for the agent's `draw`: the outline's corners, few points, crop px — tidy it, curve what is round
-      pieces.push({ kind: 'traced', d: leanTrace(raw, f.p.simplify), multi: loops.length > 1,
-        hint: 'M ' + dpClosed(big, 1.5 * srcPx).map((p) => p.map((v) => Math.round(v * 2) / 2).join(' ')).join(' L ') + ' Z' });
+      // a knife: only its edge INSIDE the base is drawn by the designer (the line between light and dark); the rest may run anywhere
+      // outside the base. So its hint is that line alone, a few points — not the whole outline
+      let hint = 'M ' + dpClosed(big, 1.5 * srcPx).map((p) => p.map((v) => Math.round(v * 2) / 2).join(' ')).join(' L ') + ' Z';
+      if (cutter) { const B = flat.find((q) => q.p.name === f.cutOf).final, pts = dpClosed(big, 1.5 * srcPx);
+        const deep = ([x, y]) => { for (let dy = -2; dy <= 2; dy++) for (let dx = -2; dx <= 2; dx++) { const xx = Math.round(x) + dx, yy = Math.round(y) + dy;
+          if (xx < 0 || yy < 0 || xx >= W || yy >= H || !B[yy * W + xx]) return false; } return true; };
+        const ins = pts.map(deep), n = pts.length; let best = null;
+        for (let i = 0; i < n; i++) { if (!ins[i] || ins[(i - 1 + n) % n]) continue; let j = i; while (ins[(j + 1) % n] && (j + 1) % n !== i) j = (j + 1) % n;
+          const run = []; for (let k = (i - 1 + n) % n; ; k = (k + 1) % n) { run.push(pts[k]); if (k === (j + 1) % n) break; }
+          if (!best || run.length > best.length) best = run; }
+        if (best) hint = 'edge inside the base (draw this line, close the shape anywhere outside the base): M ' + best.map((p) => p.map((v) => Math.round(v * 2) / 2).join(' ')).join(' L '); }
+      pieces.push({ kind: 'traced', d: leanTrace(raw, f.p.simplify), multi: loops.length > 1, hint });
     }
     if (!pieces.length) { warnings.push(`${f.g.name} / ${f.p.name}: too small to trace`); continue; }
     if (f.p.draw && allowed) { // a hand-drawn detail is checked against its owner too — reported, never silently clipped
@@ -394,6 +486,37 @@ async function build(o) {
       if (gr) f.paintCrop = gr; else warnings.push(`${f.g.name} / ${f.p.name}: "gradient" — no clear direction of change in its pixels, kept flat`); }
     f.work = { pieces, gOut, k, allowed };   // front is rebuilt when needed (frontOf), not kept: one full-size mask per part ran to gigabytes
   }
+
+  // UNCOVERED AREAS: pixels clearly not the backdrop that no part covers. A cream wave drawn on a peach backdrop lost every region to
+  // grain and vanished from a test drawing; a bottle label 21 levels from its cream backdrop was read as backdrop — nobody noticed
+  // either until the designer did. Reported on every build (box in crop px, colour measured) so the agent adds a part or decides it.
+  const lostAreas = [];
+  { const cov = new Uint8Array(W * H); for (const f of flat) if (f.final) { const m = f.final; eachIn(f.finalBB, (i) => { if (m[i]) cov[i] = 1; }); }
+    // a part drawn by hand covers its `draw`, not its pixel mask (a scythe pole drawn whole from a seed in its top half)
+    const drawn = flat.filter((f) => f.p.draw);
+    if (drawn.length) { const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}">${drawn.map((f) => `<path fill="#000" d="${drawnPath(f.p.draw)}"/>`).join('')}</svg>`;
+      const { data } = await sharp(Buffer.from(svg)).ensureAlpha().raw().toBuffer({ resolveWithObject: true });
+      for (let i = 0; i < W * H; i++) if (data[i * 4 + 3] > 127) cov[i] = 1; }
+    const far = (i) => { const x = i % W, y = (i / W) | 0, [r, g, b, a] = im.at(x, y); return a >= 128 && (bgc[3] < 128 || Math.hypot(r - bgc[0], g - bgc[1], b - bgc[2]) > 12); };
+    let fgN = 0; for (let i = 0; i < W * H; i++) if (cov[i]) fgN++;
+    const minA = Math.max(60 * srcPx * srcPx, 0.004 * fgN), seen = new Uint8Array(W * H);
+    for (let i0 = 0; i0 < W * H; i0++) { if (seen[i0] || cov[i0] || !far(i0)) continue;
+      const st = [i0], px = []; seen[i0] = 1;
+      while (st.length) { const i = st.pop(), x = i % W; px.push(i);
+        for (const j of [x + 1 < W ? i + 1 : -1, x > 0 ? i - 1 : -1, i + W < W * H ? i + W : -1, i - W >= 0 ? i - W : -1])
+          if (j >= 0 && !seen[j] && !cov[j] && far(j)) { seen[j] = 1; st.push(j); } }
+      if (px.length < minA) continue;
+      // a thin ring along the figure's edge (anti-aliasing, a soft rim) is not a lost area: it must have a core 2 px deep
+      let deep = 0, sd = -1; for (const i of px) { const x = i % W, y = (i / W) | 0; let ok = true;
+        for (let dy = -2; dy <= 2 && ok; dy++) for (let dx = -2; dx <= 2 && ok; dx++) { const xx = x + dx, yy = y + dy;
+          if (xx < 0 || yy < 0 || xx >= W || yy >= H || cov[yy * W + xx] || !far(yy * W + xx)) ok = false; } if (ok) { deep++; if (sd < 0 || deep === 0.5 * minA) sd = i; } }
+      if (deep < 0.25 * minA) continue;
+      let x0 = W, y0 = H, x1 = 0, y1 = 0; const cnt = new Map(); let best = null, bn = 0;
+      for (const i of px) { const x = i % W, y = (i / W) | 0; x0 = Math.min(x0, x); y0 = Math.min(y0, y); x1 = Math.max(x1, x); y1 = Math.max(y1, y);
+        const [r, g, b] = im.at(x, y), k = (r >> 3) << 10 | (g >> 3) << 5 | (b >> 3), e = cnt.get(k) || [0, 0, 0, 0]; e[0]++; e[1] += r; e[2] += g; e[3] += b; cnt.set(k, e);
+        if (e[0] > bn) { bn = e[0]; best = e; } }
+      lostAreas.push({ n: px.length, box: [x0, y0, x1 - x0 + 1, y1 - y0 + 1], color: toHex(best[1] / best[0], best[2] / best[0], best[3] / best[0]), seed: [sd % W, (sd / W) | 0] }); }
+    lostAreas.sort((a, b) => b.n - a.n); }
 
   // "overlay": a shade or tint laid OVER a base part (the reference artist's way: one dark colour at low opacity for every shadow on a
   // figure, multiply for blush). fill = the tint ("overlay": "#hex", else plan.shadowTint, else the darkest palette colour),
@@ -431,7 +554,7 @@ async function build(o) {
   // detail-sized; a member whose own shape is clearly long must point the same way. plan.same: [["Eye L", "Eye R"], …] by hand,
   // false = off.
   const hexd = (a, b) => { const x = hex(a), y = hex(b); return Math.hypot(x[0] - y[0], x[1] - y[1], x[2] - y[2]); };
-  const single = done.filter((f) => f.work.pieces.length === 1 && f.work.pieces[0].kind === 'fit');
+  const single = done.filter((f) => !f.cutOf && f.work.pieces.length === 1 && f.work.pieces[0].kind === 'fit');
   const info = new Map(single.map((f) => { const c = f.work.pieces[0].comp; let sx = 0, sy = 0, xx = 0, yy = 0, xy = 0;
     for (const i of c.idx) { sx += i % W; sy += (i / W) | 0; } const mx = sx / c.n, my = sy / c.n;
     for (const i of c.idx) { const dx = i % W - mx, dy = ((i / W) | 0) - my; xx += dx * dx; yy += dy * dy; xy += dx * dy; }
@@ -541,7 +664,9 @@ async function build(o) {
       { ...(f.completed ? { completedPx: f.completed } : {}), ...(f.insideOf ? { inside: f.insideOf } : {}),
         ...(f.paintCrop ? { paintCrop: f.paintCrop } : {}),
         ...(f.overlayOf ? { opacity: f.overlayOf.opacity, over: f.overlayOf.over } : f.p.opacity !== undefined ? { opacity: f.p.opacity } : {}),
-        ...(f.p.blend ? { blend: f.p.blend } : {}) });
+        ...(f.p.blend ? { blend: f.p.blend } : {}),
+        // plan "shading": "mask" (static art, icons) → the shade sits in a mask of its base; default "cut" (art that may be animated)
+        ...(f.cutOf ? (plan.shading === 'mask' ? { maskOf: f.cutOf } : { cutFrom: f.cutOf }) : {}) });
     for (const cv of coversAfter.get(f) || []) emitPart(gOut, cv.name, cv.fill, [cv.d], ['cover'], [], cv.multi, { cover: true });
   }
   if (family.length) console.log(`shape family: ${family.join(', ')} (${why}) — close calls and matched sets follow it; the build sheet decides — set "family" in the plan when it says otherwise`);
@@ -560,10 +685,20 @@ async function build(o) {
   const kept = all.filter((p) => p.inside);
   if (kept.length) console.log(`kept inside their owner: ${kept.map((p) => `${p.name} ⊂ ${p.inside}`).join(' · ')}`);
   // big traced parts are the ones worth the agent's hand (`draw`); tiny ones rarely show
-  const big = o.rough ? [] : tr.filter((p) => p.anchors >= 10);
+  const big = o.rough ? [] : tr.filter((p) => p.anchors >= 10 || p.cutFrom || p.maskOf);
+  // a base still traced is cut as it is — every wobble lands in the shades cut from it too: draw it first (rule 10)
+  for (const p of tr) if (cutBases.has(p.name)) warnings.push(`${p.name} is a base and still traced (${p.anchors} anchors) — draw it whole first ("draw": few anchors, symmetric where the reference is); the parts cut from it inherit its edge`);
   if (big.length) { console.log('draw hints (crop px, corners only — copy into the plan as "draw", round off what is round):');
     for (const p of big) console.log(`  ${p.name}: ${p.drawHint}`); }
   for (const w of warnings) console.log('⚠ ' + w);
+  // what the drawing misses (see UNCOVERED AREAS) — listed even on the rough stage: the sooner it shows, the cheaper the fix
+  if (lostAreas.length) console.log(`⚠ NOT DRAWN — ${lostAreas.length} area(s) of the reference no part covers (crop px): ${lostAreas.slice(0, 8).map((a) => `${a.n} px ${a.color} box ${a.box.join(',')} seed ${a.seed.join(',')}`).join(' · ')}${lostAreas.length > 8 ? ' …' : ''}`
+    + ' — look at each on the reference: a real area → add a part (that colour as "color", the seed as "seeds", the box) to the plan; really backdrop → say so in the report. Never leave one unanswered');
+  // joints on the outer outline (see joints.cjs): one part's edge must run on into the next, not meet it with a kink or a step
+  if (!o.rough && !o.noJoints) { const js = await jointCheck(scene, im, W, H, backdrop);
+    if (js.length) console.log(`⚠ JOINT — ${js.length} place(s) where the outline turns sharper than the reference as it passes from one part to the next (crop px): `
+      + js.slice(0, 8).map((j) => `${j.a} → ${j.b} at ${j.x},${j.y} (${j.drawing}° vs ${j.reference}°)`).join(' · ') + (js.length > 8 ? ' …' : '')
+      + ` — make the two draws meet at ONE shared point with the curve running on (same coordinate in both paths, handles in line), or tuck the lower part's edge under the upper one; look at each on the render before changing it`); }
   // the build call with its stage, ready to copy — the frame name then shows how far the drawing is (a test run forgot to rename it)
   { const p = `path: "${path.resolve(o.out).replace(/\\/g, '/')}"`, draft = scene.groups.length === 1 && scene.groups[0].name === 'Draft';
     console.log(`scene → ${o.out} · frame ${scene.frame.width}×${scene.frame.height} · build it: ` + (o.rough
@@ -575,34 +710,109 @@ async function build(o) {
 // scene → PNG at frame size, white background (preview, and the drawing score.cjs reads when Figma is not open)
 async function renderScene(scene, file) {
   let svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${scene.frame.width}" height="${scene.frame.height}"><rect width="100%" height="100%" fill="${scene.background || '#ffffff'}"/>`, gi = 0;
+  const byName = new Map(); for (const g of scene.groups) for (const p of g.parts) byName.set(p.name, p);
   for (const g of scene.groups) for (const p of g.parts) {
-    let fill = p.fill;
+    let fill = p.fill, clip = '';
+    // a cut / masked part shows only inside its base — what build_vectors makes of it in Figma
+    const base = byName.get(p.cutFrom || p.maskOf);
+    if (base) { const id = `c${gi++}`; clip = ` clip-path="url(#${id})"`;
+      svg += `<defs><clipPath id="${id}"><path transform="translate(${base.x - p.x},${base.y - p.y})" clip-rule="${base.windingRule === 'EVENODD' ? 'evenodd' : 'nonzero'}" d="${base.d}"/></clipPath></defs>`; }
     if (p.paint) { const id = `g${gi++}`; fill = `url(#${id})`;
       svg += `<defs><linearGradient id="${id}" gradientUnits="objectBoundingBox" x1="${p.paint.from[0]}" y1="${p.paint.from[1]}" x2="${p.paint.to[0]}" y2="${p.paint.to[1]}">`
         + p.paint.stops.map((st) => `<stop offset="${st.pos}" stop-color="${st.color}" stop-opacity="${st.alpha ?? 1}"/>`).join('') + '</linearGradient></defs>'; }
     // blend modes are previewed as plain opacity (the renderer has no multiply); Figma draws the real mode
-    svg += `<path transform="translate(${p.x},${p.y})" fill-rule="${p.windingRule === 'EVENODD' ? 'evenodd' : 'nonzero'}" fill="${fill}"${p.opacity !== undefined ? ` opacity="${p.opacity}"` : ''} d="${p.d}"/>`; }
+    svg += `<path${clip} transform="translate(${p.x},${p.y})" fill-rule="${p.windingRule === 'EVENODD' ? 'evenodd' : 'nonzero'}" fill="${fill}"${p.opacity !== undefined ? ` opacity="${p.opacity}"` : ''} d="${p.d}"/>`; }
   await sharp(Buffer.from(svg + '</svg>')).png().toFile(file);
   console.log(`render → ${file}`);
+}
+
+// The reference prepared once, written next to the draft plan (<draft>.prep.png), then the auto-plan runs again on it. The plan keeps
+// the prepared image as "img" (the draft, score and compare sheet all read it) and the original in "prep".
+async function prepare(o, im, { mode, lost, speckle, colours, regions, corner }) {
+  const t0 = Date.now(), { W, H } = im, srcPx = o.srcPx || 1, scale = o.scale || 1;
+  const file = o.autoPlan.replace(/\.json$/i, '') + '.prep.png';
+  const base = sharp(o.img).extract({ left: im.cx, top: im.cy, width: W, height: H });
+  let f = 1, note;
+  if (mode === 'denoise') {
+    // kernel ~ 1 % of the short side (7 on a 707 px girl), then 2 smaller — one big pass leaves blotches, two passes settle them
+    const k = Math.max(3, 2 * Math.round(Math.min(W, H) / 280) + 1);
+    const once = await base.median(k).png().toBuffer();
+    await sharp(once).median(Math.max(3, k - 2)).png().toFile(file);
+    note = `grain ${speckle.toFixed(0)} ‰ → denoised (median ${k} then ${Math.max(3, k - 2)}), same size`;
+  } else {
+    // the flat colours, read on a lightly denoised copy (median 3) with a tighter merge than the draft's palette: a bottle label's
+    // white sits 17 levels from its grey strip — merged into it, the label snapped half to grey, half to the backdrop (a maze; the
+    // test run had to add the white by hand). A colour counts when it has a SOLID core (pixels with ≥ 3 of 4 neighbours in the same
+    // colour: a 2 px ink line has them, a 1 px anti-aliased ring has 2) and is not the blend of two bigger colours. The corner colour
+    // always stays.
+    const { data: dn } = await sharp(o.img).extract({ left: im.cx, top: im.cy, width: W, height: H }).median(3).ensureAlpha().raw().toBuffer({ resolveWithObject: true });
+    const bins = new Map(); let fgN = 0;
+    for (let i = 0; i < W * H; i++) { if (dn[i * 4 + 3] < 128) continue; fgN++; const r = dn[i * 4], g = dn[i * 4 + 1], b = dn[i * 4 + 2], k = (r >> 2) << 12 | (g >> 2) << 6 | (b >> 2);
+      const e = bins.get(k) || { n: 0, r: 0, g: 0, b: 0 }; e.n++; e.r += r; e.g += g; e.b += b; bins.set(k, e); }
+    const fine = [];
+    for (const e of [...bins.values()].sort((p, q) => q.n - p.n)) { const c = [e.r / e.n, e.g / e.n, e.b / e.n];
+      const m = fine.find((x) => Math.hypot(x.c[0] - c[0], x.c[1] - c[1], x.c[2] - c[2]) < 12); if (m) m.n += e.n; else if (fine.length < 96) fine.push({ c, n: e.n }); }
+    const lab = new Int16Array(W * H).fill(-1);
+    for (let i = 0; i < W * H; i++) { if (dn[i * 4 + 3] < 128) continue; let bi = -1, bd = Infinity;
+      fine.forEach((p, k) => { const d = (dn[i * 4] - p.c[0]) ** 2 + (dn[i * 4 + 1] - p.c[1]) ** 2 + (dn[i * 4 + 2] - p.c[2]) ** 2; if (d < bd) { bd = d; bi = k; } }); lab[i] = bi; }
+    const core = new Float64Array(fine.length);
+    for (let y = 1; y < H - 1; y++) for (let x = 1; x < W - 1; x++) { const i = y * W + x, l = lab[i];
+      if (l >= 0 && (lab[i - 1] === l) + (lab[i + 1] === l) + (lab[i - W] === l) + (lab[i + W] === l) >= 3) core[l]++; }
+    const cand = fine.map((p, k) => ({ c: p.c, n: p.n, core: core[k] })).filter((p) => p.core >= Math.max(15 * srcPx * srcPx, 0.0003 * fgN));
+    const blendOf = (c, a, b) => { const ab = [b[0] - a[0], b[1] - a[1], b[2] - a[2]], L2 = ab[0] ** 2 + ab[1] ** 2 + ab[2] ** 2; if (L2 < 1) return false;
+      const t = ((c[0] - a[0]) * ab[0] + (c[1] - a[1]) * ab[1] + (c[2] - a[2]) * ab[2]) / L2; if (t < 0.15 || t > 0.85) return false;
+      return Math.hypot(a[0] + ab[0] * t - c[0], a[1] + ab[1] * t - c[1], a[2] + ab[2] * t - c[2]) < 14; };
+    const flatC0 = cand.filter((p) => !cand.some((a) => a.core > p.core && cand.some((b) => b !== a && b.core > p.core && blendOf(p.c, a.c, b.c))));
+    // JPEG shifts one flat colour into neighbours 12–15 apart (a navy ink in three shades): keep the one with the bigger core.
+    // Real neighbours are further apart (label white 17 from its grey strip)
+    const flatC = [];
+    for (const p of flatC0.sort((x, y) => y.core - x.core)) if (!flatC.some((c) => Math.hypot(c[0] - p.c[0], c[1] - p.c[1], c[2] - p.c[2]) < 16)) flatC.push(p.c);
+    if (corner[3] >= 128 && !flatC.some((c) => Math.hypot(c[0] - corner[0], c[1] - corner[1], c[2] - corner[2]) < 24)) flatC.push(corner.slice(0, 3));
+    // 2× while the long side stays ≤ 1600 px: on a 626 px sticker 3× drew the same lines but every build took 3× longer (33 s)
+    f = Math.max(1, Math.min(2, Math.floor(1600 / Math.max(W, H))));
+    const { data, info } = await base.resize(W * f, H * f, { kernel: 'lanczos3' }).ensureAlpha().raw().toBuffer({ resolveWithObject: true });
+    const snap = (px) => { for (let i = 0; i < px.length; i += 4) {
+      if (px[i + 3] < 128) { px[i + 3] = 0; continue; }
+      let b = 0, bd = Infinity; for (let k = 0; k < flatC.length; k++) { const c = flatC[k], dr = px[i] - c[0], dg = px[i + 1] - c[1], db = px[i + 2] - c[2];
+        const d = 2 * dr * dr + 4 * dg * dg + 3 * db * db; if (d < bd) { bd = d; b = k; } }
+      px[i] = Math.round(flatC[b][0]); px[i + 1] = Math.round(flatC[b][1]); px[i + 2] = Math.round(flatC[b][2]); px[i + 3] = 255; } };
+    snap(data);
+    // median in its OWN sharp() call: chained after a raw input in one pipeline it scrambled the green channel (test run 11/2026)
+    const q = await sharp(data, { raw: { width: info.width, height: info.height, channels: 4 } }).png().toBuffer();
+    // median per channel can mix two colours at a junction (red of one, green of another) → snap once more after it
+    const { data: md } = await sharp(q).median(3).raw().toBuffer({ resolveWithObject: true });
+    snap(md);
+    await sharp(md, { raw: { width: info.width, height: info.height, channels: 4 } }).png().toFile(file);
+    note = `${flatC.length} flat colours, ${f}× (lanczos) + snapped to them + median 3`;
+  }
+  const prep = { mode, from: o.img, ...(o.crop ? { crop: o.crop } : {}), factor: f, lostBefore: Math.round(1000 * lost) / 10 };
+  const again = { ...o, img: path.resolve(file), crop: undefined, srcPx: srcPx * f, scale: Math.round(1e5 * scale / f) / 1e5, prepped: prep };
+  await autoPlan(again);
+  console.log(`reference prepared (${mode}): ${Math.round(1000 * lost) / 10} % of the figure was lost to blends / noise → ${note} → ${file}`
+    + ` · the draft now loses ${Math.round(1000 * again.lost) / 10} % · ${((Date.now() - t0) / 1000).toFixed(1)} s. The plan reads the prepared image`
+    + ` (srcPx ${srcPx * f}, scale ${again.scale}); never prepare the image yourself. Wrong for this picture → rerun with --no-prep`);
 }
 
 // --auto-plan: flat-colour regions → draft parts with seeds; labels image to name them in one look
 async function autoPlan(o) {
   const im = await loadCrop(o.img, o.crop);
   const { W, H } = im, srcPx = o.srcPx || 1;
-  // palette (same merge as --palette), background = the corner colour
+  // palette (same merge as --palette), background = the corner colour. A reference already snapped to flat colours (prepared, below)
+  // has no noise to absorb: colours 10 apart are different colours there (a label's white beside its grey strip, or beside a cream
+  // backdrop — at 30 the label was taken for the backdrop and vanished from the draft)
+  const exact = !!(o.prepped && o.prepped.mode === 'flat'), mergeTol = exact ? 10 : 24, bgTol = exact ? 10 : 30;
   const bins = new Map();
   for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) { const [r, g, b, a] = im.at(x, y); if (a < 128) continue;
     const k = (r >> 3) << 10 | (g >> 3) << 5 | (b >> 3); const e = bins.get(k) || { n: 0, r: 0, g: 0, b: 0 }; e.n++; e.r += r; e.g += g; e.b += b; bins.set(k, e); }
   const pal = [];
   for (const e of [...bins.values()].sort((p, q) => q.n - p.n)) { const c = [e.r / e.n, e.g / e.n, e.b / e.n];
-    const m = pal.find((x) => Math.hypot(x.c[0] - c[0], x.c[1] - c[1], x.c[2] - c[2]) < 24); if (m) m.n += e.n; else pal.push({ c, n: e.n }); }
+    const m = pal.find((x) => Math.hypot(x.c[0] - c[0], x.c[1] - c[1], x.c[2] - c[2]) < mergeTol); if (m) m.n += e.n; else pal.push({ c, n: e.n }); }
   // small but real colours (black eyes ≈ 80 px of a 147×307 sprite) must make the palette, or their regions vanish
   // the floor is capped in ORIGINAL pixels: on a big full-figure image 0.04 % is ~700 px, and the iris of an eye is less than that
   const total = W * H, colours = pal.filter((p) => p.n >= Math.max(12 * srcPx * srcPx, Math.min(total * 0.0004, 100 * srcPx * srcPx))).slice(0, 64);
   const corner = im.at(0, 0);
   // background = the corner colour CONNECTED to the image border (white teeth inside the figure are not background)
-  const bg = new Uint8Array(W * H), isBg = (x, y) => { const [r, g, b, a] = im.at(x, y); return a < 128 || Math.hypot(r - corner[0], g - corner[1], b - corner[2]) < 30; };
+  const bg = new Uint8Array(W * H), isBg = (x, y) => { const [r, g, b, a] = im.at(x, y); return a < 128 || Math.hypot(r - corner[0], g - corner[1], b - corner[2]) < bgTol; };
   { const st = []; for (let x = 0; x < W; x++) st.push(x, 0, x, H - 1); for (let y = 0; y < H; y++) st.push(0, y, W - 1, y);
     while (st.length) { const y = st.pop(), x = st.pop(); if (x < 0 || y < 0 || x >= W || y >= H || bg[y * W + x] || !isBg(x, y)) continue;
       bg[y * W + x] = 1; st.push(x + 1, y, x - 1, y, x, y + 1, x, y - 1); } }
@@ -637,6 +847,19 @@ async function autoPlan(o) {
     const reg = { ci, n, box: [x0, y0, x1 - x0 + 1, y1 - y0 + 1], seed, i0 };
     if (n >= minPx) regions.push(reg); else if (n >= 3 * srcPx * srcPx) small.push(reg);
   }
+  // PREPARE THE REFERENCE when the draft would lose it. "lost" = figure pixels that end up in no kept region (anti-aliased blends,
+  // JPEG speckle, grain crumbs). 11 clean references lose 1.8–4.8 %; a thin-ink JPEG sticker 20 %, a re-saved bottle 19 %, a grainy
+  // soft-shaded girl 51 % — and test runs then wrote their own fix every time (upscale + flat colours, median), once with a
+  // channel-scrambling bug. Two fixes, picked from the image:
+  //   grain (speckle ≥ 40 ‰): denoise — median twice, at the image's own size (the figure's tones stay soft; fine pattern softens)
+  //   otherwise (thin lines / blends of flat colours): upscale 2× (lanczos), snap every pixel to the flat colours that hold real
+  //   regions, median in a second pass → thin ink survives as its own colour; the draft reads it with srcPx = the factor
+  // A clean reference (lost < 10 %) is untouched, so it drafts exactly as before. --no-prep turns it off; --prep flat|denoise forces one.
+  { let fgAll = 0; for (let i = 0; i < W * H; i++) if (!bg[i]) fgAll++;
+    const lost = fgAll ? 1 - regions.reduce((s, r) => s + r.n, 0) / fgAll : 0;
+    o.lost = lost;
+    const want = o.prep === false || o.prepped ? null : o.prep || (lost >= 0.10 ? (speckle >= 40 ? 'denoise' : 'flat') : null);
+    if (want) return prepare(o, im, { mode: want, lost, speckle, colours, regions, corner }); }
   // THIN LINES and DOT PATTERNS the 0.1 % floor would drop (a seam down the shorts, an eyelid crease, halftone dots behind a bubble):
   // a small region is kept when it is a line — long and thin, in its own colour, not the blend between its two neighbours (an
   // anti-aliased ring is exactly that blend) — and small dots of one colour, many of them, become one "pattern" part.
@@ -732,11 +955,38 @@ async function autoPlan(o) {
       const ca = chains.find((x) => x.has(p.name)), cb = chains.find((x) => x.has(q.name));
       if (ca && cb && ca !== cb) { for (const x of cb) ca.add(x); chains.splice(chains.indexOf(cb), 1); }
       else if (ca) ca.add(q.name); else if (cb) cb.add(p.name); else chains.push(new Set([p.name, q.name])); } });
+  // ONE COLOUR, ONE OBJECT, ONE SHAPE — the designer draws a shine strip once, under the label that crosses it, and a cap's light and
+  // its neck's light as one shape under the dark band between them; the draft sees two regions. Listed: two parts of one colour,
+  // not touching, both touching one part between them, lined up across it
+  const splits = [];
+  const crumb = (p) => p.px < Math.max(150 * srcPx * srcPx, 0.002 * fg);
+  parts.forEach((a, i) => parts.forEach((b, j) => { if (j <= i || all[i].ci !== all[j].ci || a.ink || a.pattern || a.line || a.bgColour || crumb(a) || crumb(b) || (touch[i].get(j) || 0)) return;
+    const [ax, ay, aw, ah] = a.box, [bx, by, bw, bh] = b.box;
+    const ox = Math.min(ax + aw, bx + bw) - Math.max(ax, bx), oy = Math.min(ay + ah, by + bh) - Math.max(ay, by);
+    const vert = ox >= 0.6 * Math.min(aw, bw), horiz = oy >= 0.6 * Math.min(ah, bh); if (!vert && !horiz) return;
+    // the part across: its box fills the gap between them (an anti-aliased row may keep them from touching it), and neither of the
+    // two sits inside it (a dot ON a part is not a split)
+    for (let q = 0; q < parts.length; q++) { if (q === i || q === j) continue;
+      const [qx, qy, qw, qh] = parts[q].box, inside = (r) => r[0] >= qx && r[1] >= qy && r[0] + r[2] <= qx + qw && r[1] + r[3] <= qy + qh;
+      if (inside(a.box) || inside(b.box)) continue;
+      const across = vert ? Math.min(qx + qw, Math.max(ax + aw, bx + bw)) - Math.max(qx, Math.min(ax, bx)) : Math.min(qy + qh, Math.max(ay + ah, by + bh)) - Math.max(qy, Math.min(ay, by));
+      if (across < 0.8 * (vert ? Math.min(aw, bw) : Math.min(ah, bh))) continue;
+      const gap = vert ? [Math.min(ay + ah, by + bh), Math.max(ay, by)] : [Math.min(ax + aw, bx + bw), Math.max(ax, bx)];
+      const span = vert ? [qy, qy + qh] : [qx, qx + qw];
+      if (gap[1] > gap[0] && span[0] <= gap[0] + 1 && span[1] >= gap[1] - 1) { splits.push(`${a.name}+${b.name} (across ${parts[q].name})`); break; } } }));
+  // SUBTLE TINTS: a small region a few levels off the part it sits on (a collar's faint shade) — the designer left it out of a small
+  // part; a shape must earn its place at the real size
+  const tints = [];
+  const inChain = new Set(chains.flatMap((c) => [...c]));
+  parts.forEach((p, k) => { if (p.ink || p.pattern || p.line || inChain.has(p.name)) return; let host = -1, hn = 0;
+    for (const [q, n] of touch[k]) if (n > hn) { hn = n; host = q; }
+    if (host < 0 || hn < 0.3 * border[k] || parts[host].px < 2 * p.px || p.px < Math.max(200 * srcPx * srcPx, 0.003 * fg)) return; const a = hex(p.color), b = hex(parts[host].color), d = Math.hypot(a[0] - b[0], a[1] - b[1], a[2] - b[2]);
+    if (d < 40) tints.push(`${p.name} on ${parts[host].name} (Δ ${Math.round(d)})`); });
   if (inkNotes.length) { const ink = parts.filter((p) => p.ink), rest = parts.filter((p) => !p.ink); parts.length = 0; parts.push(...rest, ...ink); }
   const plan = { img: o.img, ...(o.crop ? { crop: o.crop } : {}), scale: o.scale || 1, srcPx, frame: { name: o.name || 'Vector' },
     palette, groups: [{ name: 'Draft', parts }] };
   // one part per line: easy to read, and easy to tweak one part in place during refine
-  fs.writeFileSync(o.autoPlan, '{"img":' + JSON.stringify(plan.img) + (plan.crop ? ',"crop":' + JSON.stringify(plan.crop) : '') +
+  fs.writeFileSync(o.autoPlan, '{"img":' + JSON.stringify(plan.img) + (plan.crop ? ',"crop":' + JSON.stringify(plan.crop) : '') + (o.prepped ? ',"prep":' + JSON.stringify(o.prepped) : '') +
     `,"scale":${plan.scale},"srcPx":${plan.srcPx}${smooth ? `,"smooth":${smooth}` : ''},"frame":${JSON.stringify(plan.frame)},\n"palette":${JSON.stringify(palette)},\n"groups":[{"name":"Draft","parts":[\n` +
     parts.map((p) => JSON.stringify(p)).join(',\n') + '\n]}]}\n');
   // labels image: reference ×k, each region outlined + its number
@@ -758,6 +1008,8 @@ async function autoPlan(o) {
     if (fills.length) console.log(`background colour inside the figure, holding features → the object's own fill, KEEP it (name it, e.g. Face, Belly): ${fills.map((p) => `${p.name} (holds ${featuresOf.get(p.name).join(', ')})`).join(' · ')}`);
     if (open.length) console.log(`background colour inside the figure, holding nothing: ${open.map((p) => p.name).join(', ')} — decide each by looking: a hole the background shows through (inside of a ring, a gap under an arm, a letter's counter) → "drop" at lock; a part of that colour (a tooth, a highlight, a white shirt) → keep and name it. Never drop them all at once; unsure → ask the designer. The --dark preview at lock shows every hole`); }
   // one line, however many chains: a soft-shaded image has dozens, and one line per chain buried the other readings
+  if (splits.length) console.log(`one colour split by a part across it: ${splits.join(' · ')} — if it is ONE thing seen on both sides (a shine strip under a label, a cap's light and its neck's light under a band), make it ONE part (both in "from") drawn whole under what crosses it; two different things (two eyes) stay two`);
+  if (tints.length) console.log(`subtle tint: ${tints.join(' · ')} — a faint tone on a small part; designers often leave it out (one shape fewer). Keep it only if it reads at the real size`);
   if (chains.length) console.log(`tone steps (${chains.length}): ${chains.map((c) => [...c].join('+')).join(' · ')} — each chain is one soft gradient cut into bands: at lock make it ONE part with "gradient": true (one shape, one gradient fill, no seams). Many chains = soft-shaded art: shading goes as gradients / see-through overlays on the base shapes, never as more flat bands or a harder colour reduction`);
   if (o.out) await build({ plan: o.autoPlan, out: o.out, render: o.render, clean: o.clean, rough: o.rough });
   console.log('Next: build the draft now (build_vectors), score it once (score.cjs --plan), look check (build sheet + compare-sheet.cjs), then refine everything fixable in at most two rounds (no zooms, no probes);'
@@ -782,19 +1034,23 @@ function nameParts(o) {
     for (const k of ['complete', 'simplify', 'clean', 'draw', 'inside', 'line', 'pattern']) { const v = src.find((p) => p[k] !== undefined); if (v) out[k] = v[k]; }
     if (np.inside !== undefined) out.inside = np.inside;  // names.json may set it by the new name
     // shading written at lock: one gradient over joined tone steps, an overlay over its base, a layer opacity / blend
-    for (const k of ['gradient', 'overlay', 'over', 'opacity', 'blend', 'draw', 'complete']) if (np[k] !== undefined) out[k] = np[k];
+    for (const k of ['gradient', 'overlay', 'over', 'opacity', 'blend', 'draw', 'complete', 'cut', 'under', 'underPx', 'also']) if (np[k] !== undefined) out[k] = np[k];
     if (colors.length > 1 && !np.gradient) { const c = colors.map(hex), far = c.some((a) => c.some((b) => Math.hypot(a[0] - b[0], a[1] - b[1], a[2] - b[2]) > 60));
       if (far) notes.push(`${g.name} / ${np.name}: joins clearly different colours (${colors.join(' ')}) — one fill; keep them as two parts if the reference shows two tones`); }
     return out; }).filter(Boolean) }));
   // "inside": "p07" written on the draft → the new name of the part p07 went into
   const renamed = new Map(); for (const g of names.groups || []) for (const np of g.parts || []) for (const id of np.from || []) renamed.set(id, np.name);
-  for (const g of groups) for (const p of g.parts) if (typeof p.inside === 'string' && renamed.has(p.inside)) p.inside = renamed.get(p.inside);
+  for (const g of groups) for (const p of g.parts) {
+    if (typeof p.inside === 'string' && renamed.has(p.inside)) p.inside = renamed.get(p.inside);
+    if (typeof p.cut === 'string' && renamed.has(p.cut)) p.cut = renamed.get(p.cut);
+    if (p.under) p.under = [].concat(p.under).map((n) => renamed.get(n) || n);
+    if (p.also) p.also = [].concat(p.also).map((n) => renamed.get(n) || n); }
   const left = [...byId.keys()].filter((id) => !used.has(id));
   if (left.length) errors.push(`not used or dropped: ${left.join(' ')}`);
   if (errors.length) { for (const e of errors) console.log('✗ ' + e); process.exit(1); }
-  const plan = { img: draft.img, ...(draft.crop ? { crop: draft.crop } : {}), scale: draft.scale, srcPx: draft.srcPx,
+  const plan = { img: draft.img, ...(draft.crop ? { crop: draft.crop } : {}), ...(draft.prep ? { prep: draft.prep } : {}), scale: draft.scale, srcPx: draft.srcPx,
     ...(draft.smooth ? { smooth: draft.smooth } : {}), ...(draft.palette ? { palette: draft.palette } : {}), frame: { name: names.frame || (draft.frame && draft.frame.name) || 'Vector' }, groups,
-    ...(names.shadowTint ? { shadowTint: names.shadowTint } : {}) };
+    ...(names.shadowTint ? { shadowTint: names.shadowTint } : {}), ...(names.shading ? { shading: names.shading } : {}) };
   // nested groups ("Head/Eye L") come right after their holder and before the next top-level group — the stack order is the scene order
   for (let i = 0; i < groups.length; i++) { const nm = groups[i].name; if (!nm.includes('/')) continue; const top = nm.split('/')[0].trim();
     const holder = groups.findIndex((g) => g.name === top); if (holder > i) notes.push(`${nm}: list the group "${top}" before its nested groups`); }

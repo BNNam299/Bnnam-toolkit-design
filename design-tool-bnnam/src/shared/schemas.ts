@@ -548,6 +548,8 @@ export const BuildVectorsPart = z.object({
   paint: BuildVectorsPaint.optional().describe('Linear gradient instead of the flat fill (fill stays as the fallback colour)'),
   opacity: z.number().min(0).max(1).optional().describe('Layer opacity — a shade laid over its base'),
   blend: z.enum(['NORMAL', 'MULTIPLY', 'SCREEN', 'OVERLAY', 'SOFT_LIGHT', 'DARKEN', 'LIGHTEN', 'COLOR_BURN', 'COLOR_DODGE']).optional(),
+  cutFrom: z.string().optional().describe('Name of a part built earlier (the base): this part = a duplicate of the base cut by this path (intersect + flatten) — its outer edge is the own edge of the base. For art that will be animated (no masks)'),
+  maskOf: z.string().optional().describe('Name of a part built earlier (the base): this part sits in a mask group whose mask is a duplicate of the base. For static art / icons'),
 });
 export const BuildVectorsScene = z.object({
   frame: z.object({ name: z.string(), width: z.number(), height: z.number() }),

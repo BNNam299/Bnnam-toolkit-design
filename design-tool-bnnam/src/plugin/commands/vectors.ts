@@ -2,7 +2,10 @@
 // path coordinates never pass through the agent. Additive: no other command uses this file.
 //   · a group name with "/" is nested: "Head/Eye L" is the group "Eye L" inside the group "Head" (built when "Head" exists, or made
 //     around it) — parts that move together stay one unit, and a blink or a mouth swap is one layer;
-//   · a part may carry a linear gradient (`paint`), its own `opacity` and `blend` (shading laid over a base the way designers draw it).
+//   · a part may carry a linear gradient (`paint`), its own `opacity` and `blend` (shading laid over a base the way designers draw it);
+//   · a shade drawn the designer's way: `cutFrom` = a duplicate of its base, cut by the part's path (intersect, then flattened to one
+//     clean path) — its outer edge IS the base's edge, so nothing gaps or pokes out, and no mask (art that will be animated);
+//     `maskOf` = the part inside a mask group whose mask is a duplicate of the base (static art, icons).
 import type { BuildVectorsParams, BuildVectorsPaint } from '../../shared/schemas';
 import { isStageOf, stageFrameName } from '../../shared/stage';
 import { solid } from '../paints';
@@ -27,6 +30,12 @@ function paintOf(fill: string, paint?: BuildVectorsPaint): Paint {
 }
 
 type Holder = FrameNode | GroupNode;
+// a node's transform expressed in the frame's coordinates (it may sit inside groups — groups do not move their children's space,
+// but a nested frame would)
+function absoluteIn(frame: FrameNode, n: SceneNode): Transform {
+  const [[a, b, tx], [c, d, ty]] = n.absoluteTransform, [[, , fx], [, , fy]] = frame.absoluteTransform;
+  return [[a, b, tx - fx], [c, d, ty - fy]];
+}
 export async function buildVectors(p: BuildVectorsParams) {
   // target frame: the given id, else a top-level frame of that name on the current page, else a new one at a free spot
   let frame: FrameNode;
@@ -61,7 +70,11 @@ export async function buildVectors(p: BuildVectorsParams) {
     }
     return at === frame ? null : (at as GroupNode);
   };
-  const built: { group: string; id: string; replaced: boolean; parts: { name: string; id: string; anchors: number }[] }[] = [];
+  const built: { group: string; id: string; replaced: boolean; parts: { name: string; id: string; anchors: number; note?: string }[] }[] = [];
+  // bases for cutFrom / maskOf: parts built in this call first, else a vector of that name already in the frame
+  const byName = new Map<string, VectorNode>();
+  const baseOf = (name: string): VectorNode | null =>
+    byName.get(name) ?? (frame.findOne((n) => n.type === 'VECTOR' && n.name === name) as VectorNode | null);
   for (const g of p.groups) {
     const path = g.name.split('/').map((s) => s.trim()).filter(Boolean);
     const leaf = path[path.length - 1] ?? g.name;
@@ -77,20 +90,56 @@ export async function buildVectors(p: BuildVectorsParams) {
     const old = holder.children.find((c) => c.name === leaf);
     const index = old ? holder.children.indexOf(old) : holder.children.length;
     const nodes: SceneNode[] = [];
-    const parts: { name: string; id: string; anchors: number }[] = [];
+    const parts: { name: string; id: string; anchors: number; note?: string }[] = [];
+    const masks = new Map<string, GroupNode>();   // one mask group per base in this group
     for (const part of g.parts) {
-      const v = figma.createVector();
+      let v: VectorNode = figma.createVector();
       frame.appendChild(v);
       v.vectorPaths = [{ windingRule: part.windingRule, data: part.d }];
       v.name = part.name;
+      v.strokes = [];
+      v.x = part.x;
+      v.y = part.y;
+      let note: string | undefined;
+      const baseName = part.cutFrom || part.maskOf;
+      const base = baseName ? baseOf(baseName) : null;
+      if (baseName && !base) note = `base "${baseName}" not found — built as a plain shape`;
+      if (base && part.cutFrom) {
+        // the designer's move: duplicate the base in place, cut it with this path, keep one clean path
+        const dup = base.clone();
+        frame.appendChild(dup);
+        dup.relativeTransform = absoluteIn(frame, base);
+        try {
+          const cut = figma.intersect([dup, v], frame);
+          const flat = figma.flatten([cut], frame);
+          v = flat;
+          v.name = part.name;
+        } catch (e) {
+          if (!dup.removed) dup.remove();
+          note = `cut from "${baseName}" failed (${String(e).slice(0, 80)}) — built as a plain shape`;
+        }
+      }
       v.fills = [paintOf(part.fill, part.paint)];
       v.strokes = [];
       if (part.opacity !== undefined) v.opacity = part.opacity;
       if (part.blend) v.blendMode = part.blend;
-      v.x = part.x;
-      v.y = part.y;
-      nodes.push(v);
-      parts.push({ name: part.name, id: v.id, anchors: v.vectorNetwork.vertices.length });
+      byName.set(part.name, v);
+      if (base && part.maskOf) {
+        let mg = masks.get(baseName!);
+        if (mg) mg.appendChild(v);
+        else {
+          const m = base.clone();
+          frame.appendChild(m);
+          m.relativeTransform = absoluteIn(frame, base);
+          m.name = `${baseName} mask`;
+          m.isMask = true;
+          mg = figma.group([m, v], frame);
+          mg.name = `${baseName} shading`;
+          masks.set(baseName!, mg);
+          nodes.push(mg);
+        }
+      } else nodes.push(v);
+      parts.push({ name: part.name, id: v.id, anchors: v.vectorNetwork.vertices.length, ...(note ? { note } : {}) });
     }
     if (!nodes.length) continue;
     if (old && old.type === 'GROUP') for (const c of [...old.children]) if (c.type === 'GROUP') nodes.push(c);

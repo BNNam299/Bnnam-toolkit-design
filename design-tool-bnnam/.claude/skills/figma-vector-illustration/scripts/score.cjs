@@ -96,7 +96,9 @@ function morph(m, W, H, n, grow) {
       pal.forEach((c, k) => { const d = Math.hypot(r - c[0], g - c[1], b - c[2]); if (d < bd) { bd = d; bi = k; } }); idx[i] = bi; } return idx; }) : null;
   const maskOf = (im, k, part) => { const m = new Uint8Array(W * H);
     if (part.color || part.colors) { const names = part.colors || [part.color], cs = names.map(hex), tol = part.tol || 40;
-      const own = nearIdx ? new Set(names.map((n) => o.plan.palette.findIndex((p) => p.toLowerCase() === String(n).toLowerCase())).filter((i) => i >= 0)) : null;
+      // as vectorize: a hand-added colour (not in the palette) turns the nearest-colour filter off for the part
+      const ids = nearIdx ? names.map((n) => o.plan.palette.findIndex((p) => p.toLowerCase() === String(n).toLowerCase())) : [];
+      const own = nearIdx && ids.every((i) => i >= 0) ? new Set(ids) : null;
       const [x0, y0, w, h] = part.box || [0, 0, W, H];
       for (let y = Math.max(0, y0); y < Math.min(H, y0 + h); y++) for (let x = Math.max(0, x0); x < Math.min(W, x0 + w); x++) { const i = y * W + x;
         const [r, g, b, a] = px(im, i); m[i] = a > 127 && cs.some((c) => Math.hypot(r - c[0], g - c[1], b - c[2]) <= tol)

@@ -347,6 +347,24 @@ describe('figma-ui-flow tools with server-side work', () => {
     expect(sent.groups[0].parts[1]).toMatchObject({ opacity: 0.2, blend: 'MULTIPLY' });
   });
 
+  it('build_vectors passes a shade cut from its base (cutFrom) and a masked shade (maskOf) through', async () => {
+    const dir = mkdtempSync(join(tmpdir(), 'scene-'));
+    const file = join(dir, 'scene.json');
+    writeFileSync(file, JSON.stringify({
+      frame: { name: 'Bottle · vector', width: 100, height: 100 },
+      groups: [{ name: 'Body', parts: [
+        { name: 'Glass', fill: '#4b8e49', x: 0, y: 0, d: 'M 0 0 L 50 0 L 50 90 L 0 90 Z' },
+        { name: 'Glass shade', fill: '#246054', x: 30, y: -5, d: 'M 0 0 L 30 0 L 30 100 L 0 100 Z', cutFrom: 'Glass' },
+        { name: 'Label shade', fill: '#c5bfe1', x: 30, y: 40, d: 'M 0 0 L 30 0 L 30 20 L 0 20 Z', maskOf: 'Glass' }] }],
+    }));
+    const r = await client.callTool({ name: 'build_vectors', arguments: { path: file } });
+    expect(r.isError).toBeFalsy();
+    const sent = received.filter((x) => x.command === 'build_vectors').at(-1)!.params;
+    expect(sent.groups[0].parts[1].cutFrom).toBe('Glass');
+    expect(sent.groups[0].parts[2].maskOf).toBe('Glass');
+    expect(sent.groups[0].parts[0].cutFrom).toBeUndefined();
+  });
+
   it('build_vectors refuses a relative path and an unknown group', async () => {
     const rel = await client.callTool({ name: 'build_vectors', arguments: { path: 'scene.json' } });
     expect(rel.isError).toBe(true);
