@@ -75,7 +75,7 @@ Not every task runs all 8. Determine the entry point in Stage 0, then run from t
 
 ### Stage 0 — Intake and orientation
 
-1. Determine the mode: does the session have a Figma write tool — the remote Figma MCP (`use_figma`, `get_metadata`…) **or** `figma-agent` (`figma_status`, `render_tree`, `search_design_system`…)? Yes → Agent. With `figma-agent`: load the `figma-agent-tools` skill, read `references/run-with-figma-agent.md` to know the tool for each step, call `figma_status`, and resolve any `versionCheck` warning before starting. No tool → Designer (same process, the output is instructions). If the user wants Agent mode but the tools are missing: say clearly that they need to open the figma-agent-UI plugin (or connect the remote Figma MCP), then continue in Designer mode.
+1. Determine the mode: does the session have a Figma write tool — the remote Figma MCP (`use_figma`, `get_metadata`…) **or** `figma-agent` (`figma_status`, `render_tree`, `search_design_system`…)? Yes → Agent. With `figma-agent`: load the `figma-agent-tools` skill, read `references/run-with-figma-agent.md` to know the tool for each step, call `figma_status`, and resolve any `versionCheck` warning before starting. No tool → Designer (same process, the output is instructions). If the user wants Agent mode but the tools are missing: say clearly that they need to open the figma-agent-UI · Design plugin (or connect the remote Figma MCP), then continue in Designer mode.
 2. Classify the request and choose the entry point:
 
 | Request | Start at |

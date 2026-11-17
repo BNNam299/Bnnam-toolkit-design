@@ -616,7 +616,7 @@ export class Bridge {
     const open = [...this.clients.values()].filter((c) => c.ws.readyState === WebSocket.OPEN);
     if (open.length === 0) {
       throw new PluginError(
-        'No Figma file is connected. Open the "figma-agent-UI" plugin in Figma (Plugins → Development) and enter the token.',
+        'No Figma file is connected. Open the "figma-agent-UI · Design" plugin in Figma (Plugins → Development) and enter the token.',
         true,
       );
     }
@@ -661,7 +661,7 @@ export class Bridge {
       return Promise.reject(
         new PluginError(
           `Plugin đang mở là bản cũ, chưa hỗ trợ lệnh '${command}'. Thiếu: ${missing.join(', ')}. ` +
-            `Đóng và mở lại plugin trong Figma (Plugins → Development → figma-agent-UI) sau khi chạy npm run build.`,
+            `Đóng và mở lại plugin trong Figma (Plugins → Development → figma-agent-UI · Design) sau khi chạy npm run build.`,
           true,
         ),
       );

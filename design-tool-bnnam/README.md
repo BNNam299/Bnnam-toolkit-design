@@ -1,4 +1,4 @@
-# design-tool-bnnam — bộ thiết kế (plugin Figma figma-agent-UI + skill)
+# design-tool-bnnam — bộ thiết kế (plugin Figma figma-agent-UI · Design + skill)
 
 Plugin Figma + MCP server giúp AI agent (Claude Code, hoặc bất kỳ MCP client nào) **đọc, tạo, sửa và tự chụp màn hình kiểm tra** thiết kế ngay trong file Figma đang mở.
 
@@ -19,15 +19,15 @@ npm run build          # code.js (plugin) + dist/server.mjs (MCP server)
 1. **Figma desktop** → Plugins → Development → *Import plugin from manifest…* → chọn `manifest.json`.
 2. **Claude Code**: mở thư mục này, `.mcp.json` sẽ đăng ký server `figma-agent` (chấp nhận khi được hỏi). Với client khác, chạy `node /đường/dẫn/dist/server.mjs` qua stdio.
 3. Lấy token: `cat ~/.figma-agent/token` (tạo ở lần chạy đầu), hoặc gọi tool `figma_status`.
-4. Trong Figma chạy plugin **figma-agent-UI**, dán token → **Connect**. Token được lưu, lần sau plugin tự kết nối.
+4. Trong Figma chạy plugin **figma-agent-UI · Design**, dán token → **Connect**. Token được lưu, lần sau plugin tự kết nối.
 
 Nhiều agent (Claude Code, Pi, opencode…) dùng chung **một cổng**: server khởi động đầu tiên làm *hub* ở 3055 và giữ kết nối với plugin; các server sau nối vào hub thay vì mở cổng mới, lệnh của chúng đi qua hub. Agent giữ hub thoát thì các agent còn lại tự bầu hub mới và plugin tự kết nối lại. `figma_status` cho biết `role` (`hub`/`agent`) và số `agents`. Xem `PLAN-hub.md`.
 
-Biến môi trường: `FIGMA_AGENT_TOKEN` (cố định token), `FIGMA_AGENT_PORT` (mặc định 3055), `FIGMA_AGENT_HUB=0` (tắt hub: mỗi server tự lấy một cổng trong dải `FIGMA_AGENT_PORT_RANGE`, mặc định 3055–3075), `FIGMA_AGENT_PORT_FILE` (nơi ghi port thật, mặc định `~/.figma-agent/port`), `FIGMA_AGENT_MANIFEST` (đường dẫn `manifest.json` cho `figma_doctor`), `FIGMA_AGENT_MAX_OUTPUT` (giới hạn ký tự kết quả, mặc định 20000).
+Biến môi trường: `FIGMA_AGENT_TOKEN` (cố định token), `FIGMA_AGENT_PORT` (mặc định 3155), `FIGMA_AGENT_HUB=0` (tắt hub: mỗi server tự lấy một cổng trong dải `FIGMA_AGENT_PORT_RANGE`, mặc định 3155–3175), `FIGMA_AGENT_PORT_FILE` (nơi ghi port thật, mặc định `~/.figma-agent/port-design`), `FIGMA_AGENT_MANIFEST` (đường dẫn `manifest.json` cho `figma_doctor`), `FIGMA_AGENT_MAX_OUTPUT` (giới hạn ký tự kết quả, mặc định 20000).
 
 ### Khi nhiều MCP client chạy cùng lúc
 
-Cổng **không còn cố định**. Server dò port trống trong dải 3055–3075 và ghi port thật vào `~/.figma-agent/port`; panel plugin cũng dò đúng dải đó nên tự tìm thấy server. Client thứ hai lấy port trống tiếp theo thay vì làm server chết.
+Cổng **không còn cố định**. Server dò port trống trong dải 3155–3175 và ghi port thật vào `~/.figma-agent/port-design`; panel plugin cũng dò đúng dải đó nên tự tìm thấy server. Client thứ hai lấy port trống tiếp theo thay vì làm server chết. Plugin của bộ design tên **figma-agent-UI · Design**, mã và dải cổng riêng (3155–3175), nên không dính với bộ khác dùng 3055–3075 (bộ game).
 
 > `devAllowedDomains` trong `manifest.json` liệt kê **21 cổng** `ws://localhost:3055…3075`. Sửa `manifest.json` ⇒ **phải import lại plugin trong Figma** (Figma cache manifest lúc import).
 

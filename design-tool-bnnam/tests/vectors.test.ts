@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { linearTransform } from '../src/plugin/commands/vectors';
+import { baseOfFrame, linearTransform } from '../src/plugin/commands/vectors';
 import { isStageOf, stageFrameName } from '../src/shared/stage';
 
 // build_vectors stage: the frame name shows the drawing stage, the plain name at lock, and a staged frame is still found by its base
@@ -13,6 +13,16 @@ describe('stage frame names', () => {
     expect(isStageOf('Hotdog · vector', 'Hotdog · vector')).toBe(true);
     expect(isStageOf('Hotdog · vector · copy', 'Hotdog · vector')).toBe(false);
     expect(isStageOf('Hotdog · vector 2', 'Hotdog · vector')).toBe(false);
+  });
+});
+
+// a frame moved to "<name> 2" (its name was taken by an older drawing) keeps the number through the next stages
+describe('baseOfFrame', () => {
+  it('drops the stage, keeps a number added after the scene name', () => {
+    expect(baseOfFrame('Coin · vector 2 · 1 thô', 'Coin · vector')).toBe('Coin · vector 2');
+    expect(baseOfFrame('Coin · vector · 3 chi tiết', 'Coin · vector')).toBe('Coin · vector');
+    expect(baseOfFrame('Coin · vector', 'Coin · vector')).toBe('Coin · vector');
+    expect(baseOfFrame('Something else · 1 thô', 'Coin · vector')).toBe('Coin · vector');
   });
 });
 

@@ -5,7 +5,7 @@
 | Symptom | Cause / fix |
 |---|---|
 | Every tool fails with "Port 3055-3075 … lsof" | No free port in the range. Another MCP client holds them. Close it (`lsof -i :3055-3075`) or set `FIGMA_AGENT_PORT`. The server stays up and reports the reason — it does not die. |
-| `figma_status` → `files: []` | Plugin not open or not connected. User: Figma → Plugins → Development → figma-agent-UI, paste `token`, Connect. Run `figma_doctor` for a full check. |
+| `figma_status` → `files: []` | Plugin not open or not connected. User: Figma → Plugins → Development → figma-agent-UI · Design, paste `token`, Connect. Run `figma_doctor` for a full check. |
 | `figma_doctor` → check `manifest` fails | `devAllowedDomains` does not cover the port the server is on. Edit `manifest.json`, then **re-import the plugin in Figma** (Figma caches the manifest). |
 | `figma_doctor` → check `capability` fails | The plugin build in Figma is older than the server. `npm run build`, then close and reopen the plugin. |
 | `Unknown command "<tool>"` | Plugin build ≠ server build. User closes and reopens the plugin; after a plugin upgrade the version in `package.json` is bumped so the panel shows it. |

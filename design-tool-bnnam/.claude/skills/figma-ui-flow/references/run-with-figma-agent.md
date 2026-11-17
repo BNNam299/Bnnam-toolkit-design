@@ -1,4 +1,4 @@
-# Running figma-ui-flow on `figma-agent` (MCP + figma-agent-UI plugin)
+# Running figma-ui-flow on `figma-agent` (MCP + figma-agent-UI · Design plugin)
 
 The bridge between the workflow (this skill) and the tools (the `figma-agent-tools` skill). Read it when the session has `mcp__figma-agent__*` tools (`figma_status`, `render_tree`…). Parameters and errors for each tool: `figma-agent-tools/references/tool-reference.md`.
 
@@ -13,7 +13,7 @@ The bridge between the workflow (this skill) and the tools (the `figma-agent-too
 
 ## 1. Connection and version
 
-- Call `figma_status` first. `files: []` means no file is connected yet: ask the user to open Figma → Plugins → Development → **figma-agent-UI**, paste the `token`, and click Connect.
+- Call `figma_status` first. `files: []` means no file is connected yet: ask the user to open Figma → Plugins → Development → **figma-agent-UI · Design**, paste the `token`, and click Connect.
 - Read `versionCheck`. If it shows ⚠️, the plugin open in Figma is a different build from the server, and new tools will return `Unknown command`. Ask the user to **close the plugin and reopen it**. The plugin panel shows a `Plugin <version> (<commit>)` line for comparison.
 - Can write to any file the user has open; no remote Figma MCP or Full seat required. Plan limits still apply: for example, the free plan allows only 1 mode per collection.
 

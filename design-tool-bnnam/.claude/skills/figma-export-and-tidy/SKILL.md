@@ -10,7 +10,7 @@ Mechanics of each tool live in **figma-agent-tools**; this skill is the proven r
 ## 0. Link → node id, and the right file
 
 - URL `...?node-id=17094-35760` → node id `17094:35760` (replace `-` with `:`).
-- `figma_status` first. The URL's file must appear in `files[]` **by name** (`fileKey` is often `null`, so match on `fileName`). If it is missing, the plugin is open in another file: tell the user to open that file → Plugins → Development → figma-agent-UI → paste token → Connect, then wait for "thử lại".
+- `figma_status` first. The URL's file must appear in `files[]` **by name** (`fileKey` is often `null`, so match on `fileName`). If it is missing, the plugin is open in another file: tell the user to open that file → Plugins → Development → figma-agent-UI · Design → paste token → Connect, then wait for "thử lại".
 - With several files connected, pass `file: "<fileName>"` to **every** call.
 - `files: []` after a previously good connection = plugin window closed or file reloaded; same reconnect steps. `figma_doctor` gives a per-check diagnosis if anything else looks off.
 

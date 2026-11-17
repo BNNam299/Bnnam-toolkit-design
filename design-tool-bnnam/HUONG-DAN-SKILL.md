@@ -100,5 +100,5 @@ Ví dụ:
 ## Chuẩn bị trước khi làm việc với Figma
 
 1. `npm install` rồi `npm run build` (lần đầu, hoặc sau khi kéo code mới).
-2. Figma desktop → Plugins → Development → **figma-agent-UI** (build mới thì đóng plugin, mở lại).
+2. Figma desktop → Plugins → Development → **figma-agent-UI · Design** (build mới thì đóng plugin, mở lại).
 3. Mở Claude Code trong thư mục này, chấp nhận server `figma-agent` khi được hỏi.

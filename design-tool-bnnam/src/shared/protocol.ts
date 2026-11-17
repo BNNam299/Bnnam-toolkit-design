@@ -10,7 +10,7 @@
 export const PROTOCOL_VERSION = 3;
 
 /** First port the bridge tries. */
-export const DEFAULT_PORT = 3055;
+export const DEFAULT_PORT = 3155;
 /**
  * How many consecutive ports the bridge may use, starting at DEFAULT_PORT.
  * The plugin panel probes the same range, so a second MCP server (another

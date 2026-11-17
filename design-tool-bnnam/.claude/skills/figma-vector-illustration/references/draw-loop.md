@@ -184,6 +184,27 @@ Kinds of fix:
   the edge in the reference gets `"inside": false`. vectorize already keeps auto-detected details inside their owner and refuses
   clean shapes that poke out — its "kept inside" line lists them.
 
+**Every `draw` you write — eight faults the designer found zoomed in (test of 4 copies, 16/11).** None of them moves a part score;
+each one cost a fix turn. Get them right while writing the shape — no extra round, no extra check:
+1. **Two shapes that touch share one edge.** Take the meeting line once and use the same coordinates in both `draw`s (or cut both
+   from one curve); the shape behind runs a few px under the one in front. Two edges measured separately left a 3 px gap of
+   backdrop between pink and blue, a 1.5 px step at a cap's corner (460 vs 458.5) and a dark sliver under a sprocket.
+2. **A curve leaves a straight edge in that edge's direction**, and bows the way the reference bows — look: concave or convex? A
+   curve started 16° off the side made a kink; another bulged out where the reference curves in.
+3. **Tips and ends as the reference has them.** Flat art rounds most tips — a blade's point and its groove's point are arcs that
+   meet both sides smoothly, a dash is a straight pill with round ends. Pointed only where the reference is pointed.
+4. **Measure on the reference itself.** An offset of the whole drawing (2.5 px on a sword) and sizes 1–4 px off came from measuring
+   on a rotated or colour-split copy; a recess was sized from the wrong boundary (the inner edge of a rim light). Rotated to measure
+   → rotate the points back and check them on the unrotated reference at 4×. A low average colour error hides an even offset.
+5. **Paths joined into one shape run the same direction** (or are unioned): a reversed piece cancels where it overlaps — a
+   sprocket ring got a hole.
+6. **Small details drawn as clean shapes, all of them, in the reference's order** — a trigger is a tapered band, not a blob; a leaf
+   an ellipse, not a cut-off trace; a thin dark band above a pommel was hidden by the stack. Count them against the reference.
+7. **A small icon's touching parts are one shape** — a rabbit's head and ears one outline with a flat top between the ears, not
+   three pieces with a jagged seam.
+8. **Soft 3D art: a thin rim light is its own layer** with its measured width, never a stop inside the rim's angular gradient (it
+   fans out across the whole rim); a soft glare is a layer blur inside the object's mask, so it cannot spread outside.
+
 Each round: `vectorize.cjs --plan draft.json --out draft-scene.json --render draft.png` (seconds), `build_vectors` (with `parentId`,
 `stage: "3 chi tiết"`) + one chat line,
 `score.cjs --plan draft.json --only <the parts you touched> --draw …`, the compare sheet once on the touched cells.

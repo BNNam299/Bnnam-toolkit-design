@@ -558,6 +558,9 @@ export const BuildVectorsScene = z.object({
 export type BuildVectorsParams = {
   frame: { name: string; width: number; height: number };
   groups: { name: string; parts: z.infer<typeof BuildVectorsPart>[] }[];
+  // top-level group names of the WHOLE scene (not only the groups built in this call) — a same-named frame is ours only if it
+  // holds nothing else
+  known?: string[];
   parentId?: string;
   x?: number;
   y?: number;

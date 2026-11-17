@@ -329,6 +329,7 @@ draft first, names last).
 | `build_vectors { path, groups, parentId, stage }` (figma-agent) | reads the scene file and builds / replaces those groups in the frame (`parentId` = the `frameId` of the first build, so every stage lands in the same frame; `stage` = "1 thô" / "2 khối" / "3 chi tiết" / "4 chốt" shows in the frame name, `""` on the last build = final name) — coordinates never pass through the agent; places each part by its curve (not its handles), builds gradients, opacity, blend, and nests `Head/Eye L` inside `Head` |
 | `scripts/score.cjs --plan plan.json --draw draw.png [--groups Head] [--only p07,p12] --diff diff.png` | the same parts scored against the reference crop; `--only` re-scores just the refined parts |
 | `scripts/compare-sheet.cjs --plan plan.json --draw draw.png --checks checks.json --out sheet.png` | rule 9 look check: one image, reference \| drawing at 2× for every join, hard part and a grid of neighbouring regions (`checks.json`: `joins`, `hard`, `grid`); `--ref` instead of `--plan` for any reference, no reference (create route B) → the drawing alone. Look once, answer every cell |
+| `scripts/compare-sheet.cjs --ref ref.png --draw draw.png --out review.png --hotspots 6` | **only when the designer asks for a self-review** ("tự soát", "tự vòng kiểm") — not a default step (a default round cost 3–7 min per picture and did not lower the faults found, 16/11): finds where reference and drawing differ beyond the anti-aliased edge, each at 4× as reference \| drawing \| difference |
 | `scripts/contour.cjs --img ref.png --color "#hex" --box x,y,w,h --scale 4 --src-px 2.8` | one outline on its own (checking a single shape); `vectorize.cjs` uses the same tracing |
 | `scripts/score.cjs --ref ref.png --draw draw.png --parts parts.json --edge <original px> --diff diff.png` | per part: strict and edge-tolerant shape overlap (IoU / IoU±), box offset, colour difference ΔE, verdict; overall = the worst part; mismatch map. Screenshot reference crop and drawing at the same size and scale |
 
@@ -443,6 +444,9 @@ your own · anchors before → after with the max deviation, and any vector kept
   designer's rim bulges in a soft curve and the light edge bulges with it.
 - Reporting without the final check: a picture built once with no stages, a score from before the last fix, anchors never counted.
 - Every region in the background's colour dropped as a hole — a white face or belly punched out; decide each one, check `--dark`.
+- Writing a `draw` without the eight rules of `references/draw-loop.md` §2 pass 3 ("Every `draw` you write") — touching shapes
+  measured apart (a 3 px gap, a 1.5 px step), a curve bowing the wrong way, pointed tips the reference rounds, sizes read on a
+  rotated copy. The designer found about 25 such faults zoomed in on four copies (16/11); none moved a part score.
 
 ## Self-check before reporting
 - [ ] No shading shape or detail extends past its owner — `spills()` empty, vectorize warnings none, checked at 4×.

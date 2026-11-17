@@ -1,6 +1,6 @@
 ---
 name: figma-agent-tools
-description: Operator's manual for every figma-agent MCP tool (figma_status, get_document_info, get_design_system, search_design_system, render_tree, update_nodes, screenshot, audit_design, create_variables, import_tokens, create_styles, create_component_set, stress_test, set_interactions, bind_variables, rename_by_rule, annotate, set_dev_status, export_tokens, export_assets, execute_code…) that drive the figma-agent-UI plugin in the user's open Figma file, plus gemini-image-mcp for generated images. Use whenever a figma-agent tool is about to be called — reading, creating, editing, moving, deleting, screenshotting, auditing, tokens, prototype, handoff — including Vietnamese phrasings such as "sửa màu layer", "chỉnh spacing", "chụp lại frame", "kiểm tra file Figma", "xoá layer". For how to design a screen (flow, outside-in build loop, quality bar) also load figma-ui-flow.
+description: Operator's manual for every figma-agent MCP tool (figma_status, get_document_info, get_design_system, search_design_system, render_tree, update_nodes, screenshot, audit_design, create_variables, import_tokens, create_styles, create_component_set, stress_test, set_interactions, bind_variables, rename_by_rule, annotate, set_dev_status, export_tokens, export_assets, execute_code…) that drive the figma-agent-UI · Design plugin in the user's open Figma file, plus gemini-image-mcp for generated images. Use whenever a figma-agent tool is about to be called — reading, creating, editing, moving, deleting, screenshotting, auditing, tokens, prototype, handoff — including Vietnamese phrasings such as "sửa màu layer", "chỉnh spacing", "chụp lại frame", "kiểm tra file Figma", "xoá layer". For how to design a screen (flow, outside-in build loop, quality bar) also load figma-ui-flow.
 ---
 
 # figma-agent-tools — how to drive the figma-agent MCP
@@ -17,7 +17,7 @@ This skill is about **mechanics**: which tool, which parameters, what comes back
 
 ## 1. Connect and check the version
 
-1. `figma_status` first. `files: []` → ask the user to open Figma → Plugins → Development → **figma-agent-UI**, paste the `token`, press Connect. Several files → pass `file` to every tool.
+1. `figma_status` first. `files: []` → ask the user to open Figma → Plugins → Development → **figma-agent-UI · Design**, paste the `token`, press Connect. Several files → pass `file` to every tool.
 2. `versionCheck` starting with ⚠️ → the plugin build differs from the server: new tools answer `Unknown command`. Ask the user to close and reopen the plugin (its panel shows `Plugin <version> (<commit>)`).
 3. Two situations need a human restart; say so instead of retrying: the plugin was closed, or an `execute_code` call never returned.
 

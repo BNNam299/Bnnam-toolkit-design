@@ -63,7 +63,7 @@ const bridge = new Bridge({
   },
 });
 
-const INSTRUCTIONS = `Tools that read, create, edit and screenshot designs in the Figma file where the "figma-agent-UI" plugin is open.
+const INSTRUCTIONS = `Tools that read, create, edit and screenshot designs in the Figma file where the "figma-agent-UI · Design" plugin is open.
 Workflow: (1) inspect first: get_document_info, get_design_system, get_selection; reuse existing components, variables and styles instead of hardcoding values.
 (2) build screens outside-in in three passes: layout = screen frame + named regions + sized placeholder blocks in one render_tree → fill = components for repeated blocks, then placeholders filled by cluster (render_tree{parentId}) and content in batches (update_nodes) → lock = audit_design + stress_test; auto layout everywhere; execute_code only for what no tool covers.
 (3) check numbers after every write (write bounds or get_node: fixed sizes kept, children fit, FILL/HUG as planned) and look once per pass (screenshot the screen; extra screenshots only for unusual blocks); fix the specific node; finish a screen (audit_design + stress_test clean) before starting the next one, and build similar screens by cloning it.
@@ -165,7 +165,7 @@ server.registerTool(
           server: { version: __SERVER_VERSION__, build: __SERVER_BUILD__ },
           protocol: PROTOCOL_VERSION,
           versionCheck: stale.length
-            ? `⚠️ Plugin khác phiên bản server ${SERVER_STAMP}: ${stale.map((f) => `${f.fileName} = ${f.pluginVersion ?? 'unknown'}`).join(', ')}. Đóng plugin rồi mở lại (Plugins → Development → figma-agent-UI).`
+            ? `⚠️ Plugin khác phiên bản server ${SERVER_STAMP}: ${stale.map((f) => `${f.fileName} = ${f.pluginVersion ?? 'unknown'}`).join(', ')}. Đóng plugin rồi mở lại (Plugins → Development → figma-agent-UI · Design).`
             : status.files.length
               ? `✅ Plugin và server cùng phiên bản ${SERVER_STAMP}`
               : undefined,
@@ -174,7 +174,7 @@ server.registerTool(
           // the caller explicitly asks for the full value.
           token: args?.includeToken === true ? token : maskToken(token),
           howToConnect:
-            'Figma desktop → Plugins → Development → figma-agent-UI. Paste the token in the plugin and press Connect.',
+            'Figma desktop → Plugins → Development → figma-agent-UI · Design. Paste the token in the plugin and press Connect.',
         }),
       ],
     };
@@ -294,7 +294,7 @@ server.registerTool(
             ok: false,
             title: 'Plugin đang mở',
             detail: 'Chưa có file Figma nào kết nối.',
-            fix: 'Mở plugin trong Figma: Plugins → Development → figma-agent-UI, dán token rồi bấm Connect.',
+            fix: 'Mở plugin trong Figma: Plugins → Development → figma-agent-UI · Design, dán token rồi bấm Connect.',
           },
     );
 
@@ -312,7 +312,7 @@ server.registerTool(
             ok: false,
             title: 'Phiên bản plugin',
             detail: `Plugin khác build server (${SERVER_STAMP}): ${stale.map((f) => `${f.fileName} = ${f.pluginVersion ?? 'unknown'}`).join(', ')}.`,
-            fix: 'Chạy npm run build, rồi đóng và mở lại plugin trong Figma (Plugins → Development → figma-agent-UI).',
+            fix: 'Chạy npm run build, rồi đóng và mở lại plugin trong Figma (Plugins → Development → figma-agent-UI · Design).',
           },
     );
 
@@ -364,7 +364,7 @@ server.registerTool(
         };
         if (!manifestCheck.ok) {
           manifestCheck.fix =
-            'Sửa manifest.json (devAllowedDomains) rồi Plugins → Development → figma-agent-UI → Import lại manifest.json trong Figma.';
+            'Sửa manifest.json (devAllowedDomains) rồi Plugins → Development → figma-agent-UI · Design → Import lại manifest.json trong Figma.';
         }
       } catch (e) {
         manifestCheck = {
@@ -497,6 +497,7 @@ tool('build_vectors', {
     return {
       frame: scene.frame,
       groups: groups.map((g) => ({ name: g.name, parts: g.parts.map((p) => ({ name: p.name, fill: p.fill, x: p.x, y: p.y, d: p.d, windingRule: p.windingRule, paint: p.paint, opacity: p.opacity, blend: p.blend, cutFrom: p.cutFrom, maskOf: p.maskOf })) })),
+      known: [...new Set(scene.groups.map((g) => g.name.split('/')[0].trim()))],
       parentId: args.parentId,
       x: args.x,
       y: args.y,
@@ -678,7 +679,7 @@ tool('export_assets', {
 // sees a half-written file if the server is killed mid-write. Tests point
 // FIGMA_AGENT_PORT_FILE somewhere else so they never touch the real file.
 function writePortFile(actualPort: number) {
-  const target = process.env.FIGMA_AGENT_PORT_FILE ?? join(homedir(), '.figma-agent', 'port');
+  const target = process.env.FIGMA_AGENT_PORT_FILE ?? join(homedir(), '.figma-agent', 'port-design');
   mkdirSync(dirname(target), { recursive: true });
   const tmp = target + '.tmp';
   writeFileSync(tmp, `${actualPort}\n`);

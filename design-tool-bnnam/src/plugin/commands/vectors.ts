@@ -29,6 +29,14 @@ function paintOf(fill: string, paint?: BuildVectorsPaint): Paint {
   };
 }
 
+// the base of a frame name that may carry a stage: "Coin · vector 2 · 1 thô" → "Coin · vector 2" (kept when it starts with the
+// scene's frame name, so a frame moved to "<name> 2" keeps its number through the next stages)
+export function baseOfFrame(name: string, sceneBase: string): string {
+  const m = name.match(/^(.*?) · \d/);
+  const b = m ? m[1] : name;
+  return b.startsWith(sceneBase) ? b : sceneBase;
+}
+
 type Holder = FrameNode | GroupNode;
 // a node's transform expressed in the frame's coordinates (it may sit inside groups — groups do not move their children's space,
 // but a nested frame would)
@@ -39,17 +47,30 @@ function absoluteIn(frame: FrameNode, n: SceneNode): Transform {
 export async function buildVectors(p: BuildVectorsParams) {
   // target frame: the given id, else a top-level frame of that name on the current page, else a new one at a free spot
   let frame: FrameNode;
+  let base = p.frame.name;  // the frame's name without a stage — changes when the name is taken by someone else's drawing
+  let frameNote: string | undefined;
   if (p.parentId) {
     const n = await getSceneNode(p.parentId);
     if (n.type !== 'FRAME') throw new Error(`parentId ${p.parentId} là ${n.type}, cần FRAME`);
     frame = n;
   } else {
-    // the frame may already carry a stage ("Hotdog · vector · 1 thô") — still the same frame
-    const found = figma.currentPage.children.find((c) => c.type === 'FRAME' && (c.name === p.frame.name || (p.stage !== undefined && isStageOf(c.name, p.frame.name)))) as FrameNode | undefined;
-    if (found) frame = found;
+    // the frame may already carry a stage ("Hotdog · vector · 1 thô") — still the same frame. A same-named frame is reused only
+    // when it is ours: still at a stage, empty, or holding nothing but this scene's groups and "Draft". Otherwise it is an older
+    // drawing (a test once drew straight into a finished "Coin · vector" left in the file) → a new frame "<name> 2", "<name> 3"…
+    const known = new Set([...(p.known ?? p.groups.map((g) => g.name.split('/')[0].trim())), 'Draft']);
+    const ours = (f: FrameNode) => f.name !== base || f.children.every((c) => known.has(c.name));
+    const frames = figma.currentPage.children.filter((c): c is FrameNode => c.type === 'FRAME');
+    const found = frames.find((c) => (c.name === base || (p.stage !== undefined && isStageOf(c.name, base))));
+    if (found && !ours(found)) {
+      let k = 2;
+      while (frames.some((c) => isStageOf(c.name, `${p.frame.name} ${k}`))) k++;
+      frameNote = `frame "${base}" đã có bản vẽ khác (${found.id}) — dựng vào frame mới "${p.frame.name} ${k}"`;
+      base = `${p.frame.name} ${k}`;
+    }
+    if (found && ours(found)) frame = found;
     else {
       frame = figma.createFrame();
-      frame.name = p.frame.name;
+      frame.name = base;
       frame.fills = [];
       frame.clipsContent = false;
       frame.resize(Math.max(1, p.frame.width), Math.max(1, p.frame.height));
@@ -59,7 +80,7 @@ export async function buildVectors(p: BuildVectorsParams) {
       frame.y = spot.y;
     }
   }
-  if (p.stage !== undefined) frame.name = stageFrameName(p.frame.name, p.stage);
+  if (p.stage !== undefined) frame.name = stageFrameName(p.parentId ? baseOfFrame(frame.name, p.frame.name) : base, p.stage);
   // the holder of a nested group = the group named by the path before the last "/" (searched from the frame down)
   const holderOf = (path: string[]): GroupNode | null => {
     let at: Holder = frame;
@@ -142,14 +163,34 @@ export async function buildVectors(p: BuildVectorsParams) {
       parts.push({ name: part.name, id: v.id, anchors: v.vectorNetwork.vertices.length, ...(note ? { note } : {}) });
     }
     if (!nodes.length) continue;
-    if (old && old.type === 'GROUP') for (const c of [...old.children]) if (c.type === 'GROUP') nodes.push(c);
+    // sub-groups of the replaced group move into the new one and keep their place in the stack: each goes right above the layer
+    // that sat under it before (matched by name). figma.group alone stacks them by their old position — below every new part,
+    // which hid "Medallion/Bunny" behind the disc it sits on.
+    const subs: { node: SceneNode; below: string | null }[] = [];
+    if (old && old.type === 'GROUP') {
+      const kids = [...old.children];
+      // a sub-group holding a layer this call rebuilds (a mask group made by hand: "Rim glass" around "Floor glass") is not
+      // carried over — it goes with the old group, else the rebuilt part shows twice (coin TON, 16/11)
+      const rebuilt = new Set(g.parts.map((p) => p.name));
+      const holdsRebuilt = (c: GroupNode) => c.findAll((n) => rebuilt.has(n.name)).length > 0;
+      kids.forEach((c, i) => {
+        if (c.type === 'GROUP' && !masks.has(c.name.replace(/ shading$/, '')) && !holdsRebuilt(c))
+          subs.push({ node: c, below: i > 0 ? kids[i - 1].name : null });
+      });
+      for (const s of subs) nodes.push(s.node);
+    }
     const group = figma.group(nodes, holder, Math.min(index, holder.children.length));
     group.name = leaf;
+    for (const s of subs) {
+      const under = s.below === null ? -1 : group.children.findIndex((c) => c !== s.node && c.name === s.below);
+      group.insertChild(s.below === null ? 0 : under >= 0 ? under + 1 : group.children.length, s.node);
+    }
     if (old && !old.removed) old.remove();
     if (wrapIn) { const outer = figma.group([group], frame, frame.children.indexOf(group)); outer.name = wrapIn; }
     built.push({ group: g.name, id: group.id, replaced: !!old, parts });
   }
   return {
+    ...(frameNote ? { note: frameNote } : {}),
     frameId: frame.id,
     frame: { name: frame.name, x: Math.round(frame.x), y: Math.round(frame.y), width: frame.width, height: frame.height },
     groups: built,

@@ -26,7 +26,7 @@ describe('ui.html markup', () => {
     expect(portsBlock()).not.toBe('');
   });
 
-  it('injects 21 contiguous ports from 3055 to 3075', () => {
+  it('injects 21 contiguous ports from 3155 to 3175', () => {
     const array = portsBlock().match(/\[([^\]]*)\]/);
     expect(array).not.toBeNull();
     const ports = (array![1] ?? '')
@@ -34,16 +34,16 @@ describe('ui.html markup', () => {
       .map((p) => Number(p.trim()))
       .filter((n) => Number.isFinite(n));
     expect(ports).toHaveLength(21);
-    expect(ports[0]).toBe(3055);
-    expect(ports[ports.length - 1]).toBe(3075);
+    expect(ports[0]).toBe(3155);
+    expect(ports[ports.length - 1]).toBe(3175);
     for (const [i, port] of ports.entries()) {
-      expect(port).toBe(3055 + i);
+      expect(port).toBe(3155 + i);
     }
   });
 
   it('never hardcodes a single port in the WebSocket URL', () => {
-    expect(html).not.toContain('ws://localhost:3055');
-    expect(html).not.toContain('localhost:3056');
+    expect(html).not.toContain('ws://localhost:3155');
+    expect(html).not.toContain('localhost:3156');
     // The URL has to be built from the injected PORTS array.
     expect(html).toContain('ws://localhost:');
   });
