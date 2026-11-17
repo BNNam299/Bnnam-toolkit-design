@@ -567,6 +567,13 @@ export type BuildVectorsParams = {
   stage?: string;
 };
 
+// figma-vector-motion: read a finished vector frame as data (outlines in frame px, paints, masks, names) into a JSON file
+export const ExportRigInput = z.object({
+  nodeId: NodeId.describe('The vector frame (or group) to read'),
+  path: z.string().describe('Absolute path of the rig JSON to write (written by the server — coordinates never pass through the agent)'),
+});
+export type ExportRigInput = z.infer<typeof ExportRigInput>;
+
 export const ExportAssetsInput = z.object({
   ids: z.array(NodeId).min(1),
   format: z.enum(['PNG', 'JPG', 'SVG', 'PDF']).default('PNG'),

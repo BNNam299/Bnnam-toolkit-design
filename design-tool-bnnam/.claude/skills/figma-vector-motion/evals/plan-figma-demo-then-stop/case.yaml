@@ -1,0 +1,9 @@
+schema_version: "1.1"
+name: plan-figma-demo-then-stop
+expected_outcome: |
+  A beat sheet (time, part, action, value, ease, reason — naming the pattern, principles and tables) becomes a motion.json with the
+  bell swinging from its top and the clapper lagging from its own top, play-once, starting and ending at rest; the plan is built and
+  checked once with lottie-build + lottie-check; a ready figma-apply-motion.js (FRAME_ID 12550:9346, the plan, REPLACE_ALL true) is
+  prepared; and the run stops for the designer to watch and approve the demo in Figma instead of delivering a final Lottie.
+context:
+  scaffold_script: place-files.sh

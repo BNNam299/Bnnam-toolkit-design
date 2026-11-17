@@ -31,6 +31,7 @@ Let `SKILL_DIR` be the directory containing this file.
 | Background component for the widget / screen | `../screen-background/SKILL.md` |
 | Empty-state and onboarding screens the art sits in | `../mobile-ux-fundamentals/SKILL.md` · layout: `../mobile-ui-master/SKILL.md` |
 | `execute_code`, `screenshot`, `render_tree` | `../figma-agent-tools/SKILL.md` |
+| Animating the finished art (Lottie / Rive) | `../figma-vector-motion/SKILL.md` |
 | `_Fix AI` copies, own section, designer edits win | `../bnnam-standards/SKILL.md` |
 
 ## When to use

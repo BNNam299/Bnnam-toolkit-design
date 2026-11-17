@@ -506,6 +506,23 @@ tool('build_vectors', {
   },
 });
 
+tool('export_rig', {
+  description: `figma-vector-motion only: read a finished vector frame as data for the motion scripts — every group and shape in paint order with name, opacity, blend, outlines in the frame's px (rectangles, ellipses, booleans and text arrive as paths), solid / linear / radial fills with handles in frame px, strokes outlined (plus a vector's centre line for draw-on), mask shapes, and Figma Motion keyframes (manual tracks as stored + each animated part's transform origin in frame px, the frame's timeline length) for figma-motion.cjs. The server writes the JSON to path (absolute) and returns counts, the group tree (names), the animated parts, motionApi (ok | unavailable) and warnings (effects, images, blend modes, elliptical gradients, clipping frames, animation styles). Read-only.`,
+  input: S.ExportRigInput,
+  readOnly: true,
+  timeoutMs: () => 120000,
+  format: (result, args) => {
+    if (!isAbsolute(args.path)) throw new Error('path phải là đường dẫn tuyệt đối');
+    mkdirSync(dirname(args.path), { recursive: true });
+    writeFileSync(args.path, JSON.stringify(result));
+    const r = result as { frame: { name: string; width: number; height: number }; counts: object; motionApi: string; warnings: string[]; children: { name: string; kind: string; children?: unknown[] }[] };
+    type N = { name: string; kind: string; children?: N[]; motion?: { tracks: object } };
+    const moving = (ns: N[], pre: string): string[] => ns.flatMap((n) => [...(n.motion ? [`${pre}${n.name}: ${Object.keys(n.motion.tracks).join(', ')}`] : []), ...moving(n.children ?? [], `${pre}${n.name}/`)]);
+    const tree = (ns: N[], d: number): string[] => ns.flatMap((n) => n.kind === 'group' ? [`${'  '.repeat(d)}${n.name}/`, ...(d < 2 ? tree(n.children ?? [], d + 1) : [])] : d < 1 ? [`${'  '.repeat(d)}${n.name}${n.kind === 'mask' ? ' (mask)' : ''}`] : []);
+    return [text({ written: args.path, frame: r.frame, counts: r.counts, groups: tree(r.children as N[], 0), animated: moving(r.children as N[], ''), motionApi: r.motionApi, warnings: r.warnings })];
+  },
+});
+
 tool('execute_code', {
   description: `Run JavaScript against the Figma Plugin API for anything the other tools do not cover (components/variants, variables and modes, styles, prototyping, constraints, boolean ops, vector edits, bulk edits...).
 The code is the body of an async function with globals \`figma\` and \`h\`; use top-level await and \`return\` a JSON-friendly value (nodes are summarized automatically). console.log output is not returned.

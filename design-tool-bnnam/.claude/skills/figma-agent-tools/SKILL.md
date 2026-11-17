@@ -44,6 +44,7 @@ This skill is about **mechanics**: which tool, which parameters, what comes back
 | Handoff | `annotate`, `set_dev_status`, `export_tokens`, `export_assets` |
 | Show the user | `select_nodes{ids, zoom}` |
 | Copy art into vectors (figma-vector-illustration only) | `build_vectors{path, groups}` — builds named vector groups from a scene file its `scripts/vectorize.cjs` wrote |
+| Read a vector frame as data for animation (figma-vector-motion only) | `export_rig{nodeId, path}` — writes outlines in frame px, paints, masks, names and Figma Motion keys (per part, with its transform origin; the timeline length) to a JSON file; returns the group tree, the animated parts, `motionApi` (ok / unavailable) and warnings. Read-only. Writing Motion keys: the motion skill's `figma-apply-motion.js` through `execute_code` |
 | Anything else in the Plugin API | `execute_code` (last resort) |
 | Generated images | `gemini-image-mcp`: `bridge_status` → `image_generate{prompt, savePath, aspectRatio}` → local path into `image.src` / `fill.image` |
 

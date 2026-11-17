@@ -384,7 +384,8 @@ attachments → details.
   colour covers each joint so a rotation never shows a gap.
 - A shape that morphs between poses keeps the **same anchor count** in every pose (`references/anchor-economy.md` §6).
 - Avoid effects Lottie players render unevenly (layer blur, background blur, some blend modes) — note them for the Lottie step.
-- Hand-off to the Lottie work: the list of moving parts, pivots, and what each one does.
+- Hand-off to the motion work (`../../figma-vector-motion/SKILL.md` — Lottie or Rive): the list of moving parts, pivots, and what
+  each one does. That skill reads the frame with `export_rig`; the frame as drawn is its rest pose.
 
 ## 6. Icons as a family
 - One **accent colour** drives the icon's tones (fill, darker outline, shadow, highlight derived from it), so recolouring is one change.

@@ -47,6 +47,7 @@ Do not read everything at once. Each stage below states which file it needs.
 | Android, Material 3, iOS vs Android decisions | `material-design-3` |
 | Android home screen widgets (grid cells, canonical layouts, quality tiers) | `android-design-widget` |
 | Vector illustration drawn in Figma (widget scene, empty state, onboarding art): shading, masks, grouping · lean paths and anchor count for any vector, icons included | `figma-vector-illustration` |
+| Animating finished vector art — format asked first; Lottie for clips / loops (demo approved in Figma Motion, then converted), Rive for bending shapes, states and touch; beat sheet, playback check, developer hand-off | `figma-vector-motion` |
 | Websites (marketing site or web product) | `web-design` |
 | Store approval of paywalls, subscriptions, ads, permissions, privacy | `app-store-policies` |
 | Color-blend screen background (`Background/<name>`) | `screen-background` |

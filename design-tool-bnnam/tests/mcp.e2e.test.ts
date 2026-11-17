@@ -124,6 +124,7 @@ describe('MCP server', () => {
         'delete_nodes',
         'execute_code',
         'export_assets',
+        'export_rig',
         'export_tokens',
         'figma_doctor',
         'figma_status',

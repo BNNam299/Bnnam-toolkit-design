@@ -1,0 +1,9 @@
+schema_version: "1.1"
+name: leaf-curl-goes-to-rive
+expected_outcome: |
+  The response recognises that curling the leaf bends its outline and that the motion answers a tap, so it recommends Rive (bones
+  on the path, a state machine / view model for the tap) instead of the Figma demo → Lottie route, explains why in plain Vietnamese,
+  asks the designer to confirm (offering what a Lottie could do instead — a rigid pop / tilt), and fakes no curl with scale or
+  rotation keys.
+context:
+  scaffold_script: place-files.sh

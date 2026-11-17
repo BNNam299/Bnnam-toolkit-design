@@ -27,6 +27,7 @@ import {
 } from './commands/read';
 import { renderTree } from './commands/render';
 import { buildVectors } from './commands/vectors';
+import { exportRig } from './commands/rig';
 import { cloneNode, deleteNodes, moveNodes, selectNodes, updateNodes } from './commands/write';
 import { errorMessage, RolledBackError } from './util';
 
@@ -69,6 +70,7 @@ const commands: Record<string, Command> = {
   set_dev_status: { mutates: true, run: setDevStatus },
   export_assets: { mutates: false, run: exportAssets },
   build_vectors: { mutates: true, run: buildVectors },
+  export_rig: { mutates: false, run: exportRig },
 };
 
 // The panel is deliberately small: it lives in Figma's side panel, so it

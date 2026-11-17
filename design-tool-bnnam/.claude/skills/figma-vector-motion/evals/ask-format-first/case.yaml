@@ -1,0 +1,8 @@
+schema_version: "1.1"
+name: ask-format-first
+expected_outcome: |
+  Before making anything the response asks which output format the designer wants — Lottie .json, dotLottie .lottie, Rive .riv or
+  both — with a recommendation and its reason, plus at most three other short questions (where it plays, once or loop, which parts),
+  in Vietnamese, and writes no animation file yet.
+context:
+  scaffold_script: place-files.sh

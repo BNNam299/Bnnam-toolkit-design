@@ -1,0 +1,9 @@
+schema_version: "1.1"
+name: convert-approved-figma-bell
+expected_outcome: |
+  The approved Figma keys in rig.json (Bell and Bell/Clapper rotations, each ending in a spring) are converted with figma-motion.cjs
+  (loop on) — not re-planned — built into a dotLottie (.lottie), played and checked with lottie-check (the missing Figma export
+  for the rest check explained), with handoff.md on loading a .lottie on iOS / Android and a plain Vietnamese report that says how
+  the springs were converted and with what error.
+context:
+  scaffold_script: place-files.sh
