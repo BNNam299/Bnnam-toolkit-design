@@ -1,20 +1,11 @@
 #!/usr/bin/env node
-// Builds the plugin bundle and/or the MCP server, stamping each with the
-// package version and the current git commit so the Figma panel and
-// `figma_status` can tell a new build from a stale one.
-//
-//   node scripts/build.mjs all
-//   node scripts/build.mjs plugin --watch
 import { execSync } from 'node:child_process';
 import { readFileSync, writeFileSync } from 'node:fs';
+import { homedir } from 'node:os';
 import { build, context } from 'esbuild';
 
 const pkg = JSON.parse(readFileSync(new URL('../package.json', import.meta.url), 'utf8'));
 
-// The plugin panel is served straight from disk by Figma (it is not bundled),
-// so the port range it probes has to be injected here. src/shared/protocol.ts
-// stays the single source of truth; scripts/build.mjs reads the two constants
-// and rewrites the marked block in ui.html.
 const protocolSrc = readFileSync(new URL('../src/shared/protocol.ts', import.meta.url), 'utf8');
 const readConst = (name) => {
   const m = protocolSrc.match(new RegExp(`${name}\\s*=\\s*(\\d+)`));
@@ -54,6 +45,16 @@ const define = {
   __PLUGIN_BUILD__: JSON.stringify(buildId),
   __SERVER_VERSION__: JSON.stringify(pkg.version),
   __SERVER_BUILD__: JSON.stringify(buildId),
+  __BRIDGE_TOKEN__: JSON.stringify(
+    process.env.FIGMA_AGENT_TOKEN?.trim() ||
+      (() => {
+        try {
+          return readFileSync(`${homedir()}/.figma-agent/token`, 'utf8').trim();
+        } catch {
+          return '';
+        }
+      })(),
+  ),
 };
 
 const plugin = {
@@ -87,8 +88,6 @@ if (!jobs) {
   process.exit(2);
 }
 
-// The panel HTML is only needed by the plugin bundle, so a server-only build
-// leaves ui.html alone.
 if (target === 'plugin' || target === 'all') {
   const portsChanged = injectPorts();
   if (portsChanged) console.error(`injected port range ${PORTS[0]}-${PORTS[PORTS.length - 1]} into ui.html`);

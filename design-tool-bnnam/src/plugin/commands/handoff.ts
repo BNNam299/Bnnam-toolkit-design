@@ -1,5 +1,3 @@
-// figma-ui-flow Stage 8 — Dev Mode annotations, Ready-for-dev status and
-// asset export (handoff-qa.md §4).
 import type { AnnotateInput, ExportAssetsInput, SetDevStatusInput } from '../../shared/schemas';
 import { getSceneNode } from '../util';
 
@@ -54,7 +52,6 @@ export async function setDevStatus(p: SetDevStatusInput) {
   return { updated: done, failed };
 }
 
-// Bytes go back to the server, which writes the files (the plugin has no disk).
 export async function exportAssets(p: ExportAssetsInput) {
   const files: { id: string; name: string; scale?: number; format: string; base64: string }[] = [];
   for (const id of p.ids) {

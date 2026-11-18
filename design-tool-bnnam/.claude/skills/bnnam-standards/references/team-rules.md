@@ -205,6 +205,10 @@ Never hard-code frame size, token names, type scale, screen list or page names. 
 
 ## 9. Reporting to the designer
 
+Replies, reports and the files in `design/` are in Vietnamese and address the user as **"bạn"** (never "anh", "chị", "em" or
+"quý khách"); the agent refers to itself as "mình" or leaves the subject out. This is how the team's AI speaks to the user — the
+product's own voice toward its end users lives in `design/voice.md`.
+
 ```
 Changed:       N
 Skipped:       N  (already correct)

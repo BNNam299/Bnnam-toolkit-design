@@ -1,6 +1,3 @@
-// figma-ui-flow Stage 2 — variables in one call: collection, modes, values
-// per mode, aliases and scopes. Validation happens in ../../shared/tokens.ts
-// before anything is written.
 import type { CreateVariablesInput } from '../../shared/schemas';
 import { encodeValue, planVariables } from '../../shared/tokens';
 import { RolledBackError } from '../util';
@@ -14,7 +11,6 @@ export async function createVariables(p: CreateVariablesInput) {
   const inCollection = existing.filter((v) => collection && v.variableCollectionId === collection.id);
   const plan = planVariables(p, inCollection.map((v) => v.name), p.onExisting);
 
-  // Aliases may name "variable/path" (any collection) or "Collection/variable/path".
   const collName = new Map(collections.map((c) => [c.id, c.name]));
   const byName = new Map<string, Variable>();
   for (const v of existing) {
@@ -29,14 +25,12 @@ export async function createVariables(p: CreateVariablesInput) {
       }
     }
   }
-  // Nothing has been written yet, so a corrected retry is safe.
   if (plan.problems.length) throw new RolledBackError(plan.problems.join('\n'));
 
   if (!collection) collection = figma.variables.createVariableCollection(plan.collection);
 
   const warnings: string[] = [...plan.warnings];
   const modeIds: Record<string, string> = {};
-  // A collection created earlier keeps its modes; only missing ones are added.
   const fresh = inCollection.length === 0 && collection.modes.length === 1;
   if (fresh && collection.modes[0].name !== plan.modes[0]) collection.renameMode(collection.modes[0].modeId, plan.modes[0]);
   for (const m of collection.modes) modeIds[m.name] = m.modeId;
@@ -49,7 +43,6 @@ export async function createVariables(p: CreateVariablesInput) {
     }
   }
 
-  // Pass 1: create (or reuse) every variable so aliases can point at siblings.
   const own = new Map(inCollection.map((v) => [v.name, v]));
   const created: { id: string; name: string; type: string }[] = [];
   const updated: { id: string; name: string }[] = [];
@@ -68,7 +61,6 @@ export async function createVariables(p: CreateVariablesInput) {
     byName.set(`${collection.name}/${spec.name}`, variable);
   }
 
-  // Pass 2: values (and aliases), then scopes.
   let aliased = 0;
   for (const spec of plan.variables) {
     const variable = byName.get(`${collection.name}/${spec.name}`)!;
@@ -78,7 +70,7 @@ export async function createVariables(p: CreateVariablesInput) {
       const encoded = encodeValue(spec.type, value);
       if (encoded && typeof encoded === 'object' && 'alias' in encoded) {
         const target = byName.get((encoded as { alias: string }).alias);
-        if (!target) continue; // validated above; defensive
+        if (!target) continue;
         variable.setValueForMode(modeId, figma.variables.createVariableAlias(target));
         aliased++;
       } else {

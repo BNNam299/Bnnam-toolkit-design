@@ -23,7 +23,6 @@ afterEach(async () => {
   await Promise.all(closers.splice(0).map((c) => c()));
 });
 
-// A port nothing listens on right now (bind 0, read it, release it).
 function freePort(): Promise<number> {
   const server = createServer();
   return new Promise((resolve) => {
@@ -114,7 +113,6 @@ describe('Hub', () => {
       hub: { pid: process.pid, build: 'test' },
       files: [{ fileName: 'File A', fileKey: 'key-a', pluginVersion: '1.0.0 (test)' }],
     });
-    // The agent works out missing commands from what the hub reports.
     expect(agent.missingCommands(['get_node', 'render_tree'])).toEqual(['render_tree']);
   });
 
@@ -155,7 +153,6 @@ describe('Hub', () => {
 
   it('reports a port held by something that is not a hub, without opening another port', async () => {
     const port = await freePort();
-    // Accepts WebSockets but never welcomes, like a pre-hub figma-agent.
     const wss = new WebSocketServer({ port, host: '127.0.0.1' });
     closers.push(() => new Promise<void>((r) => wss.close(() => r())));
     const b = await startHubBridge(port);

@@ -52,6 +52,38 @@ spot to fill: going from a PRD to a screen list that is **neither missing screen
 Task analysis → Information architecture → Flows → Count screens → State matrix → flows.md → Cross-check
 ```
 
+### 3.1 Start from what the PRD already has
+
+Read the *UX already in the PRD* section of `prd.md` first. Whoever wrote those parts (usually the product side, with the team) already
+made decisions there; a second, independently invented sitemap would drift from them and someone would have to reconcile the two later.
+The design side's job is to **draw and deepen** what exists and **build** what is missing — not to redo it.
+
+| PRD part is… | Do |
+|---|---|
+| **present** | take it as the starting point of the matching step: keep its ids, navigation type, order and step count; then go deeper with the usual steps |
+| **partial** | use what is there; build only the missing piece with the usual step (e.g. tree given, navigation type missing → choose it in §5 and say why) |
+| **absent** (or the section says *none*) | run the step exactly as written below — nothing changes for a PRD without UX |
+
+How each present part feeds the steps:
+
+- **Users, jobs, journey → Step 1.** Goals come from the personas' goals and the jobs ("When … I want … so that …"), not only from FR /
+  UC — that is what keeps flows tied to why people open the app. A persona the PRD marks *proto / assumed* stays marked so.
+- **PRD task analysis → Step 1** as given; add the Action level where it stops at Task.
+- **PRD sitemap → Step 2.** Keep the navigation type and the tree. Screen names follow the naming standard, but every screen keeps the
+  PRD id in its `prd screen` field so the product side can map back.
+- **PRD flows → Step 3–4.** The PRD's overall and per-feature flows are layer 1 (and any branches it drew). Layer 2 (every outcome of
+  every decision point), layer 3 (data states) and overlays are still this skill's work — PRDs almost never go that far.
+- **Value moment + step count** → the main flow must reach it in **≤ that many steps**; more steps is a difference (below).
+- **PRD screen list** → every `SCR-…` ends up as a screen in `flows.md` (or a recorded reason why not).
+- **Onboarding, screens often forgotten** → feed Step 4–5 directly.
+
+**Adding is deepening; changing is a difference.** New branch screens, states and overlays are normal and need no permission. But when
+the design side would **change** a decision the PRD made — another navigation type, merging / splitting / dropping a PRD screen,
+reordering a PRD flow, more steps to the value moment — do not change it silently and do not quietly follow a version you think is
+wrong. Write it under *Differences from the PRD* in `flows.md` (PRD verbatim · proposal · why), and ask. Until the user decides, build
+on the PRD's version. The user decides; when accepted, the PRD itself must be updated by its owner (the product toolkit's `prd.md` when
+it came from there) — `flows.md` says so in the report, it does not edit PRD files.
+
 ## 4. Step 1 — Task analysis: Goal → Task → Action
 
 | Level | What it is | Becomes |
@@ -178,6 +210,8 @@ under `## Screens` — the heading is the full semantic name with its suffix (`.
 - States decided as **later** are written down — never allowed to disappear silently.
 - The main flow reaches value in **≤ the competitors' step count**, if `analysis.md` has that number.
 - Run `trace` (§15): no FR without a screen, no screen without an FR/UC, no empty *entered from* / *leads to* unless there is a reason.
+- PRD had UX parts (§3.1): every PRD screen id appears in a `prd screen` field or has a reason; the PRD's navigation type and flow
+  order are kept or listed under *Differences from the PRD*; nothing in the PRD was changed silently.
 
 **Flows do not spawn new screens during the build.** A later stage finds a missing screen → go back and add it to `flows.md` first,
 then build it.
@@ -242,7 +276,9 @@ The adaptive layout job does not build frames for screens missing this field.
 **Self-check:** §14 *Cross-check before asking for approval*.
 
 **Report** adds: number of flows · screens per layer (main · branch · state · overlay) · number of unverified assumptions · cross-check
-result.
+result · **what was taken from the PRD and what this skill built** (e.g. *sitemap and 3 main flows from PRD §11; navigation type,
+branches, states, overlays built here*) or *PRD had no UX parts — all built here* · open *Differences from the PRD*, each with the
+PRD file to update if accepted.
 
 ```
 Next steps

@@ -1,6 +1,3 @@
-// figma-ui-flow Stage 1 — the standard page skeleton and page maintenance.
-// Safety rules (never delete the last page, reject name collisions, unknown
-// refs) live in ../../shared/pageplan.ts and are unit-tested there.
 import type { ManagePagesInput } from '../../shared/schemas';
 import { planPages, type PageRef } from '../../shared/pageplan';
 
@@ -27,7 +24,6 @@ export async function managePages(p: ManagePagesInput) {
     } else if (op.op === 'delete') {
       const page = await figma.getNodeByIdAsync(op.id);
       if (page && page.type === 'PAGE') {
-        // Never leave the file without a current page.
         if (figma.currentPage.id === page.id) {
           const next = figma.root.children.find((x) => x.id !== page.id);
           if (next) await figma.setCurrentPageAsync(next);

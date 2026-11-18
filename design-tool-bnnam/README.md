@@ -4,7 +4,7 @@ Plugin Figma + MCP server giúp AI agent (Claude Code, hoặc bất kỳ MCP cli
 
 ```
 Claude Code ──stdio──► MCP server (dist/server.mjs)
-                          │  WebSocket ws://localhost:3055 (chỉ loopback, có token)
+                          │  WebSocket ws://localhost:3155 (chỉ loopback, có token)
                           ▼
                         ui.html (iframe plugin) ──postMessage──► code.js (figma API)
 ```
@@ -19,7 +19,8 @@ npm run build          # code.js (plugin) + dist/server.mjs (MCP server)
 1. **Figma desktop** → Plugins → Development → *Import plugin from manifest…* → chọn `manifest.json`.
 2. **Claude Code**: mở thư mục này, `.mcp.json` sẽ đăng ký server `figma-agent` (chấp nhận khi được hỏi). Với client khác, chạy `node /đường/dẫn/dist/server.mjs` qua stdio.
 3. Lấy token: `cat ~/.figma-agent/token` (tạo ở lần chạy đầu), hoặc gọi tool `figma_status`.
-4. Trong Figma chạy plugin **figma-agent-UI · Design**, dán token → **Connect**. Token được lưu, lần sau plugin tự kết nối.
+4. Trong Figma chạy plugin **figma-agent-UI · Design**, dán token → **Connect**. Token được lưu, lần sau plugin tự kết nối. Nếu
+   `~/.figma-agent/token` đã có lúc chạy `npm run build` (hoặc đặt `FIGMA_AGENT_TOKEN`), token được gắn sẵn vào plugin → ô token tự điền.
 
 Nhiều agent (Claude Code, Pi, opencode…) dùng chung **một cổng**: server khởi động đầu tiên làm *hub* ở 3055 và giữ kết nối với plugin; các server sau nối vào hub thay vì mở cổng mới, lệnh của chúng đi qua hub. Agent giữ hub thoát thì các agent còn lại tự bầu hub mới và plugin tự kết nối lại. `figma_status` cho biết `role` (`hub`/`agent`) và số `agents`. Xem `PLAN-hub.md`.
 
@@ -55,13 +56,20 @@ Cổng **không còn cố định**. Server dò port trống trong dải 3155–
 
 Mọi tool nhận `page` (id/tên) để chạy trên page đó rồi trả page cũ, nên nhiều agent chạy song song không ghi nhầm page.
 
+**FigJam và Slides** (từ v1.4.0 của tác giả): plugin chạy được trong cả ba loại file. Trong FigJam, `render_tree` dựng `sticky`,
+`shape`, `connector` (mũi tên nối), `code`, `table`; trong Slides dựng `slide`. Tool chỉ dành cho file Design (biến, style,
+component…) tự từ chối khi mở FigJam / Slides. Chữ trong FigJam không nhận `{var}` / `{style}`. Cách thử: `TESTING.md` §J.
+
+**Thư viện team:** `get_design_system` và `search_design_system` đọc được biến, style, component của thư viện đã bật trong file
+(theo key hoặc đang được dùng), không chỉ của file hiện tại.
+
 **Phiên bản:** mỗi lần nâng cấp plugin thì tăng `version` trong `package.json`. `npm run build` gắn version + commit vào cả plugin và server. Bảng plugin hiện `Plugin <version> (<commit>)`, còn `figma_status` báo ⚠️ khi plugin đang mở là bản cũ: đóng và mở lại plugin trong Figma. Server cũng **tự nhận diện lệnh thiếu**: plugin báo danh sách lệnh nó hỗ trợ, nên gọi tool chưa có sẽ ra thông báo *"plugin là bản cũ, thiếu lệnh X"* thay vì "Unknown command".
 
 **Panel plugin (300×300):** panel mặc định nhỏ gọn 300×300. Menu `⋯` gộp mọi thứ: đổi kích thước (S 240×240 · M 300×300 · L 420×560), thu phóng 80–150%, chọn file đích cho agent, developer mode, và chi tiết kết nối (port, user, phiên bản, file key, số lệnh). Nhật ký lệnh ở giữa panel, có lọc / xoá / sao chép / mở rộng JSON. Mọi thành phần nằm trong luồng — không có gì chồng lên nhau.
 
 Bảng tra nhanh skill nào cho việc gì, cách gọi thẳng `/tên-skill` và cách dựng UI nhanh: [HUONG-DAN-SKILL.md](HUONG-DAN-SKILL.md).
 
-Agent có 2 skill chính (Claude Code tự nạp): `.claude/skills/figma-agent-tools/` là sổ tay mọi tool MCP (tham số, kết quả, lỗi, công thức `execute_code`, ảnh gemini); `.claude/skills/figma-ui-flow/` là luồng và kiến thức tạo UI: 11 luật, 8 giai đoạn có gate, và vòng dựng màn từ ngoài vào trong theo 3 lượt (`references/build-loop.md`: bố cục với block giữ chỗ có kích thước → lấp đầy bằng component và nội dung → chốt bằng audit/stress; kiểm tra số liệu sau mỗi lần ghi, chụp màn hình một lần mỗi lượt; 3 chế độ Phác nhanh / Theo mẫu / Dựng mới; đạt Definition of Done mới sang màn khác). Các skill khác trong `.claude/skills/` (chuẩn team `bnnam-standards`, PRD → luồng màn, dự án Figma có sẵn, hệ thống thiết kế, UX/UI mobile, chữ trong màn, HIG / Material 3 / web, iPhone Duo, chính sách store, nền, ảnh, prototype, review và handoff) được `figma-ui-flow` gọi tới ở bảng *Knowledge and steps in other skills* và tại từng giai đoạn. Ví dụ DSL: `examples/fintech-wallet.json` (dán vào ô *Test render_tree locally* trong plugin để thử không cần agent).
+Agent có 2 skill chính (Claude Code tự nạp): `.claude/skills/figma-agent-tools/` là sổ tay mọi tool MCP (tham số, kết quả, lỗi, công thức `execute_code`, gắn ảnh từ file); `.claude/skills/figma-ui-flow/` là luồng và kiến thức tạo UI: 11 luật, 8 giai đoạn có gate, và vòng dựng màn từ ngoài vào trong theo 3 lượt (`references/build-loop.md`: bố cục với block giữ chỗ có kích thước → lấp đầy bằng component và nội dung → chốt bằng audit/stress; kiểm tra số liệu sau mỗi lần ghi, chụp màn hình một lần mỗi lượt; 3 chế độ Phác nhanh / Theo mẫu / Dựng mới; đạt Definition of Done mới sang màn khác). Các skill khác trong `.claude/skills/` (chuẩn team `bnnam-standards`, PRD → luồng màn, dự án Figma có sẵn, hệ thống thiết kế, UX/UI mobile, chữ trong màn, HIG / Material 3 / web, iPhone Duo, chính sách store, nền, ảnh, prototype, review và handoff) được `figma-ui-flow` gọi tới ở bảng *Knowledge and steps in other skills* và tại từng giai đoạn. Ví dụ DSL: `examples/fintech-wallet.json` (dán vào ô *Test render_tree locally* trong plugin để thử không cần agent).
 
 ## Phát triển
 

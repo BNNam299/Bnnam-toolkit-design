@@ -1,6 +1,3 @@
-// Finds icon slots under the written nodes and measures where the glyph
-// really is (render bounds = painted ink, strokes included). The verdict and
-// its hint live in ../shared/icons.ts.
 import { iconProblem, isSlotSize, type Box, type SlotInfo } from '../shared/icons';
 
 const VECTORISH = new Set<string>(['VECTOR', 'BOOLEAN_OPERATION', 'ELLIPSE', 'LINE', 'RECTANGLE', 'STAR', 'POLYGON']);
@@ -25,9 +22,6 @@ function union(boxes: Box[]): Box | null {
   return { x: x0, y: y0, w: x1 - x0, h: y1 - y0 };
 }
 
-// The single icon of a slot: an SVG frame / icon instance / group made only
-// of vectors, or a one- or two-character text glyph. Anything else (a label,
-// a swatch, an avatar) is not an icon slot.
 function iconOf(slot: FrameNode | ComponentNode): { icon: Box; glyph: Box } | null {
   const kids = slot.children.filter((c) => c.visible);
   if (kids.length !== 1) return null;
@@ -47,7 +41,6 @@ function iconOf(slot: FrameNode | ComponentNode): { icon: Box; glyph: Box } | nu
   return glyph && icon ? { icon, glyph } : null;
 }
 
-/** Icon slots under `roots` (roots included) whose glyph is off-centre. */
 export function offCentreIcons(roots: readonly BaseNode[]): IconIssue[] {
   const issues: IconIssue[] = [];
   const seen = new Set<string>();
@@ -55,7 +48,6 @@ export function offCentreIcons(roots: readonly BaseNode[]): IconIssue[] {
   const visit = (n: BaseNode) => {
     if (budget-- <= 0 || seen.has(n.id) || !('visible' in n) || !n.visible) return;
     seen.add(n.id);
-    // Instances repeat their main component: report the component once.
     if (n.type === 'INSTANCE') return;
     if (SLOT.has(n.type)) {
       const slot = n as FrameNode | ComponentNode;
@@ -83,7 +75,6 @@ export function offCentreIcons(roots: readonly BaseNode[]): IconIssue[] {
   return issues;
 }
 
-/** One line per issue, for a write tool's `warnings`. */
 export function iconWarnings(roots: readonly BaseNode[]): string[] {
   return offCentreIcons(roots).map((i) => `icon-offcenter "${i.name}" (${i.id}): ${i.detail}`);
 }

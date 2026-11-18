@@ -7,6 +7,7 @@
 4. Sizing rules (the source of most failures)
 5. Building in passes
 6. update_nodes
+7. FigJam and Slides
 
 ---
 
@@ -119,3 +120,39 @@ The build loop in figma-ui-flow locks the layout first, then fills it:
 ```
 
 `props` accepts every render_tree key that makes sense on an existing node, plus on instances `variant`, `properties` (by name; `#id` suffix optional), `texts` (by text layer name) and `component` (swap). Text inside an instance: id `I1006:42;1006:41`. Failures come back per item in `failed`; the rest landed.
+
+## 7. FigJam and Slides
+
+The plugin runs in FigJam boards and Slides decks too (manifest `editorType`: figma, figjam, slides). On a board or deck the
+Design-only tools refuse with *"… is Design-only"* and change nothing: `set_interactions`, `annotate`, `set_dev_status`,
+`bind_variables`, `create_variables`, `create_styles`, `import_tokens`, `export_tokens`, `render_foundations`,
+`create_component_set`, `stress_test`, `get_design_system`, `search_design_system`. With a Design file and a board open at once,
+pass `file`.
+
+FigJam node types in `render_tree` (plus `section`, `frame`, `text` as usual):
+
+```jsonc
+{ "type": "section", "name": "Onboarding", "children": [
+  { "type": "shape", "name": "step-1", "shape": "ROUNDED_RECTANGLE", "text": "Splash", "x": 0, "y": 0 },
+  { "type": "shape", "name": "step-2", "shape": "DIAMOND", "text": "Signed in?", "x": 320, "y": 0 },
+  { "type": "connector", "from": "Onboarding/step-1", "to": "Onboarding/step-2",
+    "lineType": "ELBOWED", "caps": { "end": "ARROW_EQUILATERAL" }, "text": "auto" },
+  { "type": "sticky", "text": "Ask: skip allowed?", "color": "#FFE066", "isWide": false },
+  { "type": "table", "rows": 2, "columns": 3, "cells": [["Screen","FR","State"],["Splash","FR-01","default"]] },
+  { "type": "code", "code": "{ \"plan\": \"annual\" }", "language": "JSON" }
+] }
+```
+
+- `connector.from` / `to`: a node id, or an ids-map key (`"Root/Child"`) from the **same** call — connectors are wired after
+  everything else exists. A missing end fails the whole call and leaves the board clean.
+- Caps: `NONE | ARROW_EQUILATERAL | ARROW_LINES | TRIANGLE_FILLED | DIAMOND_FILLED | CIRCLE_FILLED` — there is no `ARROW`.
+- `shape` outlines: SQUARE, ELLIPSE, ROUNDED_RECTANGLE, DIAMOND (decision), PARALLELOGRAM_*, DOCUMENT_*, CHEVRON, HEXAGON… (full
+  list in `src/shared/schemas.ts` › `FigjamShape`). Never pass `radius` to a shape — its corner radius is read-only.
+- FigJam text lives on a sublayer: change it with `text` (or `cells` for a table) in `update_nodes`; `{var}` / `{style}` are
+  rejected; sticky colours snap to FigJam's palette.
+- `table.cells` is row-major and must be exactly rows × columns. `get_node` on a big table (> 400 cells) returns `cellsTruncated`.
+
+Slides: `{ "type": "slide", "name": "Problem", "row": 0, "col": 1, "transition": { "style": "DISSOLVE", "duration": 0.3 },
+"skipped": false }` adds a slide to the deck grid (default: appended); put frames / text inside as children.
+
+Manual check list for both: `TESTING.md` §J at the toolkit root.

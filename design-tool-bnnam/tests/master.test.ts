@@ -1,5 +1,3 @@
-// Pure logic behind the figma-ui-flow tools: search, colour matching,
-// component sets, motion, renaming, grids, foundations and audit additions.
 import { describe, expect, it } from 'vitest';
 import { LOREM, worstContrast } from '../src/shared/audit';
 import { deltaE, exactNumber, nearestColor, scopeAllows } from '../src/shared/color';

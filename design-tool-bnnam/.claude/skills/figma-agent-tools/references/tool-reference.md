@@ -10,7 +10,7 @@ Source of truth: tool descriptions in `src/server/index.ts` and input schemas in
 5. Verify and fix
 6. Prototype and handoff
 7. Escape hatch
-8. gemini-image-mcp (images)
+8. Images from files
 
 ---
 
@@ -85,9 +85,13 @@ Source of truth: tool descriptions in `src/server/index.ts` and input schemas in
 
 `execute_code{code, timeoutMs 30000}` — see SKILL.md §6 and `plugin-api-recipes.md`. Use it only when no tool above fits (constraints, boolean ops, vector edits, unusual bulk edits).
 
-## 8. gemini-image-mcp (images for heroes, illustrations, backgrounds)
+## 8. Images from files
 
-1. `bridge_status` → `workerCount ≥ 1`. Zero workers: ask the user to open/reload the studio tab (`pageUrl`); `image_generate` can also auto-open it.
-2. `image_generate{prompt, aspectRatio "1:1"|"4:3"|"3:4"|"16:9"|"9:16", savePath: "<project>/generated-images/<screen>-<role>.png"}`. Put **"no text, no letters, no UI"** in the prompt and name the palette with hex values from the design. Two workers → two images run in parallel; send independent prompts in one turn.
-3. `Read` the file to look at it before using it.
-4. Use the absolute path: `{type: "image", src: "/abs/path.png", scaleMode: "FILL"}` or `fill: {image: "/abs/path.png"}` / an array `[{image}, {gradient…}]` for a readability overlay. The file may be JPEG despite the `.png` name — Figma accepts it.
+This toolkit has no image generator. Generated art (heroes, illustrations, backgrounds) comes from the designer's own image tool:
+write the prompt with `generating-oneshot-image-prompts` (or `app-asset-generator` for a cut-out asset), the designer generates it and
+hands over the file. Then:
+
+1. `Read` the file to look at it before using it.
+2. Use the absolute path: `{type: "image", src: "/abs/path.png", scaleMode: "FILL"}` or `fill: {image: "/abs/path.png"}` / an array
+   `[{image}, {gradient…}]` for a readability overlay. JPEG works too.
+3. Until the file exists, keep the sized empty placeholder (`bnnam-standards` rule 7) — never block the build waiting for art.

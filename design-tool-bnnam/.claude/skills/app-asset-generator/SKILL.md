@@ -1,11 +1,12 @@
 ---
 name: app-asset-generator
-description: Generate ONE image asset (icon, mascot, sticker, illustration, object) with the Gemini image MCP on a chromakey background and cut it out into a clean transparent PNG for design work in Figma, with no purple/green fringe. Use whenever the user needs an app/design asset with a transparent background, or wants the background removed from a chromakey image. For vector illustrations drawn in Figma use figma-vector-illustration.
+description: Prepare ONE image asset (icon, mascot, sticker, illustration, object) - write the chromakey prompt for the designer's own image tool, then cut the generated image out into a clean transparent PNG for design work in Figma, with no purple/green fringe. Use whenever the user needs an app/design asset with a transparent background, or wants the background removed from a chromakey image. For vector illustrations drawn in Figma use figma-vector-illustration.
 ---
 
 # App Asset Generator
 
-One request → **one generated image → one cut-out PNG** ready for Figma.
+One request → **one prompt → the designer generates one image → one cut-out PNG** ready for Figma. This toolkit has no image
+generator of its own: the image comes from whatever tool the designer uses.
 
 ## Why the usual approach leaves a purple/green ring
 Image models cannot output transparent pixels, so the asset is generated on a flat key color and the
@@ -41,14 +42,10 @@ Crisp clean edges.
 ```
 Never write "transparent background" — the model paints a fake checkerboard.
 
-## Step 4 — Generate (gemini-image-mcp)
-Call `image_generate` once:
-- `prompt`: the filled template
-- `aspectRatio`: `"1:1"` (or the asset's shape: `3:4`, `4:3`, `9:16`, `16:9`)
-- `outputDir`: e.g. `assets/raw` — **don't** use `savePath` with a `.png` name: the service may return JPEG
-- `refImagePath`: an approved asset, when this one must match an existing style/character
-
-Use the `filePath` returned by the tool as the input for Step 5.
+## Step 4 — The designer generates
+Give the designer the filled prompt, the aspect ratio (`1:1`, or the asset's shape) and — when the asset must match an existing
+style / character — which approved asset to attach as reference. Stop and wait for the file (e.g. saved to `assets/raw/`); JPEG is
+fine. The file they hand over is the input for Step 5.
 
 ## Step 5 — Remove the background
 ```bash
@@ -70,9 +67,9 @@ unless Step 6 tells you to. It writes:
 | Problem | Fix |
 |---|---|
 | fringe on the edge ring | rerun with the suggested `--edge N` |
-| key color left inside the subject | regenerate with the other key color |
-| subject touches the border | regenerate with more margin |
-| background not a saturated key color | regenerate; the model ignored the background rule |
+| key color left inside the subject | ask for a new image with the other key color |
+| subject touches the border | ask for a new image with more margin |
+| background not a saturated key color | ask for a new image; the model ignored the background rule |
 | `halo` warning | fine if the design has a thin dark/light outline; otherwise check the zoom |
 
 Still failing after one retry → stop and show the user the preview with the problem; don't loop.

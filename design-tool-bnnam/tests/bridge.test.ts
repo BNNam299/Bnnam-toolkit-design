@@ -28,7 +28,6 @@ async function startBridge(opts: Partial<{ port: number; portRange: number; host
   return bridge;
 }
 
-// Fake plugin: answers requests with the given handler.
 function fakePlugin(
   b: Bridge,
   handler: (cmd: string, params: unknown) => unknown,
@@ -40,7 +39,6 @@ function fakePlugin(
   sockets.push(ws);
   ws.on('message', async (data) => {
     const msg = JSON.parse(String(data));
-    // The bridge also pushes "notice" messages; they are not command replies.
     if (msg.type !== 'request') return;
     try {
       const result = await handler(msg.command, msg.params);
@@ -58,7 +56,6 @@ function fakePlugin(
   });
 }
 
-// Occupies a port so the bridge has to move to the next one.
 function occupyPort(): Promise<{ port: number; close: () => Promise<void> }> {
   const server = createServer();
   return new Promise((resolve) => {
@@ -172,6 +169,22 @@ describe('Bridge', () => {
     await fakePlugin(b, () => 'B', 'secret', 'file2', { preferredFileKey: 'file2' });
     await expect(b.request('x', {})).resolves.toBe('B');
     expect(b.status().preferredFile).toBe('file2');
+  });
+
+  it('tells two same-named drafts apart by instanceId', async () => {
+    const b = await startBridge();
+    await fakePlugin(b, () => 'A', 'secret', 'Untitled', { fileKey: null, instanceId: 'aaa' });
+    await fakePlugin(b, () => 'B', 'secret', 'Untitled', { fileKey: null, instanceId: 'bbb' });
+    await expect(b.request('x', {}, { file: 'bbb' })).resolves.toBe('B');
+    await expect(b.request('x', {}, { file: 'aaa' })).resolves.toBe('A');
+  });
+
+  it('routes to the draft pinned by instanceId', async () => {
+    const b = await startBridge();
+    await fakePlugin(b, () => 'A', 'secret', 'Untitled', { fileKey: null, instanceId: 'aaa' });
+    await fakePlugin(b, () => 'B', 'secret', 'Untitled', { fileKey: null, instanceId: 'bbb', preferredFileKey: 'bbb' });
+    await expect(b.request('x', {})).resolves.toBe('B');
+    expect(b.status().preferredFile).toBe('bbb');
   });
 
   it('tells an old plugin which commands it misses', async () => {

@@ -1,10 +1,5 @@
-// Error raised by a write command after it restored the canvas (e.g. removed a
-// half-built tree), so the caller may retry without re-reading the canvas.
 export class RolledBackError extends Error {}
 
-// figma.getNodeByIdAsync throws (e.g. "unsupported type in createVMObject:
-// VARIABLE_SET") when the id names an internal object instead of a layer —
-// typically an id copied from another file, since ids are per file.
 export async function findNode(id: string): Promise<BaseNode | null> {
   try {
     return await figma.getNodeByIdAsync(id);
@@ -37,8 +32,6 @@ export function isAutoLayout(node: BaseNode | null): node is FrameNode | Compone
   return !!node && 'layoutMode' in node && node.layoutMode !== 'NONE';
 }
 
-// Right of everything already on the page, top-aligned with it; never (0,0)
-// on a non-empty page.
 export function freeSpot(siblings: readonly SceneNode[], gap = 120): { x: number; y: number } {
   let maxX = -Infinity;
   let minY = Infinity;

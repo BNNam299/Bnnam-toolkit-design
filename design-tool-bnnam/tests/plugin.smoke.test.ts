@@ -1,6 +1,3 @@
-// Loads the built code.js in a VM with a minimal fake `figma` global to check
-// the bundle evaluates and the dispatcher answers requests. Real rendering is
-// verified manually in Figma (see TESTING.md).
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import vm from 'node:vm';
@@ -30,7 +27,7 @@ function loadPlugin() {
   const figma = {
     mixed: Symbol('mixed'),
     fileKey: undefined,
-    root: { name: 'Smoke file', children: [page] },
+    root: { name: 'Smoke file', children: [page], getPluginData: () => '', setPluginData: () => {} },
     currentPage: page,
     currentUser: { name: 'Tester' },
     showUI: () => {},
@@ -63,6 +60,7 @@ describe('plugin bundle', () => {
       type: 'init',
       info: { fileName: 'Smoke file', user: 'Tester', currentPage: { name: 'Page 1' } },
       settings: { token: 't' },
+      defaultToken: expect.any(String),
     });
   });
 

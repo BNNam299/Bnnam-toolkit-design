@@ -1,11 +1,3 @@
-// WebSocket server the plugin UI connects to. Tracks one connection per open
-// Figma file and correlates requests with responses by id.
-//
-// Hub mode (the default for the MCP server): only the first server on the
-// machine binds the port and becomes the hub. Every other server joins the hub
-// as an agent and sends its commands through it, so one plugin connection
-// serves every agent and no extra ports are opened. When the hub exits, the
-// agents elect a new one: whoever binds the port first.
 import { randomUUID } from 'node:crypto';
 import { createServer, type IncomingMessage, type Server } from 'node:http';
 import { WebSocket, WebSocketServer } from 'ws';
@@ -52,21 +44,11 @@ export interface BridgeOptions {
   host?: string;
   token: string;
   log?: (msg: string) => void;
-  /** How many consecutive ports to try when the first ones are busy. */
   portRange?: number;
-  /** Commands this server can send to the plugin (used in the "old plugin" error). */
   supportedCommands?: () => string[];
-  /**
-   * Share one port between every server on the machine: the first one hosts,
-   * the others join it as agents. Without it each server takes the next free
-   * port in the range (the pre-hub behaviour).
-   */
   hub?: boolean;
-  /** Build stamp reported to agents and shown in their status. */
   build?: string;
-  /** Called whenever this process starts listening (also after a failover). */
   onListening?: (port: number) => void;
-  /** How long a joining agent waits for the hub's welcome. */
   joinTimeoutMs?: number;
 }
 
@@ -89,11 +71,9 @@ export class Bridge {
   private actualPort: number | null = null;
   listenError: string | null = null;
 
-  // Hub side: agents that joined (welcomed = sent a valid agent-hello).
   private agents = new Map<WebSocket, { welcomed: boolean }>();
   private stateSignature = '';
 
-  // Agent side: the connection to the hub and what the hub last reported.
   private upstream: WebSocket | null = null;
   private hubState: HubState | null = null;
   private upstreamPending = new Map<string, UpstreamPending>();
@@ -107,13 +87,9 @@ export class Bridge {
     return this.opts.log ?? (() => {});
   }
 
-  // Ports this bridge may use. A hub only ever uses its one port (that is the
-  // point); without a hub, the requested one and the next ones, so a second
-  // MCP client on the same machine can take the next free port.
   private candidates(): number[] {
     if (this.opts.hub) return [this.opts.port];
     const range = Math.max(1, this.opts.portRange ?? DEFAULT_PORT_RANGE);
-    // port 0 means "any free port" (tests): bind exactly that, never fall back.
     if (this.opts.port === 0) return [0];
     return Array.from({ length: range }, (_, i) => this.opts.port + i);
   }
@@ -126,8 +102,6 @@ export class Bridge {
     if (await this.listen()) this.role = 'hub';
   }
 
-  // Hub election: bind the port, or join whoever holds it. Runs at start and
-  // again whenever the hub this agent was using goes away.
   private async elect(): Promise<void> {
     if (this.stopped) return;
     this.clearElect();
@@ -150,7 +124,6 @@ export class Bridge {
     }
     this.role = 'none';
     if (joined === 'refused') {
-      // The hub was closing while we tried: bind again shortly.
       this.listenError = `Đang chờ hub figma-agent ở cổng ${port}…`;
       this.scheduleElect(200 + Math.random() * 300);
       return;
@@ -176,8 +149,6 @@ export class Bridge {
     this.electTimer = null;
   }
 
-  // Listens on loopback only. The plugin connects to "localhost", which may
-  // resolve to either IPv4 or IPv6, so both loopback addresses are bound.
   private async listen(): Promise<boolean> {
     const log = this.log;
     const wss = new WebSocketServer({ noServer: true });
@@ -204,7 +175,6 @@ export class Bridge {
           continue;
         }
         if (i === 0) {
-          // The primary host failed → this port cannot be used, try the next one.
           unusable = true;
           tried.push(port);
           log(
@@ -214,8 +184,6 @@ export class Bridge {
           );
           break;
         }
-        // A secondary host failing is fine: no IPv6 loopback on this machine,
-        // or the IPv6 port is taken while IPv4 works. One of the two is enough.
         log(`warning: ${host}:${port} unavailable (${err.message}) — continuing on ${hosts[0]}`);
       }
       if (unusable || servers.length === 0) continue;
@@ -225,7 +193,6 @@ export class Bridge {
     }
 
     if (this.servers.length === 0) {
-      // A hub that cannot bind joins the one that did; elect() reports that.
       if (this.opts.hub) return false;
       const first = candidates[0];
       const last = candidates[candidates.length - 1];
@@ -258,8 +225,6 @@ export class Bridge {
     return true;
   }
 
-  // Joins the hub holding the port. The hub must answer the hello with a
-  // welcome; anything else (an old figma-agent, another program) is not a hub.
   private join(): Promise<JoinResult> {
     const host = this.opts.host ?? '127.0.0.1';
     const url = `ws://${host.includes(':') ? `[${host}]` : host}:${this.opts.port}/?token=${encodeURIComponent(this.opts.token)}&role=agent`;
@@ -335,7 +300,6 @@ export class Bridge {
     if (this.stopped) return;
     this.listenError = `Hub figma-agent đã thoát, đang bầu hub mới ở cổng ${this.opts.port}…`;
     this.log('the hub went away — electing a new one');
-    // Jitter so the agents do not all race for the port at the same instant.
     this.scheduleElect(50 + Math.random() * 250);
   }
 
@@ -392,8 +356,6 @@ export class Bridge {
         return;
       }
       if (msg.type === 'hello' || msg.type === 'event') {
-        // Merge, don't replace: an event must not drop the capability list or
-        // the pinned file the plugin reported in its hello.
         client.info = { ...client.info, ...msg.info };
         this.broadcastFiles();
       } else if (msg.type === 'response') this.onResponse(msg);
@@ -412,9 +374,6 @@ export class Bridge {
     });
   }
 
-  // Hub side: another MCP server joined. It never counts as a Figma file; its
-  // requests run through this hub's own request(), so file picking, pinning
-  // and the old-plugin check behave the same for every agent.
   private onAgent(ws: WebSocket) {
     const agent = { welcomed: false };
     this.agents.set(ws, agent);
@@ -466,6 +425,7 @@ export class Bridge {
       files: this.openClients().map((c) => ({
         fileName: c.info?.fileName ?? null,
         fileKey: c.info?.fileKey ?? null,
+        instanceId: c.info?.instanceId ?? null,
         user: c.info?.user ?? null,
         currentPage: c.info?.currentPage ?? null,
         pluginVersion: c.info?.version ?? null,
@@ -477,8 +437,6 @@ export class Bridge {
     };
   }
 
-  // Tells every agent what the hub sees, only when it actually changed (a
-  // selection event alone changes nothing here).
   private pushState() {
     if (this.agents.size === 0) {
       this.stateSignature = '';
@@ -494,9 +452,6 @@ export class Bridge {
     }
   }
 
-  // Tells every open plugin which files are connected (the panel file picker).
-  // The list is sent only when it actually changes, so a selection event does
-  // not flood every panel with the same list.
   private filesSignature = '';
   private broadcastFiles() {
     this.pushState();
@@ -505,6 +460,7 @@ export class Bridge {
       .map((c) => ({
         fileName: c.info?.fileName ?? 'Unknown file',
         fileKey: c.info?.fileKey ?? null,
+        instanceId: c.info?.instanceId ?? null,
         currentPage: c.info?.currentPage?.name ?? '',
       }));
     const signature = JSON.stringify(files);
@@ -526,29 +482,24 @@ export class Bridge {
     else p.reject(new PluginError(msg.error, msg.safeToRetryWithoutCanvasRead));
   }
 
-  // Actual port (differs from opts.port when it is 0, or when a busy port
-  // pushed the bridge to the next one).
   get port(): number {
     const addr = this.servers[0]?.address();
     if (addr && typeof addr === 'object') return addr.port;
     return this.actualPort ?? this.opts.port;
   }
 
-  // The file the user pinned in the panel (null when nothing is pinned).
-  // Drafts have no fileKey and are pinned by name, so report the name then.
   private preferredFileKey(): string | null {
     const open = [...this.clients.values()].filter((c) => c.ws.readyState === WebSocket.OPEN);
     const pinned = open.find((c) => this.isPinned(c));
-    return pinned?.info?.fileKey ?? pinned?.info?.fileName ?? null;
+    return pinned?.info?.fileKey ?? pinned?.info?.instanceId ?? pinned?.info?.fileName ?? null;
   }
 
-  // A file is "pinned" when the panel named it. Untitled drafts have no
-  // fileKey, so the panel pins them by name.
   private isPinned(c: Client): boolean {
     const info = c.info;
     const pin = info?.preferredFileKey;
     if (!info || pin == null) return false;
     if (info.fileKey != null) return pin === info.fileKey;
+    if (info.instanceId != null) return pin === info.instanceId;
     return pin === info.fileName;
   }
 
@@ -561,7 +512,6 @@ export class Bridge {
       ports: this.candidates(),
     };
     if (this.role !== 'hub') {
-      // An agent sees the files through the hub; without a hub, nothing.
       const state = this.hubState;
       return {
         listening: false,
@@ -581,6 +531,7 @@ export class Bridge {
       files: [...this.clients.values()].map((c) => ({
         fileName: c.info?.fileName ?? null,
         fileKey: c.info?.fileKey ?? null,
+        instanceId: c.info?.instanceId ?? null,
         user: c.info?.user ?? null,
         currentPage: c.info?.currentPage ?? null,
         pluginVersion: c.info?.version ?? null,
@@ -589,11 +540,6 @@ export class Bridge {
     };
   }
 
-  // Commands this server can send that the connected plugin does not support.
-  // Plugins that do not report their command list (protocol v1) are ignored:
-  // we cannot tell what they miss, so we do not guess.
-  // An agent checks against the commands the hub reports, so an agent built
-  // from a newer commit than the hub still names the right missing commands.
   missingCommands(supported: string[]): string[] {
     const lists =
       this.role === 'hub'
@@ -609,8 +555,6 @@ export class Bridge {
     return [...missing];
   }
 
-  // Picks the file to talk to: by fileKey/name when given, otherwise the
-  // file pinned in the panel, otherwise the only open connection.
   private pick(file?: string): Client {
     if (!this.wss) throw new PluginError(this.listenError ?? 'Bridge is not listening.', true);
     const open = [...this.clients.values()].filter((c) => c.ws.readyState === WebSocket.OPEN);
@@ -621,19 +565,19 @@ export class Bridge {
       );
     }
     if (file) {
-      // fileKey first, then the name (two files may share a name).
-      const hit = open.find((c) => c.info?.fileKey === file) ?? open.find((c) => c.info?.fileName === file);
+      const hit =
+        open.find((c) => c.info?.fileKey === file) ??
+        open.find((c) => c.info?.instanceId != null && c.info.instanceId === file) ??
+        open.find((c) => c.info?.fileName === file);
       if (!hit) {
         const names = open.map((c) => c.info?.fileName).join(', ');
         throw new PluginError(`File "${file}" is not connected. Connected: ${names}.`, true);
       }
       return hit;
     }
-    // The file pinned in the panel wins.
     const pinned = open.filter((c) => this.isPinned(c));
     if (pinned.length === 1) return pinned[0];
     if (open.length === 1) return open[0];
-    // Several files and no preference: never guess, ask for the file.
     const names = open.map((c) => c.info?.fileName ?? '(unknown)').join(', ');
     throw new PluginError(
       `Nhiều file Figma đang mở (${names}). Chọn file bằng tham số "file", hoặc ghim file trong panel plugin.`,
@@ -652,8 +596,6 @@ export class Bridge {
     } catch (e) {
       return Promise.reject(e);
     }
-    // Protocol v2: the plugin tells us which commands it supports. A plugin
-    // that reports a list but not this command is an old build.
     const commands = client.info?.commands;
     if (Array.isArray(commands) && commands.length > 0 && !commands.includes(command)) {
       const supported = this.opts.supportedCommands?.() ?? [];
@@ -684,9 +626,6 @@ export class Bridge {
     });
   }
 
-  // Agent side: the hub runs the command and answers with the same result or
-  // error (retry flag included). The local timer only covers a hub that hangs:
-  // the hub's own timeout, with its message, normally fires first.
   private requestViaHub<T>(command: string, params: unknown, opts: { file?: string; timeoutMs?: number }): Promise<T> {
     const ws = this.upstream;
     if (!ws || ws.readyState !== WebSocket.OPEN) {

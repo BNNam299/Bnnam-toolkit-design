@@ -11,20 +11,6 @@
         "cwd": ".",
         "enabled": true,
         "timeout": 30000
-      },
-      "gemini-image-mcp": {
-        "type": "local",
-        "command": [
-          "npx",
-          "-y",
-          "github:nguyennamkkb/gemini-image-mcp"
-        ],
-        "environment": {
-          "AI_STUDIO_ALLOW_CANVAS": "true",
-          "AI_STUDIO_TOKEN": "aistudio-1-1-7f2c9d41b8e35a60"
-        },
-        "enabled": true,
-        "timeout": 30000
       }
     }
   }

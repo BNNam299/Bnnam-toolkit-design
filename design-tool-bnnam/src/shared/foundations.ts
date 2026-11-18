@@ -1,7 +1,3 @@
-// The Foundations page (figma-ui-flow Stage 2.5): swatches, type specimen,
-// spacing ruler, radius and elevation, generated as a render_tree spec that
-// binds every sample to the real variable or style. Pure: the plugin passes
-// lists of what the file defines.
 import type { TreeNode } from './schemas';
 
 export interface FoundationVar {
@@ -9,7 +5,7 @@ export interface FoundationVar {
   name: string;
   collection: string;
   type: 'COLOR' | 'FLOAT' | 'STRING' | 'BOOLEAN';
-  display: string; // hex or number in the default mode, for the caption
+  display: string;
 }
 
 export interface FoundationData {
@@ -42,7 +38,6 @@ const groupBy = <T>(items: T[], key: (t: T) => string) => {
   return m;
 };
 
-// "color/text/primary" → group "color/text".
 const groupOf = (name: string) => name.split('/').slice(0, -1).join('/') || name;
 
 export function foundationsTree(d: FoundationData): TreeNode {

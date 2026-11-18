@@ -1,5 +1,3 @@
-// Turns an arbitrary execute_code return value into JSON-safe data: nodes
-// become summaries, bytes become a size marker, cycles and depth are cut.
 
 export interface SanitizeOptions {
   mixed: symbol;

@@ -1,6 +1,3 @@
-// figma-ui-flow Stage 7 — read-only QA audit of a page or subtree.
-// The heuristics live in ../../shared/audit.ts (unit-tested); this file only
-// collects node data from the Figma tree.
 import type { AuditInput } from '../../shared/schemas';
 import {
   buildReport,
@@ -30,9 +27,6 @@ const CHECK_GROUPS: Record<string, string[]> = {
   content: ['lorem'],
 };
 
-// Names that make a layer an interactive target (master: button, tab, chip,
-// field, row…). Icons are excluded on purpose: their glyph is small but the
-// hit area belongs to the interactive ancestor.
 const INTERACTIVE = /^(Button|Tab(\/|$)|Chip|Link|Input|Field|Row|Item|Toggle|Checkbox|Radio|Segment|FAB)/;
 
 const isScene = (n: BaseNode): n is SceneNode => 'visible' in n;
@@ -47,11 +41,10 @@ const VECTOR_TYPES = new Set<string>(['VECTOR', 'BOOLEAN_OPERATION', 'ELLIPSE', 
 
 function solidColor(node: SceneNode): RGB | null {
   const paints = 'fills' in node && Array.isArray(node.fills) ? node.fills : [];
-  // The last visible paint is the topmost one.
   for (let i = paints.length - 1; i >= 0; i--) {
     const p = paints[i];
     if (p.type === 'SOLID' && p.visible !== false) {
-      if (p.opacity !== undefined && p.opacity < 0.95) return null; // blended with what is behind
+      if (p.opacity !== undefined && p.opacity < 0.95) return null;
       return p.color;
     }
     if (p.visible !== false && (p.type === 'GRADIENT_LINEAR' || p.type === 'GRADIENT_RADIAL' || p.type === 'IMAGE')) return null;
@@ -59,9 +52,6 @@ function solidColor(node: SceneNode): RGB | null {
   return null;
 }
 
-// Real backdrop: nearest ancestor with a visible fill. A solid gives one
-// colour, an opaque gradient gives its stops (judged by the worst one);
-// images and translucent paints return null → "needs-check", never a wrong ratio.
 function backdropOf(node: SceneNode): RGB[] | null {
   let cur: BaseNode | null = node.parent;
   while (cur && cur.type !== 'PAGE' && cur.type !== 'DOCUMENT') {
@@ -88,7 +78,6 @@ const bound = (node: SceneNode, field: string): boolean => {
   return !!bv && !!bv[field];
 };
 
-// Every variable id bound on the node, its fills/strokes and effects.
 function boundIds(n: SceneNode): string[] {
   const ids: string[] = [];
   const collect = (value: unknown) => {
@@ -113,14 +102,9 @@ export async function auditDesign(p: AuditInput) {
     nodes.push(n);
     for (const c of (n as ChildrenMixin).children ?? []) walk(c);
   };
-  // A page is a container only; a rootId node is audited itself too, so a
-  // single frame or component set is not reported as "0 scanned".
   if (root.type === 'PAGE') for (const child of root.children) walk(child);
   else walk(root);
 
-  // Primitives (scopes [] or a "Primitive…" collection) must not be bound to
-  // layers. Say which rule matched: a Semantic token with scopes [] is a data
-  // bug (hidden from the pickers), not a wrong binding.
   const primitives = new Map<string, string>();
   const localVars = new Map<string, Variable>();
   if (enabled.has('primitive-bound') || enabled.has('stale-paint')) {
@@ -140,14 +124,11 @@ export async function auditDesign(p: AuditInput) {
     const rect = 'x' in n ? { x: Math.round(n.x), y: Math.round(n.y), w: Math.round(n.width), h: Math.round(n.height) } : undefined;
     const push = (kind: Issue['kind'], detail?: string) => issues.push({ id: n.id, kind, name: n.name, detail, rect });
 
-    // A + D5/D6 — naming
     if (enabled.has('default-name') || enabled.has('blacklisted-name')) {
       const problem = nameProblem(n.name);
       if (problem && enabled.has(problem)) push(problem);
     }
 
-    // A1 / G2 — raw values (only meaningful once the file has tokens, but the
-    // finding is exactly "this value is not bound", so it is always valid).
     if (enabled.has('raw-fill') && 'fills' in n && Array.isArray(n.fills)) {
       const styleId = 'fillStyleId' in n ? n.fillStyleId : '';
       n.fills.forEach((paint, i) => {
@@ -161,11 +142,8 @@ export async function auditDesign(p: AuditInput) {
       if (!styleId || styleId === figma.mixed) push('raw-text', 'text không dùng text style');
     }
 
-    // A2 / D7 — auto layout
     if (enabled.has('no-autolayout') && n.type === 'FRAME') {
       const f = n as FrameNode;
-      // An SVG icon frame holds only vectors: auto layout would break the
-      // drawing, so it is not a finding.
       const vectorsOnly = f.children.every((c) => VECTOR_TYPES.has(c.type));
       if (f.layoutMode === 'NONE' && f.children.length > 1 && !vectorsOnly && !/^(decor|overlay)\//.test(f.name)) {
         push('no-autolayout', `${f.children.length} lớp con nhưng layout NONE`);
@@ -190,7 +168,6 @@ export async function auditDesign(p: AuditInput) {
       }
     }
 
-    // D9 — spacing on the 4/8 scale
     if (enabled.has('off-scale-spacing') && 'layoutMode' in n && (n as FrameNode).layoutMode !== 'NONE') {
       const f = n as FrameNode;
       const fields: [string, number | typeof figma.mixed][] = [
@@ -205,7 +182,6 @@ export async function auditDesign(p: AuditInput) {
       if (bad.length) push('off-scale-spacing', bad.map(([k, v]) => `${k}=${String(v)}`).join(', '));
     }
 
-    // E — contrast (B2)
     if (enabled.has('contrast') && n.type === 'TEXT') {
       const t = n as TextNode;
       if (t.fills === figma.mixed) continue;
@@ -213,8 +189,6 @@ export async function auditDesign(p: AuditInput) {
       if (!fg) continue;
       const bg = backdropOf(t);
       if (!bg) {
-        // Unverifiable is not a violation: keep it as a "nice" note so a
-        // gradient backdrop never blocks handoff on its own.
         issues.push({ id: n.id, kind: 'contrast', name: n.name, detail: 'needs-check: nền gradient/ảnh — không tính được tỉ lệ', rect, severity: 'nice' });
         continue;
       }
@@ -226,15 +200,11 @@ export async function auditDesign(p: AuditInput) {
       }
     }
 
-    // E — tap target (B3): only real interactive layers, never icon glyphs.
     if (enabled.has('small-target') && 'width' in n && INTERACTIVE.test(n.name)) {
       const sev = targetSeverity(n.width, n.height);
       if (sev) issues.push({ id: n.id, kind: 'small-target', name: n.name, detail: `${Math.round(n.width)}×${Math.round(n.height)} < 44pt`, rect, severity: sev });
     }
 
-    // B — strokes and radius bound to tokens too. A component set's dashed
-    // purple frame and radius 5 are its chrome (create_component_set draws
-    // them like the Figma UI does), not design values.
     const chrome = n.type === 'COMPONENT_SET';
     if (enabled.has('raw-stroke') && !chrome && 'strokes' in n && Array.isArray(n.strokes)) {
       const styleId = 'strokeStyleId' in n ? n.strokeStyleId : '';
@@ -256,9 +226,6 @@ export async function auditDesign(p: AuditInput) {
         if (meta) push('primitive-bound', meta);
       }
     }
-    // The binding is valid but the paint kept its old colour (manual
-    // `boundVariables` in execute_code): Figma renders the stale colour and
-    // every check that reads boundVariables passes. Local variables only.
     if (enabled.has('stale-paint')) {
       for (const field of ['fills', 'strokes'] as const) {
         const paints = field in n ? (n as GeometryMixin)[field] : null;
@@ -275,10 +242,8 @@ export async function auditDesign(p: AuditInput) {
       }
     }
 
-    // F1 — placeholder copy
     if (enabled.has('lorem') && n.type === 'TEXT' && LOREM.test((n as TextNode).characters)) push('lorem', 'nội dung giả (lorem ipsum)');
 
-    // A — structure
     if (enabled.has('variant-explosion') && n.type === 'COMPONENT_SET' && n.children.length > 50) {
       push('variant-explosion', `${n.children.length} variant > 50`);
     }
@@ -286,7 +251,6 @@ export async function auditDesign(p: AuditInput) {
       push('outside-section', 'frame top-level nằm ngoài Section');
     }
 
-    // G1 — hygiene
     if (enabled.has('hidden-layer') && n.visible === false) push('hidden-layer');
     // Team hard rule 9 — anchors: flag curves drawn point by point, collinear / duplicate anchors, traced-looking paths
     if (enabled.has('vector-anchors') && n.type === 'VECTOR' && !insideInstance(n)) {
@@ -300,8 +264,6 @@ export async function auditDesign(p: AuditInput) {
     }
   }
 
-  // Orphan styles: defined locally but referenced by nothing in the whole
-  // file (a style used on another page is not an orphan).
   if (enabled.has('orphan-token')) {
     const used = new Set<string>();
     await figma.loadAllPagesAsync();
@@ -325,7 +287,6 @@ export async function auditDesign(p: AuditInput) {
     }
   }
 
-  // Icon slots whose glyph is not on the slot centre (measured ink).
   if (enabled.has('icon-offcenter')) {
     for (const i of offCentreIcons(root.type === 'PAGE' ? root.children : [root])) {
       const n = nodes.find((x) => x.id === i.id);

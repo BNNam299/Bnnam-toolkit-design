@@ -1,5 +1,3 @@
-// figma-ui-flow rule #4 — clean up default and blacklisted layer names, by
-// explicit rules or role names (file-standards.md §2.3). dryRun by default.
 import { planRename, type LayerInfo } from '../../shared/rename';
 import type { RenameByRuleInput } from '../../shared/schemas';
 import { getNode } from '../util';
@@ -12,7 +10,6 @@ function info(n: SceneNode): LayerInfo {
     text: n.type === 'TEXT' ? n.characters : undefined,
     childCount: 'children' in n ? n.children.length : 0,
     hasImageFill: fills.some((f) => f.type === 'IMAGE'),
-    // A frame holding only vectors is an icon (Lucide/SVG import).
     isVector:
       'children' in n &&
       n.children.length > 0 &&
@@ -37,7 +34,6 @@ export async function renameByRule(p: RenameByRuleInput) {
 
   const changes: { id: string; from: string; to: string }[] = [];
   for (const n of nodes) {
-    // Instance sublayers keep the main component's names.
     if (n.id.startsWith('I')) continue;
     const to = planRename(info(n), p.rules, p.auto);
     if (!to) continue;

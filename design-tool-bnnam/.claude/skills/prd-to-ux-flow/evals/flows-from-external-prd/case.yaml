@@ -1,0 +1,6 @@
+schema_version: "1.1"
+name: flows-from-external-prd
+context:
+  scaffold_script: place-files.sh
+expected_outcome: |
+  The PRD has no UX parts; the run does not block or ask for personas or a sitemap, builds task analysis, IA and flows itself as the skill always did, and design/flows.md is complete and traced to FR-01…FR-12.

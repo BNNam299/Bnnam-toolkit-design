@@ -1,5 +1,3 @@
-// Token helpers for `create_variables` / `import_tokens` (figma-ui-flow Giai
-// đoạn 2). Pure so the encoding and validation rules stay unit-testable.
 
 export type VariableType = 'COLOR' | 'FLOAT' | 'STRING' | 'BOOLEAN';
 
@@ -24,7 +22,6 @@ export interface VariablePlan {
   variables: VariableSpec[];
   problems: string[];
   warnings: string[];
-  // Names that already exist in the collection and will be overwritten.
   updating: string[];
 }
 
@@ -45,7 +42,7 @@ export function parseColor(input: string): { r: number; g: number; b: number; a:
 export function encodeValue(type: VariableType, value: TokenValue): unknown {
   if (typeof value === 'object' && value !== null && 'alias' in value) {
     if (!value.alias.trim()) throw new Error('Alias cần tên variable đích');
-    return value; // resolved by the plugin via createVariableAlias
+    return value;
   }
   switch (type) {
     case 'COLOR':
@@ -65,8 +62,6 @@ export function encodeValue(type: VariableType, value: TokenValue): unknown {
 
 export const VARIABLE_TYPES: VariableType[] = ['COLOR', 'FLOAT', 'STRING', 'BOOLEAN'];
 
-// Validates names, modes and alias targets before anything touches the file.
-// `existingNames` are the variables already in the target collection.
 export function planVariables(
   input: CreateVariablesInputShape,
   existingNames: string[] = [],
@@ -116,7 +111,6 @@ export function planVariables(
     }
     const missing = plan.modes.filter((m) => !(m in v.values));
     if (missing.length) {
-      // The master is explicit: a mode without a value silently falls back.
       plan.problems.push(`variable "${v.name}": thiếu value cho mode ${missing.join(', ')}`);
       continue;
     }
@@ -130,7 +124,6 @@ export function planVariables(
     seen.add(v.name);
     plan.variables.push(v);
   }
-  // design-system.md §1: primitives are raw values hidden from pickers.
   for (const v of plan.variables) {
     const hasAlias = Object.values(v.values).some((x) => typeof x === 'object');
     if (/primitive/i.test(plan.collection) && v.scopes && v.scopes.length > 0) {
@@ -148,7 +141,6 @@ export function planVariables(
   return plan;
 }
 
-// -- Design Tokens Community Group (DTCG) import/export ---------------------
 
 export interface DtcgToken {
   $type?: string;
@@ -161,8 +153,6 @@ export type DtcgTree = { [key: string]: DtcgToken | DtcgTree };
 const isToken = (v: unknown): v is DtcgToken =>
   !!v && typeof v === 'object' && '$value' in (v as Record<string, unknown>);
 
-// Flattens { primitives: { color: { blue: { 600: { $value } } } } } into
-// "primitives/color/blue/600" (Figma-style slash names).
 export function flattenDtcg(tree: DtcgTree, prefix = ''): { path: string; token: DtcgToken }[] {
   const out: { path: string; token: DtcgToken }[] = [];
   for (const [key, value] of Object.entries(tree)) {
@@ -182,7 +172,6 @@ const DTCG_TYPE: Record<string, VariableType> = {
   boolean: 'BOOLEAN',
 };
 
-// DTCG value → the DSL value. `{primitives.color.blue.600}` becomes an alias.
 export function fromDtcg(type: string, value: unknown): TokenValue {
   if (typeof value === 'string' && /^\{[^}]+\}$/.test(value)) {
     return { alias: value.slice(1, -1).replace(/\./g, '/') };
@@ -203,9 +192,6 @@ export function dtcgTypeToVariable(type: string): VariableType {
   return mapped;
 }
 
-// -- lint: same rules and wording as figma-ui-flow scripts/check_tokens.py ----
-// Kept in lockstep with the Python script (tests/tokens.test.ts runs both on
-// the same fixture) so a JSON that passes one passes the other.
 
 const KEBAB = /^[a-z0-9]+(-[a-z0-9]+)*$/;
 const ALIAS = /^\{([^{}]+)\}$/;
@@ -356,7 +342,6 @@ export function lintTokens(tree: DtcgTree, extraPairs: [string, string, number][
         a = resolveDots(fg, mode, tokens);
         b = resolveDots(bg, mode, tokens);
       } catch (e) {
-        // Python prints a KeyError with quotes, a cycle error without.
         const why = e instanceof RangeError ? `'${e.message}'` : (e as Error).message;
         errors.push(`[contrast] ${fg} / ${bg} (${mode}): cannot resolve token ${why}`);
         continue;
@@ -374,7 +359,6 @@ export function lintTokens(tree: DtcgTree, extraPairs: [string, string, number][
   return { tokens: tokens.size, modes: [...allModes].sort(), errors, warnings, contrast_pass: passes };
 }
 
-// -- import: DTCG tree → create_variables batches ---------------------------
 
 export interface ImportPlan {
   collections: (CreateVariablesInputShape & { variables: VariableSpec[] })[];
@@ -384,8 +368,6 @@ export interface ImportPlan {
 
 const titleCase = (s: string) => s.replace(/(^|[\s_-])(\w)/g, (_m, sep: string, c: string) => (sep === '-' || sep === '_' ? ' ' : sep) + c.toUpperCase());
 
-// Semantic scopes by role (design-system.md §1): picker shows the token only
-// where it belongs. Primitives get [] so they stay out of pickers entirely.
 export function inferScopes(name: string, type: VariableType, primitive: boolean): string[] {
   if (primitive) return [];
   const n = name.toLowerCase();
@@ -399,13 +381,11 @@ export function inferScopes(name: string, type: VariableType, primitive: boolean
   if (type === 'FLOAT') {
     if (/(^|\/)(space|spacing|gap|inset|padding)(\/|$)/.test(n)) return ['GAP'];
     if (/(^|\/)radius(\/|$)/.test(n)) return ['CORNER_RADIUS'];
-    // Before the size rule: "border/width/thin" is a stroke weight, not a width.
     if (/(^|\/)(border-width|border\/width|stroke)(\/|$)/.test(n)) return ['STROKE_FLOAT'];
     if (/(^|\/)(size|width|height)(\/|$)/.test(n)) return ['WIDTH_HEIGHT'];
     if (/(^|\/)(line-height|leading)(\/|$)/.test(n)) return ['LINE_HEIGHT'];
     if (/(^|\/)(font-size|text-size|type|typography)(\/|$)/.test(n)) return ['FONT_SIZE'];
     if (/(^|\/)opacity(\/|$)/.test(n)) return ['OPACITY'];
-    // duration/easing are prototype-only: hidden from layer pickers.
     if (/(^|\/)(duration|motion|easing)(\/|$)/.test(n)) return [];
     return ['ALL_SCOPES'];
   }
@@ -413,9 +393,6 @@ export function inferScopes(name: string, type: VariableType, primitive: boolean
   return ['ALL_SCOPES'];
 }
 
-// Each top-level group becomes a collection ("primitives" → "Primitives");
-// aliases "{primitives.color.white}" become { alias: "Primitives/color/white" }.
-// Collections are ordered so alias targets are created first.
 export function planTokenImport(tree: DtcgTree): ImportPlan {
   const lint = lintTokens(tree);
   const roots = Object.keys(tree).filter((k) => !k.startsWith('$'));
@@ -454,7 +431,6 @@ export function planTokenImport(tree: DtcgTree): ImportPlan {
     if (variables.length) collections.push({ collection: collName.get(root)!, modes, variables });
   }
 
-  // Alias targets first: a collection that points at another goes after it.
   const dependsOn = (c: ImportPlan['collections'][number]) =>
     new Set(
       c.variables.flatMap((v) => Object.values(v.values).filter((x): x is { alias: string } => typeof x === 'object').map((x) => x.alias.split('/')[0])),
@@ -463,12 +439,10 @@ export function planTokenImport(tree: DtcgTree): ImportPlan {
   return { collections, skipped, lint };
 }
 
-// -- export: Figma variables → DTCG / CSS / Swift / Kotlin -------------------
 
 export interface ExportVariable {
   name: string;
   type: VariableType;
-  // Aliases are "Collection/variable/name".
   values: Record<string, TokenValue>;
 }
 export interface ExportCollection {
@@ -516,7 +490,6 @@ class Resolver {
   find(alias: string) {
     return this.byKey.get(alias);
   }
-  // Mode of the referencing collection; a single-mode target uses its only value.
   value(c: ExportCollection, v: ExportVariable, mode: string, depth = 0): string | number | boolean {
     if (depth > 20) throw new Error(`alias lặp vô hạn tại ${c.name}/${v.name}`);
     const raw = v.values[mode] ?? v.values[c.modes[0]];
@@ -675,8 +648,6 @@ function toKotlin(r: Resolver): string {
   for (const c of r.all) {
     const colors = c.variables.filter((v) => v.type === 'COLOR');
     const others = c.variables.filter((v) => v.type !== 'COLOR');
-    // One object per mode for colours (Light/Dark colour schemes); the rest
-    // is mode-independent and uses the default mode.
     for (const mode of colors.length ? c.modes : []) {
       out.push(`object ${pascal(c.name)}${c.modes.length > 1 ? pascal(mode) : ''}Colors {`);
       for (const v of colors) {

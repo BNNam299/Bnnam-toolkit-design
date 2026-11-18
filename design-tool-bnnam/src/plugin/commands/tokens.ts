@@ -1,6 +1,3 @@
-// figma-ui-flow Stage 2 + 8: import a DTCG token file, read every token
-// back for export, and draw the Foundations page from them. The server parses
-// and lints the JSON (../../shared/tokens.ts); the plugin only writes.
 import { foundationsTree, type FoundationVar } from '../../shared/foundations';
 import type { CreateVariablesInput, ExportTokensInput, RenderFoundationsInput } from '../../shared/schemas';
 import { VARIABLE_TYPES, type ExportCollection, type ExportTextStyle, type TokenValue, type VariableType } from '../../shared/tokens';
@@ -8,7 +5,6 @@ import { toHex } from '../../shared/values';
 import { renderTree } from './render';
 import { createVariables } from './variables';
 
-// Newer Figma types (e.g. EASING) have no token equivalent yet.
 const exportable = (v: Variable): v is Variable & { resolvedType: VariableType } =>
   (VARIABLE_TYPES as string[]).includes(v.resolvedType);
 
@@ -104,8 +100,6 @@ export async function renderFoundations(p: RenderFoundationsInput) {
   ]);
   const byId = new Map(vars.map((v) => [v.id, v]));
   const wanted = collections.filter((c) => !p.collections?.length || p.collections.includes(c.name));
-  // Resolve aliases to the default-mode value for the caption only; the
-  // sample itself binds the variable, so it shows the real token.
   const display = (v: Variable, modeId: string, depth = 0): string => {
     const raw = v.valuesByMode[modeId] ?? Object.values(v.valuesByMode)[0];
     if (typeof raw === 'object' && raw !== null && 'r' in raw) return toHex(raw);
@@ -134,6 +128,5 @@ export async function renderFoundations(p: RenderFoundationsInput) {
     effectStyles: effectStyles.map((s) => ({ name: s.name })),
   });
   const r = await renderTree({ tree, select: true });
-  // The id map of a Foundations page runs to hundreds of entries; callers need the root.
   return { rootId: r.rootId, created: r.created, bounds: r.bounds, variables: variables.length, textStyles: textStyles.length, effectStyles: effectStyles.length };
 }

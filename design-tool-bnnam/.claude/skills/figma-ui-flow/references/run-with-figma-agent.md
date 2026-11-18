@@ -67,7 +67,7 @@ Process, modes and checklists: `build-loop.md`. Mechanics: `figma-agent-tools` S
 
 | Pass | Write | Check |
 |---|---|---|
-| 0 Prepare | — (images: `gemini-image-mcp` `image_generate{savePath}`) | `search_design_system`, `get_design_system`, `list_fonts` |
+| 0 Prepare | — (images: prompts for the designer's own tool) | `search_design_system`, `get_design_system`, `list_fonts` |
 | 1 Layout | `render_tree{tree: frame + regions + sized placeholder blocks}` (1–2 writes) | `get_node{ids:[rootId], depth: 2}` → one `screenshot{id: rootId}` |
 | 2 Fill | `create_component_set` for repeated blocks → `render_tree{parentId: <placeholder or region>, index?}` per cluster (`delete_nodes` the placeholder when replacing it) → `update_nodes` in batches | `get_node` (or the write's `bounds`) after each write; one `screenshot{id: rootId}` at the end; extra screenshots only for unusual blocks |
 | 3 Lock | `update_nodes`, `rename_by_rule`, `bind_variables` (dryRun → real) | `audit_design{rootId}`, `stress_test{id}` → `screenshot{id: sectionId}` → `delete_nodes` the section → final `screenshot{id, scale: 1}` |

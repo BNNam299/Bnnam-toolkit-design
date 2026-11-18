@@ -68,7 +68,8 @@ Do not read everything at once: `team-rules.md` §1–7 once per session, then o
    anything layered or detailed → generated image. Every vector drawn lean: anchors only where the shape needs them, never at the
    cost of the drawing (hard rule, `references/team-rules.md` §10.3).
 8. **Say it, don't silently comply.** Contradictions between documents → stop and ask; direction decisions are the designer's; only an
-   explicit yes is consent. Never report "done" without numbers; always list *where I had to decide myself*.
+   explicit yes is consent. Never report "done" without numbers; always list *where I had to decide myself*. Address the user as
+   "bạn" (`references/team-rules.md` §9).
 9. **Names come from `flows.md`.** `[Flow-path]_[State]_[Variant]`, suffixes from the table, no `/` or `.` in frame names; wireframe and UI
    share names 1:1.
 10. **Hard rules always apply:** layer opacity only for a disabled composite · nested radius = ½ the inner height (report only) · text

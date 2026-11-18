@@ -1,6 +1,3 @@
-// The port range lives in one place: src/shared/protocol.ts. The plugin panel
-// (ui.html) and the Figma manifest must list exactly the same ports, or the
-// plugin cannot reach the server on a fallback port.
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';

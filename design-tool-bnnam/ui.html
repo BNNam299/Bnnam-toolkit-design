@@ -4,12 +4,9 @@
 <meta charset="utf-8" />
 <style>
   :root {
-    /* Zoom / density. 1rem === 12px * --scale, so every size below is rem and
-       the whole panel scales together. */
+    
     --scale: 1;
-    /* Accent comes from design/carplay-widget.tokens.json (cyan/400 + navy/950).
-       It is only used for focus rings, the spinner, active states and dots —
-       never as body text on a light background. */
+    
     --accent: #3DD6F5;
     --accent-fg: #070B16;
     --bg: var(--figma-color-bg, #ffffff);
@@ -63,7 +60,6 @@
   textarea { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 0.85rem; }
   code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
 
-  /* ---------- header ---------- */
   #header {
     display: flex;
     align-items: center;
@@ -99,7 +95,6 @@
   .zoom { display: flex; align-items: center; gap: 0.1rem; flex: none; }
   #zoom-value { font-variant-numeric: tabular-nums; min-width: 2.8rem; padding: 0.25rem 0.2rem; }
 
-  /* ---------- toolbar ---------- */
   #toolbar {
     display: flex; align-items: center; gap: 0.3rem;
     padding: 0.35rem 0.6rem;
@@ -109,7 +104,6 @@
   #toolbar .spacer { flex: 1 1 auto; }
   #filter { width: auto; padding: 0.25rem 0.3rem; }
 
-  /* ---------- hint line (status detail, e.g. "Không tìm thấy MCP server") ---------- */
   #hint {
     padding: 0.3rem 0.6rem;
     border-bottom: 1px solid var(--border);
@@ -120,7 +114,6 @@
   #hint.err { color: var(--err); }
   #hint.wait { color: var(--warn); }
 
-  /* ---------- activity list ---------- */
   #log { flex: 1 1 auto; min-height: 0; overflow-y: auto; overflow-x: hidden; }
   .entry { border-bottom: 1px solid var(--border); }
   .entry-head {
@@ -154,7 +147,6 @@
   }
   .empty { padding: 0.8rem 0.6rem; color: var(--muted); }
 
-  /* ---------- footer / dev ---------- */
   #footer { border-top: 1px solid var(--border); padding: 0.35rem 0.6rem; }
   #footer[hidden] { display: none; }
   #dev summary { cursor: pointer; color: var(--muted); }
@@ -162,12 +154,8 @@
   #dev textarea { margin-top: 0.4rem; height: 7rem; resize: vertical; }
   #dev .row { display: flex; gap: 0.4rem; margin-top: 0.4rem; }
 
-  /* ---------- panels (menu / token) ----------
-     Everything lives in the normal flow: a panel pushes the log down instead
-     of floating over it, so two blocks can never overlap. */
   .panel {
-    /* flex: 0 0 auto — the panel keeps its natural height (capped at
-       max-height) instead of being squeezed by the log below it. */
+    
     flex: 0 0 auto;
     padding: 0.5rem 0.6rem;
     background: var(--bg);
@@ -344,7 +332,6 @@ let pendingSize = null;
 let appliedSize = null;
 const entries = [];
 
-/* ---------------- settings ---------------- */
 
 function clampNumber(value, min, max, fallback) {
   const n = Number(value);
@@ -358,7 +345,6 @@ function clampScale(value) {
   return Math.min(SCALE_MAX, Math.max(SCALE_MIN, Math.round(n * 100) / 100));
 }
 
-/** A stored scale outside 0.8–1.5 (or NaN) is invalid: fall back to 100%. */
 function storedScaleIn(ui) {
   const raw = ui ? ui.scale : undefined;
   const n = Number(raw);
@@ -385,11 +371,6 @@ function saveSettings() {
   toPlugin({ type: 'save-settings', settings });
 }
 
-/**
- * The panel owns the settings shape: { token, ui: { w, h, scale },
- * preferredFileKey, devMode }. Anything the plugin stored from an older build
- * is kept, but the known keys always exist.
- */
 function normalizeSettings(raw) {
   const ui = raw.ui && typeof raw.ui === 'object' ? raw.ui : {};
   return Object.assign({}, raw, {
@@ -403,7 +384,6 @@ function normalizeSettings(raw) {
   });
 }
 
-/* ---------------- zoom / size ---------------- */
 
 function applyScale(value, persist) {
   const scale = clampScale(value);
@@ -427,13 +407,11 @@ function applySize(width, height) {
   markPreset();
 }
 
-/** Called when Figma accepted the size: it becomes the one we fall back to. */
 function confirmSize(width, height) {
   appliedSize = { width, height };
   pendingSize = null;
 }
 
-/** Applies one of the S / M / L presets. */
 function usePreset(index) {
   const preset = SIZES[index];
   if (!preset) return;
@@ -441,7 +419,6 @@ function usePreset(index) {
   toast('Kích thước panel: ' + preset.label + ' (' + preset.width + '×' + preset.height + ')');
 }
 
-/** Marks the preset that matches the current size. */
 function markPreset() {
   const ui = settings.ui || {};
   const buttons = $('size').querySelectorAll('button');
@@ -453,7 +430,6 @@ function markPreset() {
   }
 }
 
-/* ---------------- status / toast ---------------- */
 
 function setState(kind, state, detail) {
   $('status').className = kind || '';
@@ -462,8 +438,6 @@ function setState(kind, state, detail) {
   hint.className = kind || '';
   hint.textContent = detail || '';
   hint.hidden = !detail;
-  // The same text is useful inside the token popover, where the user is
-  // usually looking when a connection fails.
   $('token-msg').textContent = detail || '';
 }
 
@@ -476,14 +450,12 @@ function toast(message) {
   toastTimer = setTimeout(() => { el.hidden = true; }, 2500);
 }
 
-/* ---------------- activity log ---------------- */
 
 function summarize(result) {
   if (result === null || result === undefined) return '';
   if (typeof result === 'string') return result;
   if (typeof result !== 'object') return String(result);
   if (Array.isArray(result)) return result.length + ' items';
-  // A render_tree-ish result: "<n> frames · <m> nodes" reads better than raw JSON.
   const frames = result.frames;
   const nodes = result.nodes;
   if (Array.isArray(frames) && Array.isArray(nodes)) {
@@ -534,7 +506,6 @@ function renderLog() {
   box.textContent = '';
   const onlyErrors = $('filter').value === 'errors';
   const shown = entries.filter((e) => !onlyErrors || e.state === 'failed');
-  // The toolbar only earns its space once there is something to filter.
   $('toolbar').hidden = entries.length === 0;
   if (!shown.length) {
     const empty = document.createElement('div');
@@ -620,7 +591,6 @@ function logText() {
   }).join('\n');
 }
 
-/* ---------------- clipboard ---------------- */
 
 async function copyText(text, okMessage) {
   const value = text === undefined || text === null ? '' : String(text);
@@ -630,7 +600,7 @@ async function copyText(text, okMessage) {
       toast(okMessage || 'Đã sao chép');
       return;
     }
-  } catch (_e) { /* fall through to the legacy path */ }
+  } catch (_e) { }
   try {
     const area = document.createElement('textarea');
     area.value = value;
@@ -656,29 +626,18 @@ async function pasteText(input) {
         return true;
       }
     }
-  } catch (_e) { /* permission denied */ }
+  } catch (_e) { }
   $('token-msg').textContent = 'Trình duyệt chặn đọc clipboard — bấm ⌘V (Ctrl+V) vào ô token.';
   return false;
 }
 
-/* ---------------- connection ---------------- */
 
 function portLabel(order) {
   if (order && order.length <= 2) return order.join(', ');
   return PORTS[0] + '–' + PORTS[PORTS.length - 1];
 }
 
-/**
- * Every agent now shares one hub on the first port, so the remembered port and
- * the first one are normally all there is to try. The whole range is probed
- * only when asked (Connect button, plugin start, every few retries) for
- * servers that still run one port each: every empty port is a failed
- * WebSocket, and Chromium slows down new ones after many failures.
- */
 function portOrder(wide) {
-  // The hub port always comes first: a port remembered from a pre-hub server
-  // (3057…) would otherwise keep the panel on that server while every agent
-  // talks to the hub, and the hub would see no file.
   const remembered = Number(settings.port);
   const order = [PORTS[0]];
   if (Number.isInteger(remembered) && PORTS.indexOf(remembered) >= 0 && order.indexOf(remembered) < 0) {
@@ -698,11 +657,6 @@ function openPort(port, token, id) {
       return;
     }
     let settled = false;
-    // On timeout the scan moves on, but the socket keeps connecting: Chromium
-    // throttles WebSocket handshakes after repeated failures (the empty ports
-    // of earlier scans), and closing a socket that is merely delayed counts as
-    // one more failure, so every later attempt is delayed even longer and the
-    // panel never reaches a live server.
     const timer = setTimeout(() => {
       if (settled) return;
       settled = true;
@@ -715,26 +669,19 @@ function openPort(port, token, id) {
         resolve(sock);
         return;
       }
-      // Opened after its scan gave up on it: adopt it if nothing newer did.
       if (id === scanId && !ws) adopt(sock, port);
-      else { try { sock.close(); } catch (_e) { /* ignore */ } }
+      else { try { sock.close(); } catch (_e) { } }
     };
     sock.onerror = () => {
       if (settled) return;
       settled = true;
       clearTimeout(timer);
-      try { sock.close(); } catch (_e) { /* ignore */ }
+      try { sock.close(); } catch (_e) { }
       resolve(null);
     };
   });
 }
 
-/**
- * Arms the next connection attempt. Used both after a connection drops and
- * after the first probe found no server at all — without the second case the
- * panel would give up for good and the user would have to press "Kết nối"
- * by hand every time the server started after the plugin.
- */
 function scheduleRetry() {
   const delay = Math.min(10000, 1000 * Math.pow(2, retry++));
   const wide = retry % 5 === 0;
@@ -752,36 +699,29 @@ async function connect(wide) {
   }
   if (ws) {
     manualClose = true;
-    try { ws.close(); } catch (_e) { /* ignore */ }
+    try { ws.close(); } catch (_e) { }
     ws = null;
   }
   manualClose = false;
-  // focus, visibilitychange, the retry timer and the button can all start a
-  // scan. Only the newest one may report or adopt: a stale scan that began
-  // while the server was down would otherwise finish later, show "no server"
-  // over a live connection and arm a retry that tears it down again.
   const id = ++scanId;
   const order = portOrder(wide === true);
   setState('wait', 'Đang tìm server…', 'Thử cổng ' + portLabel(order) + '.');
   for (const port of order) {
     const sock = await openPort(port, token, id);
     if (id !== scanId || ws) {
-      if (sock) { try { sock.close(); } catch (_e) { /* ignore */ } }
+      if (sock) { try { sock.close(); } catch (_e) { } }
       return;
     }
     if (!sock) continue;
     adopt(sock, port);
     return;
   }
-  // No server on any port: keep retrying on our own.
   const delay = scheduleRetry();
   setState('err', 'Không tìm thấy MCP server',
     'Không có server ở cổng ' + portLabel(order) + '. Tự thử lại sau ' + Math.round(delay / 1000) + 's.');
 }
 
 function adopt(sock, port) {
-  // A late socket can open after the scan already armed a retry; that retry
-  // would close this connection.
   clearTimeout(retryTimer);
   ws = sock;
   connectedPort = port;
@@ -792,7 +732,6 @@ function adopt(sock, port) {
   saveSettings();
   setState('ok', 'Đã kết nối', '');
   updateDetails();
-  // Connected: the token form is no longer needed, so it gets out of the way.
   closePanels();
   markPreset();
 
@@ -800,8 +739,6 @@ function adopt(sock, port) {
     let msg;
     try { msg = JSON.parse(ev.data); } catch (_e) { return; }
     if (msg.type === 'request') {
-      // Show the command right away; the plugin confirms with an "activity"
-      // message once it actually starts.
       const entry = upsertEntry(msg.id, msg.command);
       entry.state = 'running';
       entry.summary = '';
@@ -828,7 +765,7 @@ function adopt(sock, port) {
     const delay = scheduleRetry();
     setState('wait', 'Chờ MCP server…', 'Thử lại sau ' + Math.round(delay / 1000) + 's');
   };
-  sock.onerror = () => { /* the close handler takes over */ };
+  sock.onerror = () => { };
 
   sendHello();
 }
@@ -836,13 +773,12 @@ function adopt(sock, port) {
 function sendHello() {
   if (!ws || ws.readyState !== 1 || !info) return;
   const payload = Object.assign({}, info, { preferredFileKey: settings.preferredFileKey || null });
-  try { ws.send(JSON.stringify({ type: 'hello', info: payload })); } catch (_e) { /* ignore */ }
+  try { ws.send(JSON.stringify({ type: 'hello', info: payload })); } catch (_e) { }
 }
 function toPlugin(msg) {
   parent.postMessage({ pluginMessage: msg }, '*');
 }
 
-/* ---------------- files ---------------- */
 
 function applyFiles(files) {
   const list = Array.isArray(files) ? files : [];
@@ -854,10 +790,10 @@ function applyFiles(files) {
   const names = list.map((f) => f.fileName);
   for (const file of list) {
     const option = document.createElement('option');
-    option.value = file.fileKey || file.fileName;
+    option.value = file.fileKey || file.instanceId || file.fileName;
     let label = file.fileName + ' · ' + (file.currentPage || '');
     if (names.indexOf(file.fileName) !== names.lastIndexOf(file.fileName)) {
-      label += ' · ' + (file.fileKey || 'no key');
+      label += ' · ' + (file.fileKey || (file.instanceId ? 'draft ' + file.instanceId.slice(0, 6) : 'no key'));
     }
     option.textContent = label;
     select.appendChild(option);
@@ -878,15 +814,12 @@ function applyFiles(files) {
   };
 }
 
-/* ---------------- details ---------------- */
 
 function updateDetails() {
   $('d-port').textContent = connectedPort === null ? '—' : String(connectedPort);
   $('d-page').textContent = info && info.currentPage ? info.currentPage.name : '—';
   $('d-user').textContent = info && info.user ? info.user : '—';
   $('d-version').textContent = info && info.version ? info.version : '—';
-  // "1.2.0 (7c81ced+dirty)" → "v1.2.0" in the header; the build is in the
-  // tooltip and in the connection details.
   const version = info && info.version ? info.version : '';
   $('version').textContent = version ? 'v' + version.split(' ')[0] : '';
   $('version').title = version ? 'Plugin ' + version : '';
@@ -899,9 +832,6 @@ function updateFileHeader() {
   $('file-name').textContent = info && info.fileName ? info.fileName : '—';
 }
 
-/* ---------------- panels ----------------
-   Only one panel is open at a time, and every panel sits in the normal flow
-   (no absolute positioning), so nothing can ever overlap anything else. */
 
 const PANELS = ['token-panel', 'menu'];
 const PANEL_TRIGGER = { 'token-panel': 'menu-token', menu: 'menu-btn' };
@@ -923,7 +853,6 @@ function isPanelOpen(id) {
   return !$(id).hidden;
 }
 
-/* ---------------- events ---------------- */
 
 function togglePanel(id, event) {
   if (event) event.stopPropagation();
@@ -978,9 +907,6 @@ $('connect').onclick = () => {
   connect(true);
 };
 
-// Chromium throttles timers in a panel that is not in front. When the user
-// comes back to Figma, try again right away instead of waiting for the
-// throttled backoff to fire.
 document.addEventListener('visibilitychange', () => {
   if (!document.hidden && !ws) { retry = 0; connect(); }
 });
@@ -1002,7 +928,6 @@ $('render').onclick = () => {
   toPlugin({ type: 'request', id: 'local-' + Date.now(), command: 'render_tree', params: { tree, select: true } });
 };
 
-/* ---------------- plugin messages ---------------- */
 
 window.onmessage = (ev) => {
   const msg = ev.data && ev.data.pluginMessage;
@@ -1010,9 +935,11 @@ window.onmessage = (ev) => {
   if (msg.type === 'init') {
     info = msg.info;
     settings = normalizeSettings(msg.settings || {});
+    if (!settings.token && typeof msg.defaultToken === 'string' && msg.defaultToken) {
+      settings.token = msg.defaultToken;
+      saveSettings();
+    }
     const size = currentSize();
-    // Render the stored zoom without writing it back; only the first change
-    // persists it.
     applyScale(storedScale(), false);
     $('token').value = settings.token || '';
     $('token-state').textContent = settings.token ? 'đã lưu ✓' : '';
@@ -1021,16 +948,12 @@ window.onmessage = (ev) => {
     $('footer').hidden = !settings.devMode;
     updateFileHeader();
     updateDetails();
-    // Restore the panel size the user left it at.
     if (settings.ui && settings.ui.w !== undefined && settings.ui.h !== undefined) {
       applySize(size.width, size.height);
       appliedSize = { width: size.width, height: size.height };
     }
     if (settings.token) connect(true);
-    // No token yet: the token form is the only thing worth showing.
     else openPanel('token-panel');
-    // The socket may have opened before "init" arrived; make sure the server
-    // still learns who we are.
     sendHello();
   } else if (msg.type === 'activity') {
     const entry = upsertEntry(msg.requestId, msg.command);
@@ -1061,7 +984,7 @@ window.onmessage = (ev) => {
         wire.error = msg.error;
         wire.safeToRetryWithoutCanvasRead = !!msg.safeToRetryWithoutCanvasRead;
       }
-      try { ws.send(JSON.stringify(wire)); } catch (_e) { /* ignore */ }
+      try { ws.send(JSON.stringify(wire)); } catch (_e) { }
     }
   } else if (msg.type === 'event') {
     info = msg.info;
@@ -1070,14 +993,13 @@ window.onmessage = (ev) => {
     if (ws && ws.readyState === 1) {
       const wire = { type: 'event', event: msg.event, info: msg.info };
       if (msg.selection) wire.selection = msg.selection;
-      try { ws.send(JSON.stringify(wire)); } catch (_e) { /* ignore */ }
+      try { ws.send(JSON.stringify(wire)); } catch (_e) { }
     }
   } else if (msg.type === 'notice') {
     applyFiles(msg.files);
   } else if (msg.type === 'resize-ok') {
     confirmSize(msg.width, msg.height);
   } else if (msg.type === 'resize-error') {
-    // Figma refused the new size: keep the last accepted one and say so.
     toast('Không đổi được kích thước: ' + (msg.message || 'lỗi không rõ'));
     if (pendingSize && appliedSize) {
       settings.ui = Object.assign({}, settings.ui, { w: appliedSize.width, h: appliedSize.height });

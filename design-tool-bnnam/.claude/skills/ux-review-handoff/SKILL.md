@@ -59,7 +59,8 @@ Do not read everything at once. Each workflow step below names the file it needs
 5. **Honest scope.** Score only screens actually read; never invent usage data; every problem names the standard that caught it; always
    record what works well. Things a static design can't show (screen reader, real text scaling) → *check in build*.
 6. **Plain words first.** Each entry's title and proposal say what the user will experience (*"users tapping All will expect more
-   recommended movies"*); the violated criterion sits in its own field. Lowest score first.
+   recommended movies"*); the violated criterion sits in its own field. Lowest score first. The report and `design/review.md` are in
+   Vietnamese and address the user as "bạn" (`../bnnam-standards/references/team-rules.md` §9).
 7. **The user chooses the fixes.** Fixes go to the owning stage first (flows, wireframe, `voice.md`), then the UI.
 8. **Dev notes carry, never invent.** Ask which mode first (Figma notes · skip · Dev Mode). Notes are `Dev Note` instances outside screen
    frames, in the file's own note style; content comes only from the project's design files — missing information is reported back.

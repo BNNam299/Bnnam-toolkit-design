@@ -12,7 +12,6 @@
 | `figma_status` → `missingCommands: [...]` | Same as above, listed explicitly: the plugin does not implement those commands yet. Rebuild + reopen the plugin. |
 | Several Figma files open, no file chosen | The server refuses to guess. Pass the `file` param, or pin the target file in the plugin panel (menu → "File đích"). |
 | Every call times out after an `execute_code` | The sandbox is stuck in a loop: Figma will close the plugin. User reopens it; rewrite the code with bounded loops. |
-| gemini `workerCount: 0` | Studio tab closed or bridge restarted. User opens/reloads `pageUrl` (or the Gemini Canvas tab); `image_generate` can auto-open it. |
 
 ## Writes
 

@@ -6,7 +6,6 @@ import { sanitize } from '../sanitize';
 import { Serializer, summary } from '../serialize';
 import { freeSpot, getNode, isAutoLayout } from '../util';
 
-// Helpers exposed to agent code as `h`.
 const helpers = {
   solid,
   rgb: (color: string) => {

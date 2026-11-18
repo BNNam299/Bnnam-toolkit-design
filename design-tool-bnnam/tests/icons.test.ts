@@ -1,8 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { glyphOffset, iconProblem, isSlotSize, type SlotInfo } from '../src/shared/icons';
 
-// A 44×44 slot at the origin; a 20×20 glyph placed where Figma put it in the
-// reproduced cases (Forge, 2026-10-20).
 const slot = (over: Partial<SlotInfo> = {}): SlotInfo => ({
   box: { x: 0, y: 0, w: 44, h: 44 },
   layout: 'HORIZONTAL',

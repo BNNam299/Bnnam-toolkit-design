@@ -1,12 +1,9 @@
-// Motion tokens → Figma prototype transitions (figma-ui-flow Stage 6,
-// design-system.md §2.5). Pure: the plugin resolves duration variables first.
 
 export interface EasingSpec {
   type: string;
   easingFunctionCubicBezier?: { x1: number; y1: number; x2: number; y2: number };
 }
 
-// The master's named easings, plus Figma's own names passed through.
 const NAMED: Record<string, EasingSpec> = {
   standard: { type: 'CUSTOM_CUBIC_BEZIER', easingFunctionCubicBezier: { x1: 0.2, y1: 0, x2: 0, y2: 1 } },
   decelerate: { type: 'CUSTOM_CUBIC_BEZIER', easingFunctionCubicBezier: { x1: 0, y1: 0, x2: 0, y2: 1 } },
@@ -40,7 +37,6 @@ export function easingFor(name = 'standard'): EasingSpec {
   throw new Error(`Easing "${name}" không hợp lệ. Dùng standard, decelerate, accelerate, spring, linear, ${FIGMA_EASINGS.join(', ')} hoặc cubic-bezier(a,b,c,d).`);
 }
 
-// Motion tokens are stored in milliseconds; Figma transitions use seconds.
 export function msToSeconds(ms: number): number {
   if (!Number.isFinite(ms) || ms < 0) throw new Error(`Thời lượng ${ms}ms không hợp lệ`);
   if (ms > 0 && ms < 10) {

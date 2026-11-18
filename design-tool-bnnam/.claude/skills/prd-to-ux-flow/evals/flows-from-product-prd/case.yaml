@@ -1,0 +1,6 @@
+schema_version: "1.1"
+name: flows-from-product-prd
+context:
+  scaffold_script: place-files.sh
+expected_outcome: |
+  design/prd.md records the PRD's UX parts as present; design/flows.md starts from the PRD's hub navigation, screen ids SCR-01…25 and flows F1/F2, deepens with branches and states, and lists any change to a PRD decision as a difference instead of changing it silently.

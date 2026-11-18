@@ -1,6 +1,4 @@
 #!/usr/bin/env node
-// MCP server (stdio) exposing Figma tools. It hosts the WebSocket bridge the
-// plugin connects to. stdout belongs to MCP: log to stderr only.
 import { randomBytes } from 'node:crypto';
 import { existsSync, mkdirSync, readFileSync, renameSync, writeFileSync } from 'node:fs';
 import { homedir } from 'node:os';
@@ -38,12 +36,8 @@ const token = loadToken();
 const port = Number(process.env.FIGMA_AGENT_PORT ?? DEFAULT_PORT);
 const portRange = Number(process.env.FIGMA_AGENT_PORT_RANGE ?? DEFAULT_PORT_RANGE);
 
-// Commands the server sends to the plugin (one per tool registered with
-// `tool()`). Used to tell the user which commands their plugin build misses.
 const PLUGIN_COMMANDS = new Set<string>();
 
-// One port for every agent on the machine: the first server hosts the hub,
-// later ones join it. FIGMA_AGENT_HUB=0 restores one port per server.
 const hub = process.env.FIGMA_AGENT_HUB !== '0';
 
 const bridge = new Bridge({
@@ -76,8 +70,6 @@ const SERVER_STAMP = `${__SERVER_VERSION__} (${__SERVER_BUILD__})`;
 const fileParam = {
   file: z.string().optional().describe('Target file name or key when several Figma files are connected'),
 };
-// Scopes a command to one page even when another agent switches the current
-// page mid-flight (the current page is global file state).
 const pageParam = z
   .string()
   .optional()
@@ -154,8 +146,6 @@ server.registerTool(
   },
   async (args) => {
     const status = bridge.status();
-    // A plugin built from another commit is still running in Figma: new tools
-    // will be "Unknown command" until it is reopened.
     const stale = status.files.filter((f) => f.pluginVersion !== SERVER_STAMP);
     const missingCommands = bridge.missingCommands([...PLUGIN_COMMANDS]);
     return {
@@ -170,8 +160,6 @@ server.registerTool(
               ? `✅ Plugin và server cùng phiên bản ${SERVER_STAMP}`
               : undefined,
           missingCommands,
-          // The token is a secret: only the last 4 characters are shown unless
-          // the caller explicitly asks for the full value.
           token: args?.includeToken === true ? token : maskToken(token),
           howToConnect:
             'Figma desktop → Plugins → Development → figma-agent-UI · Design. Paste the token in the plugin and press Connect.',
@@ -195,7 +183,6 @@ function maskToken(value: string): string {
   return `…${value.slice(-4)}`;
 }
 
-// manifest.json sits next to the server bundle (dist/server.mjs → ../).
 function manifestPath(): string | null {
   const override = process.env.FIGMA_AGENT_MANIFEST;
   if (override) return override;
@@ -206,7 +193,6 @@ function manifestPath(): string | null {
   return null;
 }
 
-// Does the manifest allow a WebSocket to this port?
 function coversPort(entries: string[], target: number): { covered: boolean; note?: string } {
   for (const entry of entries) {
     if (entry === '*') return { covered: true, note: 'wildcard "*" — mọi domain được phép' };
@@ -424,7 +410,7 @@ tool('find_nodes', {
 
 tool('get_design_system', {
   description:
-    'Local variables (with modes and values), paint/text/effect styles, local components with their properties, library components already used on the page, and optionally library variable collections. Check this before building so you reuse tokens and components.',
+    'Local variables (with modes and values), paint/text/effect styles, local components with their properties; library components, variables and styles already used on the page (names and keys to reuse; private library components are flagged); optionally the variable collections of enabled libraries. Check this before building so you reuse tokens and components.',
   input: S.DesignSystemInput,
   readOnly: true,
   timeoutMs: () => 120000,
@@ -458,6 +444,8 @@ tool('render_tree', {
   description: `Create a layout from a nested JSON tree (frames with auto layout, text, rect, ellipse, svg icons, images, component instances, sections).
 Build screens level by level: first the screen frame with empty named regions, then one render_tree{parentId: <region id>} per region, checking each with screenshot before the next.
 Rules: one wrapper frame per call; use layout HORIZONTAL/VERTICAL with gap/padding instead of x/y; widthMode FILL needs an auto-layout parent; text wraps when it has a width or widthMode FILL; colors are hex or {var:"name"} to bind variables; text styles/paint styles/effect styles by name.
+In FigJam files the same call builds boards with FigJam types: sticky {text, color, isWide}, shape {shape, text}, connector {from, to (node ids or same-call "Root/Child" keys), lineType, caps}, code {code, language}, table {rows, columns, cells}; variables/styles are Design-only and rejected there.
+In Slides files the same call builds decks: slide {row, col, transition, skipped, children}; content trees take parentId: a SLIDE id (required in practice — without it the node falls back to the focused slide in Single Slide View, reported as parentNote). Auto-HUG is disabled in Slides; pass widthMode/heightMode explicitly if needed.
 Images (src / {image}) may be URLs or local paths: the server downloads them. If anything fails, the partial result is removed.
 Returns rootId and an ids map "Root/Child/Grandchild" → node id.`,
   input: S.RenderTreeInput,
@@ -467,7 +455,7 @@ Returns rootId and an ids map "Root/Child/Grandchild" → node id.`,
 
 tool('update_nodes', {
   description:
-    'Patch properties of existing nodes in a batch, using the same properties as render_tree (text, fonts, fills, stroke, radius, effects, layout, padding, gap, sizing, variables, instance variant/properties/texts, component swap). Returns updated and failed ids.',
+    'Patch properties of existing nodes in a batch, using the same properties as render_tree (text, fonts, fills, stroke, radius, effects, layout, padding, gap, sizing, variables, instance variant/properties/texts, component swap). On FigJam boards text edits sticky/shape/connector sublayers, cells rewrites table content, and from/to rewires connectors. Returns updated and failed ids.',
   input: S.UpdateNodesInput,
   timeoutMs: () => 60000,
   prepare: (args) => inlineImages(args),
@@ -560,7 +548,7 @@ Safety: never deletes the last page, refuses name collisions, reports unknown pa
 
 tool('search_design_system', {
   description: `Ranked search over local components (with their properties), variables (collection, value, primitive or not) and paint/text/effect/grid styles — figma-ui-flow rule #3 "search before you create". Call it before creating any component, token or style.
-includeLibraries also searches variables of enabled team libraries (library components cannot be listed by the Plugin API).`,
+includeLibraries also searches the library components, variables and styles used on the current page and the variables of enabled libraries (the Plugin API cannot list a library's other components).`,
   input: S.SearchDesignSystemInput,
   readOnly: true,
   noPage: true,
@@ -692,9 +680,6 @@ tool('export_assets', {
   },
 });
 
-// The real port is written atomically (tmp file → rename) so a reader never
-// sees a half-written file if the server is killed mid-write. Tests point
-// FIGMA_AGENT_PORT_FILE somewhere else so they never touch the real file.
 function writePortFile(actualPort: number) {
   const target = process.env.FIGMA_AGENT_PORT_FILE ?? join(homedir(), '.figma-agent', 'port-design');
   mkdirSync(dirname(target), { recursive: true });
@@ -715,8 +700,6 @@ main().catch((e) => {
   process.exit(1);
 });
 
-// Exit with the MCP client: the WebSocket server would otherwise keep the
-// process (and the port) alive.
 const shutdown = () => void bridge.stop().finally(() => process.exit(0));
 process.stdin.on('close', shutdown);
 process.on('SIGINT', shutdown);

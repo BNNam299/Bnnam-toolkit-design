@@ -1,149 +1,111 @@
 {
   "type": "frame",
-  "name": "Fintech Wallet Home",
-  "width": 390,
-  "height": 844,
+  "name": "Vi dien tu",
   "layout": "VERTICAL",
+  "gap": 24,
+  "padding": 32,
   "fill": "#F8FAFC",
-  "padding": [24, 20],
-  "gap": 20,
-  "clip": true,
+  "width": 420,
   "children": [
     {
+      "type": "text",
+      "name": "tieu-de",
+      "text": "Ví của tôi",
+      "fontSize": 28
+    },
+    {
       "type": "frame",
-      "name": "Header",
-      "layout": "HORIZONTAL",
-      "widthMode": "FILL",
-      "justify": "SPACE_BETWEEN",
-      "align": "CENTER",
+      "name": "the-so-du",
+      "layout": "VERTICAL",
+      "gap": 8,
+      "padding": 24,
+      "fill": "#0F172A",
+      "radius": 16,
       "children": [
         {
-          "type": "frame",
-          "name": "Greeting",
-          "layout": "VERTICAL",
-          "gap": 4,
-          "children": [
-            { "type": "text", "name": "Hello", "text": "Xin chào buổi chiều", "fontSize": 13, "color": "#64748B" },
-            { "type": "text", "name": "User name", "text": "Minh Nguyễn", "fontSize": 20, "fontWeight": 700, "color": "#0F172A" }
-          ]
+          "type": "text",
+          "name": "nhan-so-du",
+          "text": "Số dư khả dụng",
+          "fontSize": 16,
+          "color": "#94A3B8"
         },
         {
-          "type": "frame",
-          "name": "Avatar",
-          "width": 44,
-          "height": 44,
-          "radius": 22,
-          "fill": "#E2E8F0",
-          "layout": "HORIZONTAL",
-          "justify": "CENTER",
-          "align": "CENTER",
-          "children": [
-            { "type": "text", "name": "Initials", "text": "MN", "fontSize": 14, "fontWeight": 700, "color": "#334155" }
-          ]
+          "type": "text",
+          "name": "so-du",
+          "text": "12.450.000đ",
+          "fontSize": 40,
+          "color": "#FFFFFF"
         }
       ]
     },
     {
       "type": "frame",
-      "name": "Balance Card",
-      "layout": "VERTICAL",
-      "widthMode": "FILL",
-      "padding": 24,
+      "name": "hang-nut",
+      "layout": "HORIZONTAL",
       "gap": 16,
-      "radius": 20,
-      "fill": {
-        "gradient": "LINEAR",
-        "angle": 135,
-        "stops": [
-          { "color": "#1E293B", "position": 0 },
-          { "color": "#334155", "position": 1 }
-        ]
-      },
-      "effects": "lg",
       "children": [
-        { "type": "text", "name": "Label", "text": "Tổng số dư khả dụng", "fontSize": 13, "color": "#94A3B8" },
-        { "type": "text", "name": "Amount", "text": "128.500.000 ₫", "fontSize": 32, "fontWeight": 700, "color": "#FFFFFF", "letterSpacing": "-2%" },
         {
           "type": "frame",
-          "name": "Actions",
+          "name": "nut-nap",
           "layout": "HORIZONTAL",
-          "widthMode": "FILL",
-          "gap": 12,
+          "padding": 16,
+          "fill": "#22D3EE",
+          "radius": 12,
           "children": [
             {
-              "type": "frame",
-              "name": "Button/Send",
-              "layout": "HORIZONTAL",
-              "widthMode": "FILL",
-              "padding": 12,
-              "radius": 12,
-              "fill": "#3B82F6",
-              "justify": "CENTER",
-              "gap": 8,
-              "align": "CENTER",
-              "children": [
-                {
-                  "type": "svg",
-                  "name": "Icon/Send",
-                  "width": 16,
-                  "height": 16,
-                  "color": "#FFFFFF",
-                  "svg": "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"m22 2-7 20-4-9-9-4Z\"/><path d=\"M22 2 11 13\"/></svg>"
-                },
-                { "type": "text", "name": "Label", "text": "Chuyển tiền", "fontSize": 14, "fontWeight": 600, "color": "#FFFFFF" }
-              ]
-            },
+              "type": "text",
+              "name": "nhan-nap",
+              "text": "Nạp tiền",
+              "fontSize": 20,
+              "color": "#0F172A"
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "name": "nut-chuyen",
+          "layout": "HORIZONTAL",
+          "padding": 16,
+          "fill": "#E2E8F0",
+          "radius": 12,
+          "children": [
             {
-              "type": "frame",
-              "name": "Button/Top up",
-              "layout": "HORIZONTAL",
-              "widthMode": "FILL",
-              "padding": 12,
-              "radius": 12,
-              "fill": "#FFFFFF1A",
-              "stroke": { "color": "#FFFFFF33", "width": 1 },
-              "justify": "CENTER",
-              "children": [
-                { "type": "text", "name": "Label", "text": "Nạp ví", "fontSize": 14, "fontWeight": 500, "color": "#FFFFFF" }
-              ]
+              "type": "text",
+              "name": "nhan-chuyen",
+              "text": "Chuyển khoản",
+              "fontSize": 20
             }
           ]
         }
       ]
     },
     {
+      "type": "text",
+      "name": "tieu-de-lich-su",
+      "text": "Giao dịch gần đây",
+      "fontSize": 20
+    },
+    {
       "type": "frame",
-      "name": "Recent Transactions",
-      "layout": "VERTICAL",
-      "widthMode": "FILL",
+      "name": "giao-dich-1",
+      "layout": "HORIZONTAL",
       "gap": 12,
+      "padding": 16,
+      "fill": "#FFFFFF",
+      "radius": 12,
       "children": [
-        { "type": "text", "name": "Title", "text": "Giao dịch gần đây", "fontSize": 16, "fontWeight": 700, "color": "#0F172A" },
         {
-          "type": "frame",
-          "name": "Transaction",
-          "layout": "HORIZONTAL",
-          "widthMode": "FILL",
-          "padding": 16,
-          "gap": 12,
-          "radius": 14,
-          "fill": "#FFFFFF",
-          "stroke": { "color": "#E2E8F0", "width": 1 },
-          "align": "CENTER",
-          "children": [
-            {
-              "type": "frame",
-              "name": "Info",
-              "layout": "VERTICAL",
-              "widthMode": "FILL",
-              "gap": 4,
-              "children": [
-                { "type": "text", "name": "Merchant", "text": "Highlands Coffee", "fontSize": 15, "fontWeight": 600, "color": "#0F172A", "widthMode": "FILL", "maxLines": 1 },
-                { "type": "text", "name": "Time", "text": "Hôm nay, 08:30", "fontSize": 12, "color": "#64748B" }
-              ]
-            },
-            { "type": "text", "name": "Amount", "text": "- 55.000 ₫", "fontSize": 15, "fontWeight": 600, "color": "#EF4444" }
-          ]
+          "type": "text",
+          "name": "mo-ta-1",
+          "text": "Nhận lương tháng 11",
+          "fontSize": 18
+        },
+        {
+          "type": "text",
+          "name": "so-tien-1",
+          "text": "+15.000.000đ",
+          "fontSize": 18,
+          "color": "#16A34A"
         }
       ]
     }

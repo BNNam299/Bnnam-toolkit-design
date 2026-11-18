@@ -119,7 +119,6 @@ describe('DTCG tokens (check_tokens.py format)', () => {
   });
 });
 
-// -- figma-ui-flow parity: lint / import / export -----------------------------
 import { execFileSync } from 'node:child_process';
 import { readFileSync, writeFileSync, mkdtempSync } from 'node:fs';
 import { tmpdir } from 'node:os';
@@ -136,7 +135,7 @@ function python(file: string): unknown | null {
     return JSON.parse(out);
   } catch (e) {
     const err = e as { stdout?: string; code?: string };
-    if (err.code === 'ENOENT') return null; // no python3 on this machine
+    if (err.code === 'ENOENT') return null;
     return err.stdout ? JSON.parse(err.stdout) : null;
   }
 }
@@ -166,7 +165,7 @@ describe('lintTokens ≡ scripts/check_tokens.py', () => {
       writeFileSync(file, JSON.stringify(data));
       const py = python(file);
       const ts = lintTokens(data);
-      if (py === null) return; // python3 missing: TS-only assertions below still run
+      if (py === null) return;
       expect(ts).toEqual(py);
     });
   }
@@ -195,7 +194,6 @@ describe('planTokenImport', () => {
       scopes: ['TEXT_FILL'],
       values: { Light: { alias: 'Primitives/color/gray/900' }, Dark: { alias: 'Primitives/color/gray/50' } },
     });
-    // A token without modes in a multi-mode collection uses $value everywhere.
     expect(sem.variables.find((v) => v.name === 'space/inset/md')).toMatchObject({
       scopes: ['GAP'],
       values: { Light: { alias: 'Primitives/space/4' }, Dark: { alias: 'Primitives/space/4' } },
@@ -212,7 +210,6 @@ describe('planTokenImport', () => {
     expect(inferScopes('color/border/strong', 'COLOR', false)).toEqual(['STROKE_COLOR']);
     expect(inferScopes('radius/lg', 'FLOAT', false)).toEqual(['CORNER_RADIUS']);
     expect(inferScopes('duration/base', 'FLOAT', false)).toEqual([]);
-    // Stroke weight, not a width; type scale steps are font sizes.
     expect(inferScopes('border/width/thin', 'FLOAT', false)).toEqual(['STROKE_FLOAT']);
     expect(inferScopes('type/title-md', 'FLOAT', false)).toEqual(['FONT_SIZE']);
     expect(inferScopes('size/touch-target', 'FLOAT', false)).toEqual(['WIDTH_HEIGHT']);

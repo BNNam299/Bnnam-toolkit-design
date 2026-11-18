@@ -1,10 +1,3 @@
-// Pure QA logic for the figma-ui-flow audit (Stage 7). Kept free of the
-// Figma API so it can be unit-tested; the plugin command feeds it node data.
-//
-// Severity mapping follows figma-ui-flow `handoff-qa.md` §3:
-//   🔴 Chặn   – broken behaviour, broken layout, WCAG AA violation, missing state
-//   🟡 Nên sửa – inconsistency, system debt (raw values, off-scale spacing)
-//   🔵 Gợi ý  – quality improvement
 
 export type RGB = { r: number; g: number; b: number };
 
@@ -51,7 +44,6 @@ export const SEVERITY: Record<IssueKind, Severity> = {
   'raw-radius': 'should',
   'corner-smoothing': 'should',
   'primitive-bound': 'should',
-  // The binding looks right but Figma paints the stale colour: broken render.
   'stale-paint': 'block',
   'icon-offcenter': 'should',
   lorem: 'should',
@@ -63,14 +55,10 @@ export const SEVERITY: Record<IssueKind, Severity> = {
 
 export const SEVERITY_LABEL: Record<Severity, string> = { block: '🔴 Chặn', should: '🟡 Nên sửa', nice: '🔵 Gợi ý' };
 
-// `Frame 12`, `Rectangle 4`… — the names Figma invents.
 export const DEFAULT_NAME = /^(Frame|Rectangle|Ellipse|Group|Vector|Text|Line|Polygon|Star|Component|Slice|Boolean|Shape|Union|Subtract|Intersect|Exclude) \d+$/;
 
-// `file-standards.md` §2.4 forbids these outright.
 export const BLACKLISTED_NAME = /^(Copy( of .*)?|Final([- ]?final)*([- ]?v\d+)?|Untitled|Group \d+ copy)$/i;
 
-// A bound paint whose own colour is not the variable's value: Figma renders
-// the paint colour, so the layer shows the stale one. Within 1/255 is equal.
 export function colorsDiffer(paint: RGB, value: RGB): boolean {
   const eps = 1 / 255;
   return Math.abs(paint.r - value.r) > eps || Math.abs(paint.g - value.g) > eps || Math.abs(paint.b - value.b) > eps;
@@ -83,7 +71,6 @@ export function nameProblem(name: string): 'default-name' | 'blacklisted-name' |
   return null;
 }
 
-// --- colour contrast (WCAG 2.x) -------------------------------------------
 
 export function relativeLuminance(c: RGB): number {
   const f = (v: number) => (v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4));
@@ -102,14 +89,11 @@ const isBold = (weight: number | string | undefined): boolean => {
   return false;
 };
 
-// WCAG: large text (≥24px, or ≥18.66px bold) needs 3:1, everything else 4.5:1.
 export function contrastThreshold(fontSize = 14, fontWeight?: number | string): number {
   const large = fontSize >= 24 || (fontSize >= 18.66 && isBold(fontWeight));
   return large ? 3 : 4.5;
 }
 
-// Gradient backdrops (B2): the text must pass against every stop, so the
-// verdict is the worst stop. Images stay unverifiable (needs-check).
 export function worstContrast(fg: RGB, stops: RGB[], fontSize?: number, fontWeight?: number | string) {
   let worst = contrastVerdict(fg, stops[0], fontSize, fontWeight);
   for (const s of stops.slice(1)) {
@@ -119,7 +103,6 @@ export function worstContrast(fg: RGB, stops: RGB[], fontSize?: number, fontWeig
   return worst;
 }
 
-// handoff-qa.md F1: placeholder copy must not reach handoff.
 export const LOREM = /lorem ipsum|dolor sit amet|consectetur adipiscing/i;
 
 export function contrastVerdict(fg: RGB, bg: RGB, fontSize?: number, fontWeight?: number | string) {
@@ -128,9 +111,7 @@ export function contrastVerdict(fg: RGB, bg: RGB, fontSize?: number, fontWeight?
   return { ratio: Math.round(ratio * 100) / 100, need, pass: ratio >= need };
 }
 
-// --- spacing scale (file-standards.md §3.3) -------------------------------
 
-// 4/8 rhythm: 2, 4, 8, 12, 16, 20, 24, 32, 40, 48, 64 (+ 0 and the "full" 999).
 export const SPACE_SCALE = [0, 2, 4, 8, 12, 16, 20, 24, 32, 40, 48, 64, 999];
 
 export function isOffScale(value: number | undefined): boolean {
@@ -139,15 +120,11 @@ export function isOffScale(value: number | undefined): boolean {
   return !SPACE_SCALE.some((s) => Math.abs(s - value) < 0.51);
 }
 
-// --- structure ------------------------------------------------------------
 
-// A frame that only wraps a single child and adds nothing visual is noise
-// (file-standards.md §3.4).
 export function isRedundantWrapper(n: { type?: string; childCount?: number; hasVisual?: boolean; hasPadding?: boolean }): boolean {
   return n.type === 'FRAME' && (n.childCount ?? 0) === 1 && !n.hasVisual && !n.hasPadding;
 }
 
-// Tap-target: WCAG 2.5.8 requires ≥24px (AA); the platform standards ask 44/48.
 export function targetSeverity(width: number, height: number): Severity | null {
   const min = Math.min(width, height);
   if (min < 24) return 'block';
@@ -155,7 +132,6 @@ export function targetSeverity(width: number, height: number): Severity | null {
   return null;
 }
 
-// --- report ---------------------------------------------------------------
 
 export interface Issue {
   id: string;
@@ -163,8 +139,6 @@ export interface Issue {
   name: string;
   detail?: string;
   rect?: { x: number; y: number; w: number; h: number };
-  // Per-issue override: e.g. an unverifiable contrast case is "nice", and a
-  // 24–43pt tap target is "should" while <24pt is "block".
   severity?: Severity;
 }
 
@@ -190,7 +164,6 @@ export function buildReport(scope: string, scanned: number, issues: Issue[], lim
   return { scope, scanned, issues, counts, severity, samples, truncated: issues.length > Object.keys(counts).length * limit };
 }
 
-// Renders `assets/qa-report.template.md` of the figma-ui-flow skill.
 export function toQaMarkdown(report: AuditReport, opts: { file?: string; date?: string; author?: string } = {}): string {
   const rows: string[] = [];
   let n = 0;

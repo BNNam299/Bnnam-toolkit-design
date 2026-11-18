@@ -1,0 +1,6 @@
+schema_version: "1.1"
+name: flows-from-partial-prd
+context:
+  scaffold_script: place-files.sh
+expected_outcome: |
+  design/prd.md marks users, jobs and the screen list as present and task analysis, sitemap and overall flows as absent; design/flows.md keeps the PRD screen ids, builds the missing sitemap (choosing a navigation type with a reason) and flows itself, and the report says which parts came from the PRD and which were built.

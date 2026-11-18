@@ -42,5 +42,24 @@ by: claude-code
 - verbatim: "…"
 - source: —
 
+## UX already in the PRD
+
+<!-- Only what the PRD itself contains — found by content, not heading (references/prd-read.md §6.1). Job 3 starts from the
+     present / partial parts and builds the absent ones. Nothing found → write "none — Job 3 builds everything itself". -->
+
+| Part | Status | What is there / what is missing | Source |
+|---|---|---|---|
+| Users (personas, non-users) | present · partial · absent | | |
+| Jobs | | | |
+| Journey + value moment | | | |
+| Task analysis | | | |
+| Sitemap / IA (navigation type) | | | |
+| Screen list | | | |
+| Flows (overall · per feature · unhappy branches) | | | |
+| Onboarding | | | |
+| Screens often forgotten | | | |
+
+<!-- Under the table, the extracted items themselves — ids kept as in the PRD (PER-01, JTBD-01, SCR-03…), each with source: -->
+
 ## Gaps — ask the user
 - —

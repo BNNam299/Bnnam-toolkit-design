@@ -11,7 +11,6 @@ export async function resolveFill(input: FillInput, res: Resources): Promise<Res
     if (list.length > 1) throw new Error('A paint style must be the only entry of a fill.');
     return { style: await res.paintStyle(styleRef.style) };
   }
-  // Figma paints are listed bottom-up; the DSL lists them top-down like CSS.
   const paints = await Promise.all(list.map((p) => toPaint(p, res)));
   return { paints: paints.reverse() };
 }
@@ -44,12 +43,9 @@ async function toPaint(p: PaintInput, res: Resources): Promise<Paint> {
     return { type: 'IMAGE', imageHash: res.imageHash(p.imageBase64), scaleMode: p.scaleMode ?? 'FILL' };
   }
   if ('image' in p && p.image.startsWith('hash:')) {
-    // Round-trip of an existing image as reported by get_node.
     return { type: 'IMAGE', imageHash: p.image.slice(5), scaleMode: p.scaleMode ?? 'FILL' };
   }
   if ('image' in p) {
-    // Normally the MCP server downloads images and sends imageBase64. This
-    // path is only reached from the in-plugin test box.
     const image = await figma.createImageAsync(p.image);
     return { type: 'IMAGE', imageHash: image.hash, scaleMode: p.scaleMode ?? 'FILL' };
   }

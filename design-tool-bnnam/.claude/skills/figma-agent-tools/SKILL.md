@@ -1,6 +1,6 @@
 ---
 name: figma-agent-tools
-description: Operator's manual for every figma-agent MCP tool (figma_status, get_document_info, get_design_system, search_design_system, render_tree, update_nodes, screenshot, audit_design, create_variables, import_tokens, create_styles, create_component_set, stress_test, set_interactions, bind_variables, rename_by_rule, annotate, set_dev_status, export_tokens, export_assets, execute_code…) that drive the figma-agent-UI · Design plugin in the user's open Figma file, plus gemini-image-mcp for generated images. Use whenever a figma-agent tool is about to be called — reading, creating, editing, moving, deleting, screenshotting, auditing, tokens, prototype, handoff — including Vietnamese phrasings such as "sửa màu layer", "chỉnh spacing", "chụp lại frame", "kiểm tra file Figma", "xoá layer". For how to design a screen (flow, outside-in build loop, quality bar) also load figma-ui-flow.
+description: Operator's manual for every figma-agent MCP tool (figma_status, get_document_info, get_design_system, search_design_system, render_tree, update_nodes, screenshot, audit_design, create_variables, import_tokens, create_styles, create_component_set, stress_test, set_interactions, bind_variables, rename_by_rule, annotate, set_dev_status, export_tokens, export_assets, execute_code…) that drive the figma-agent-UI · Design plugin in the user's open Figma file. Use whenever a figma-agent tool is about to be called — reading, creating, editing, moving, deleting, screenshotting, auditing, tokens, prototype, handoff — including Vietnamese phrasings such as "sửa màu layer", "chỉnh spacing", "chụp lại frame", "kiểm tra file Figma", "xoá layer". For how to design a screen (flow, outside-in build loop, quality bar) also load figma-ui-flow.
 ---
 
 # figma-agent-tools — how to drive the figma-agent MCP
@@ -10,7 +10,7 @@ This skill is about **mechanics**: which tool, which parameters, what comes back
 | Need | Read |
 |---|---|
 | Every tool: purpose, key params, return value, pitfalls | `references/tool-reference.md` |
-| Full `render_tree` / `update_nodes` vocabulary, building in passes | `references/render-tree-dsl.md` |
+| Full `render_tree` / `update_nodes` vocabulary, building in passes, FigJam (sticky, shape, connector, table, code) and Slides nodes | `references/render-tree-dsl.md` |
 | `execute_code` recipes (variables, binding, auto layout, text, components) | `references/plugin-api-recipes.md` |
 | An error message, a stuck plugin, version mismatch, plan limits | `references/troubleshooting.md` |
 | Ready-made `execute_code` scripts (audit, detect, bind, clone, flow map, background, prototype…) and the skill that owns each | `../bnnam-standards/SKILL.md` › Team scripts |
@@ -46,7 +46,7 @@ This skill is about **mechanics**: which tool, which parameters, what comes back
 | Copy art into vectors (figma-vector-illustration only) | `build_vectors{path, groups}` — builds named vector groups from a scene file its `scripts/vectorize.cjs` wrote |
 | Read a vector frame as data for animation (figma-vector-motion only) | `export_rig{nodeId, path}` — writes outlines in frame px, paints, masks, names and Figma Motion keys (per part, with its transform origin; the timeline length) to a JSON file; returns the group tree, the animated parts, `motionApi` (ok / unavailable) and warnings. Read-only. Writing Motion keys: the motion skill's `figma-apply-motion.js` through `execute_code` |
 | Anything else in the Plugin API | `execute_code` (last resort) |
-| Generated images | `gemini-image-mcp`: `bridge_status` → `image_generate{prompt, savePath, aspectRatio}` → local path into `image.src` / `fill.image` |
+| Images | no generator here — the designer makes them from a prompt (`generating-oneshot-image-prompts`), then `image.src` / `fill.image` with the absolute path (`references/tool-reference.md` §8) |
 
 Order of preference: dedicated tool → `render_tree`/`update_nodes` → `execute_code`. Dedicated tools validate input, return ids and clean up on failure; `execute_code` does none of that.
 

@@ -11,8 +11,6 @@ import { Resources } from '../resources';
 import { summary } from '../serialize';
 import { findNode, getContainer, getSceneNode } from '../util';
 
-// Applies every update; failures are reported per node instead of aborting
-// the batch, so the agent knows exactly which ids changed.
 export async function updateNodes(p: UpdateNodesInput) {
   const ctx: ApplyCtx = { res: new Resources(), defaultFont: 'Inter' };
   const updated: string[] = [];
@@ -24,7 +22,6 @@ export async function updateNodes(p: UpdateNodesInput) {
       await applyProps(node, u.props, ctx, false);
       applyPlacement(node, u.props, false);
       updated.push(u.id);
-      // The node may be the slot or the icon inside it: check both.
       touched.push(node);
       if (node.parent) touched.push(node.parent);
     } catch (e) {

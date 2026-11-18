@@ -1,6 +1,6 @@
 {
   "name": "figma-agent-UI",
-  "version": "1.2.0",
+  "version": "1.4.0",
   "description": "Figma plugin + MCP server that lets an AI agent read, create, edit and screenshot designs",
   "main": "code.js",
   "scripts": {
@@ -13,8 +13,8 @@
     "lint:fix": "eslint . --fix",
     "test": "vitest run"
   },
-  "author": "",
-  "license": "",
+  "author": "Bnnam",
+  "license": "MIT",
   "devDependencies": {
     "@eslint/js": "^9.39.4",
     "@figma/eslint-plugin-figma-plugins": "*",

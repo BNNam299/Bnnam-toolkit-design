@@ -62,7 +62,7 @@ When unsure, use **New build** for the first screen of a set and **From template
   └─ Top Container     pinned top · HUG        safe area 62 · close · restore
   ```
 - Inventory what to reuse (`search_design_system`, `get_design_system`). Mark standard elements and blocks identical to a screen already built — they become components in Pass 2.
-- Generate images now (gemini) so Pass 2 only attaches them.
+- List the images the screen needs and write their prompts now (`generating-oneshot-image-prompts`); the designer generates them in their own tool, and Pass 2 attaches whatever files exist (placeholders for the rest).
 - In **Sketch** mode this pass is a few lines in your head; in **From template** it is "what differs from the template".
 
 ## 5. Pass 1 — Layout
@@ -120,7 +120,7 @@ When unsure, use **New build** for the first screen of a set and **From template
 
 ## 11. Example: Paywall / Timeline (New build)
 
-**Pass 0:** goal = start a trial, CTA "Start free trial". Map as in §4. Timeline step is a list-row-like standard element → component. Hero generated with gemini → `generated-images/paywall-c-hero.png`.
+**Pass 0:** goal = start a trial, CTA "Start free trial". Map as in §4. Timeline step is a list-row-like standard element → component. Hero prompt written; the designer generates it → `generated-images/paywall-c-hero.png`.
 
 **Pass 1 (1 write):**
 

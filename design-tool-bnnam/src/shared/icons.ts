@@ -1,8 +1,3 @@
-// Icon slots: a small frame (≤ 64×64) holding a single icon. The glyph has to
-// sit on the slot's centre, and nothing in Figma says when it doesn't — the
-// usual causes are a slot without auto layout, justify/align left at START or
-// swapped between axes, uneven padding, or a glyph drawn off-centre inside its
-// own SVG viewBox / text box. Pure logic, unit-tested; the plugin measures.
 
 export interface Box {
   x: number;
@@ -14,20 +9,18 @@ export interface Box {
 export interface SlotInfo {
   box: Box;
   layout: 'NONE' | 'HORIZONTAL' | 'VERTICAL' | 'GRID';
-  primary?: string; // primaryAxisAlignItems
-  counter?: string; // counterAxisAlignItems
-  padding?: [number, number, number, number]; // top, right, bottom, left
+  primary?: string;
+  counter?: string;
+  padding?: [number, number, number, number];
 }
 
 export const MAX_SLOT = 64;
-// Half a pixel is anti-aliasing; a whole pixel is visible on a 24px glyph.
 export const ICON_TOLERANCE = 1;
 
 export function isSlotSize(box: Box): boolean {
   return box.w > 0 && box.h > 0 && box.w <= MAX_SLOT && box.h <= MAX_SLOT;
 }
 
-/** Glyph centre minus slot centre, in px (+x right, +y down). */
 export function glyphOffset(slot: Box, glyph: Box): { dx: number; dy: number } {
   const round = (n: number) => Math.round(n * 10) / 10;
   return {
@@ -41,11 +34,6 @@ const direction = (dx: number, dy: number) =>
     .filter(Boolean)
     .join(' ');
 
-/**
- * Why the glyph is off-centre and how to fix it, or null when it is centred.
- * `inFrame` is the glyph's offset inside its own icon box (SVG frame, text):
- * when the slot centres the box correctly, that is the only cause left.
- */
 export function iconProblem(slot: SlotInfo, glyph: Box, inFrame?: { dx: number; dy: number }): string | null {
   const { dx, dy } = glyphOffset(slot.box, glyph);
   if (Math.abs(dx) <= ICON_TOLERANCE && Math.abs(dy) <= ICON_TOLERANCE) return null;

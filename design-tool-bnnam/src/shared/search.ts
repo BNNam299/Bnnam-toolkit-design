@@ -1,8 +1,4 @@
-// Ranking for `search_design_system` (figma-ui-flow rule #3: search before you
-// create). Pure so the scoring stays unit-testable; the plugin feeds it names.
 
-// Lowercase, strip Vietnamese diacritics and split on the separators Figma
-// names use: "Button/Primary", "color/text/primary", "Size=md, State=Default".
 export function normalize(s: string): string {
   return s
     .normalize('NFD')
@@ -14,8 +10,6 @@ export function normalize(s: string): string {
 
 export const tokensOf = (s: string): string[] => normalize(s).split(/[\s/=,._-]+/).filter(Boolean);
 
-// 100 exact · 90 last segment exact · 80 prefix · 60 every query word is a
-// segment · 40 every query word is a substring · 20 subsequence · 0 no match.
 export function scoreName(query: string, name: string): number {
   const q = normalize(query);
   const n = normalize(name);

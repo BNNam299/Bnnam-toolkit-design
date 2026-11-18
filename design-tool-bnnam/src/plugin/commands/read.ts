@@ -10,6 +10,8 @@ import type {
 import { toHex } from '../../shared/values';
 import { listFonts } from '../fonts';
 import { Serializer, summary } from '../serialize';
+import { isPrivateName, remoteInUse } from '../library';
+import type { RemoteInUse } from '../library';
 import { getNode, getSceneNode } from '../util';
 
 export async function getDocumentInfo() {
@@ -52,8 +54,8 @@ export async function findNodes(p: FindNodesInput) {
   const name = p.name?.toLowerCase();
   const text = p.text?.toLowerCase();
   const match = (n: SceneNode) =>
-    (!name || n.name.toLowerCase().includes(name)) &&
-    (!text || (n.type === 'TEXT' && n.characters.toLowerCase().includes(text)));
+    (!name || (n.name ?? '').toLowerCase().includes(name)) &&
+    (!text || (figjamText(n)?.toLowerCase().includes(text) ?? false));
   const container = root as ChildrenMixin;
   const candidates = p.types?.length
     ? container.findAllWithCriteria({ types: p.types as NodeType[] })
@@ -62,7 +64,17 @@ export async function findNodes(p: FindNodesInput) {
   return { total: hits.length, nodes: hits.slice(0, p.limit).map(summary) };
 }
 
-// get_variable_defs equivalent: tokens actually bound inside one subtree.
+function figjamText(n: SceneNode): string | null {
+  if (n.type === 'TEXT') return (n as TextNode).characters;
+  if (n.type === 'STICKY' || n.type === 'SHAPE_WITH_TEXT' || n.type === 'CONNECTOR') {
+    return (n as StickyNode).text.characters;
+  }
+  if ((n as { type: string }).type === 'TABLE_CELL') {
+    return (n as unknown as StickyNode).text.characters;
+  }
+  return null;
+}
+
 async function usedIn(id: string) {
   const root = await getNode(id);
   const nodes: BaseNode[] = [root, ...('findAll' in root ? (root as ChildrenMixin).findAll(() => true) : [])];
@@ -76,8 +88,6 @@ async function usedIn(id: string) {
     else Object.values(value).forEach(collect);
   };
   for (const n of nodes) {
-    // Paint bindings are mirrored in node.boundVariables.fills/strokes, so
-    // reading the paints too would count them twice.
     collect((n as SceneNode & { boundVariables?: unknown }).boundVariables);
     for (const key of ['fillStyleId', 'strokeStyleId', 'effectStyleId', 'textStyleId', 'gridStyleId'] as const) {
       const v = (n as unknown as Record<string, unknown>)[key];
@@ -102,6 +112,8 @@ export async function getDesignSystem(p: DesignSystemInput) {
   if (p.usedIn) return usedIn(p.usedIn);
   const out: Record<string, unknown> = {};
   const inc = new Set(p.include);
+  let remote: Promise<RemoteInUse> | undefined;
+  const inUse = () => (remote ??= remoteInUse());
 
   if (inc.has('variables')) {
     const collections = await figma.variables.getLocalVariableCollectionsAsync();
@@ -144,6 +156,7 @@ export async function getDesignSystem(p: DesignSystemInput) {
       })),
       effect: effect.map((s) => ({ name: s.name, effects: s.effects.map((e) => e.type) })),
     };
+    out.libraryStylesUsedOnPage = (await inUse()).styles.map((s) => ({ name: s.name, key: s.key, id: s.id, type: s.type }));
   }
 
   if (inc.has('components')) {
@@ -167,23 +180,34 @@ export async function getDesignSystem(p: DesignSystemInput) {
     }));
     out.localComponentCount = top.length;
 
-    // Library components cannot be listed by the Plugin API; report the ones
-    // already used on the current page so their keys can be reused.
-    const remote = new Map<string, Record<string, unknown>>();
-    for (const inst of figma.currentPage.findAllWithCriteria({ types: ['INSTANCE'] })) {
-      if (remote.size >= p.componentLimit) break;
-      const main = await inst.getMainComponentAsync();
-      if (!main?.remote) continue;
-      const owner = main.parent?.type === 'COMPONENT_SET' ? main.parent : main;
-      if (!remote.has(owner.key)) remote.set(owner.key, { name: owner.name, key: owner.key, type: owner.type });
-    }
-    out.libraryComponentsUsedOnPage = [...remote.values()];
+    out.libraryComponentsUsedOnPage = (await inUse()).components.slice(0, p.componentLimit).map((c) => ({
+      name: c.name,
+      key: c.key,
+      type: c.type,
+      ...(isPrivateName(c.name) ? { private: true, note: 'Not published (name starts with "_" or "."): insert the public component that contains it.' } : {}),
+    }));
+  }
+
+  if (inc.has('variables') || inc.has('library')) {
+    out.libraryVariablesUsedOnPage = await Promise.all(
+      (await inUse()).variables.map(async (v) => ({
+        name: v.name,
+        key: v.key,
+        id: v.id,
+        type: v.resolvedType,
+        collection: (await figma.variables.getVariableCollectionByIdAsync(v.variableCollectionId))?.name,
+      })),
+    );
   }
 
   if (inc.has('library')) {
     try {
       const libs = await figma.teamLibrary.getAvailableLibraryVariableCollectionsAsync();
       out.libraryVariableCollections = libs.map((l) => ({ name: l.name, library: l.libraryName, key: l.key }));
+      if (!libs.length && (await inUse()).variables.length) {
+        out.libraryNote =
+          'No library is enabled in Assets → Libraries, but this page uses library variables (libraryVariablesUsedOnPage): bind them by name or key.';
+      }
     } catch (e) {
       out.libraryVariableCollections = `unavailable: ${String(e)}`;
     }

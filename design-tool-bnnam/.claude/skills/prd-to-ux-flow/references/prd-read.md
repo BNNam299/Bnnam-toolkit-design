@@ -108,6 +108,32 @@ So the user can open the original and find it at once, and the agent can reopen 
 **Never invent** — every number, price and proper name comes from the document. A thin PRD → write it under *Gaps*; do not fill it with
 guesses.
 
+### 6.1 UX work the PRD already did
+
+Some PRDs arrive with UX thinking already done — the product toolkit writes personas, jobs, a journey, task analysis, a text sitemap,
+overall flows, a screen list and onboarding steps into its PRD (§5, §10–12 there); other teams' PRDs may carry a few of these, or none.
+Redoing that work wastes time, and worse, produces a second version that quietly disagrees with the one the team already agreed on. So
+while reading, **look for these by content, not by heading name** (any language, any layout), and extract what exists into the
+section *UX already in the PRD* of `prd.md`:
+
+| Part | Recognise it by | Extract |
+|---|---|---|
+| Users | personas, "who is NOT a user", empathy map, mental model | id, one-line positioning, goal, pain — and the **proto / assumed** label if the PRD marks it so |
+| Jobs | "When … I want … so that …", jobs to be done, user goals | id + the sentence verbatim |
+| Journey | stages, break points, moment of truth, "aha" / value moment and its step count | stages + the value moment verbatim + step count |
+| Task analysis | goal → task → action table | rows, with the feature / screen each maps to |
+| Sitemap / IA | navigation type (tab, linear, hub…), a screen tree | navigation type + reason, the tree as written |
+| Screen list | screen ids (`SCR-01`…) or a numbered list of screens | id, name, feature, priority |
+| Flows | overall flows (first open → value, daily return), per-feature main flow, unhappy branches, branching tables | steps verbatim, decision points and their outcomes |
+| Onboarding | steps, questions asked, skippable or not | rows |
+| Screens often forgotten | a checklist the PRD gives (paywall + restore, permission + denied, offline…) | the list |
+
+Each part gets a status: **present** (usable as a starting point) · **partial** (say what is missing — e.g. tree without navigation
+type, main flow without unhappy branches) · **absent**. Every extracted item keeps its exact `source:` like any other item.
+
+Nothing found → write *none — Job 3 builds everything itself* and carry on exactly as before. This step never asks the user for UX
+parts the PRD does not have and never blocks: a PRD without UX is a normal PRD.
+
 ## 7. Using `scripts/docx_extract.py`
 
 For a `.docx` PRD:
@@ -138,7 +164,7 @@ Stop and ask:
 - Approval of the PRD extract (report).
 
 Self-check before reporting:
-- Coverage report present (mandatory).
+- Coverage report present (mandatory), including the *UX already in the PRD* line (or *none*).
 - Every item has an exact `source:` (§6).
 - Unreadable embedded tables reported (§8).
 
@@ -153,6 +179,10 @@ Read
   images            6  (looked at 6)
   comments         17  (5 unresolved)
   tracked changes   8  (not accepted)
+
+UX already in the PRD             (Job 3 starts from the present / partial parts)
+  users ✔ present · jobs ✔ · journey + value moment ✔ (4 steps) · task analysis ✗ absent
+  sitemap ◐ partial (tree, no navigation type) · screen list ✔ 14 SCR · flows ◐ (main flows, no unhappy branches) · onboarding ✔
 
 Could not read
   · 1 SmartArt in §5 — the user must describe it or export an image

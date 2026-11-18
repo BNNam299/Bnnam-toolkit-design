@@ -79,6 +79,56 @@ export class Serializer {
     }
 
     if (n.type === 'TEXT') await this.text(n, out);
+    if (n.type === 'STICKY') {
+      const s = n as StickyNode;
+      if (s.text.characters) out.text = s.text.characters;
+      out.author = s.authorName;
+    }
+    if (n.type === 'SHAPE_WITH_TEXT') {
+      const s = n as ShapeWithTextNode;
+      out.shape = s.shapeType;
+      if (s.text.characters) out.text = s.text.characters;
+    }
+    if (n.type === 'CONNECTOR') {
+      const c = n as ConnectorNode;
+      out.lineType = c.connectorLineType;
+      out.caps = { start: c.connectorStartStrokeCap, end: c.connectorEndStrokeCap };
+      out.from = endpointSummary(c.connectorStart);
+      out.to = endpointSummary(c.connectorEnd);
+      if (c.text.characters) out.text = c.text.characters;
+    }
+    if (n.type === 'TABLE') {
+      const t = n as TableNode;
+      out.rows = t.numRows;
+      out.columns = t.numColumns;
+      const { cells, truncated } = tableCells(t);
+      out.cells = cells;
+      if (truncated) out.cellsTruncated = true;
+    }
+    if (n.type === 'CODE_BLOCK') {
+      const c = n as CodeBlockNode;
+      out.code = c.code.length > 400 ? c.code.slice(0, 400) + '…' : c.code;
+      out.language = c.codeLanguage;
+    }
+    if (n.type === 'SLIDE') {
+      const s = n as SlideNode;
+      try {
+        const tr = s.getSlideTransition();
+        out.transition = { style: tr.style, duration: round2(tr.duration) };
+      } catch {
+        out.transition = 'unknown';
+      }
+      out.skipped = s.isSkippedSlide === true;
+    }
+    if (n.type === 'SLIDE_GRID' || n.type === 'SLIDE_ROW') {
+      out.kind = n.type === 'SLIDE_GRID' ? 'slide-grid' : 'slide-row';
+    }
+    if (n.type === 'INTERACTIVE_SLIDE_ELEMENT') {
+      const el = n as InteractiveSlideElementNode;
+      out.elementType = el.interactiveSlideElementType;
+      out.readOnly = true;
+    }
+    if (n.type === 'WIDGET' || n.type === 'STAMP' || n.type === 'BOOLEAN_OPERATION') out.readOnly = true;
     if (n.type === 'INSTANCE') {
       const main = await n.getMainComponentAsync();
       if (main) {
@@ -208,6 +258,30 @@ function isAutoLayoutParent(p: BaseNode | null): boolean {
 
 function mixed<T>(v: T | PluginAPI['mixed']): T | 'MIXED' {
   return v === figma.mixed ? 'MIXED' : (v as T);
+}
+
+function endpointSummary(ep: ConnectorEndpoint): unknown {
+  if (typeof ep === 'object' && ep !== null && 'endpointNodeId' in ep) {
+    const e = ep as { endpointNodeId: string; magnet?: string; position?: { x: number; y: number } };
+    return { id: e.endpointNodeId, ...(e.magnet ? { magnet: e.magnet } : {}), ...(e.position ? { x: e.position.x, y: e.position.y } : {}) };
+  }
+  const p = (ep as { position: { x: number; y: number } }).position;
+  return { x: round2(p.x), y: round2(p.y) };
+}
+
+function tableCells(t: TableNode): { cells: string[][]; truncated: boolean } {
+  const cells: string[][] = [];
+  let count = 0;
+  for (let r = 0; r < t.numRows; r++) {
+    const row: string[] = [];
+    for (let c = 0; c < t.numColumns; c++) {
+      if (count >= 400) return { cells, truncated: true };
+      row.push(t.cellAt(r, c).text.characters);
+      count++;
+    }
+    cells.push(row);
+  }
+  return { cells, truncated: false };
 }
 
 function serializeGrid(g: LayoutGrid): Json {

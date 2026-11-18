@@ -1,5 +1,3 @@
-// The plugin sandbox has no network access, so the server resolves image
-// sources (URL, data: URI, local path) to base64 before forwarding.
 import { readFile } from 'node:fs/promises';
 import { isAbsolute } from 'node:path';
 
@@ -24,8 +22,6 @@ export async function loadImageBase64(src: string): Promise<string> {
   throw new Error(`Unsupported image source "${src}". Use an http(s) URL, data: URI or absolute path.`);
 }
 
-// Walks any JSON value and replaces { image: src } paints and
-// { type: 'image', src } nodes with base64 data, fetching each source once.
 export async function inlineImages<T>(value: T): Promise<T> {
   const cache = new Map<string, Promise<string>>();
   const load = (src: string) => {

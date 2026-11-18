@@ -1,6 +1,3 @@
-// figma-ui-flow Stage 7 fix — bind raw fills, strokes, spacing and radius
-// to Semantic variables in bulk. Matching lives in ../../shared/color.ts;
-// dryRun (default) only reports.
 import { exactNumber, nearestColor, type ColorCandidate, type Field, type NumberCandidate } from '../../shared/color';
 import type { BindVariablesInput } from '../../shared/schemas';
 import { CORNER_SMOOTHING, hasRoundedCorner, parseColor, toHex } from '../../shared/values';
@@ -55,7 +52,6 @@ export async function bindVariables(p: BindVariablesInput) {
     }
   }
 
-  // Explicit map keys: "#2563EB" (colour) or "16" (number).
   const explicit = new Map<string, Variable>();
   for (const [k, name] of Object.entries(p.map ?? {})) {
     const v = byName.get(name) ?? byId.get(name);
@@ -93,8 +89,6 @@ export async function bindVariables(p: BindVariablesInput) {
   if (root.type !== 'PAGE' && root.type !== 'DOCUMENT') nodes.unshift(root as SceneNode);
 
   for (const n of nodes) {
-    // Instances (and their sublayers) are overrides: fix the main component
-    // instead. Sections only carry Figma's default canvas fill.
     if (n.id.startsWith('I') || n.type === 'INSTANCE' || n.type === 'SECTION') {
       skippedInstances++;
       continue;

@@ -1,6 +1,3 @@
-// Planning for `create_component_set` (figma-ui-flow Stage 3, design-system.md
-// §5–6). Pure: names, property definitions and the variant budget are
-// validated before anything is drawn.
 
 export type ComponentPropType = 'TEXT' | 'BOOLEAN' | 'INSTANCE_SWAP';
 
@@ -8,8 +5,6 @@ export interface PropertySpec {
   name: string;
   type: ComponentPropType;
   default: string | boolean;
-  // Layer names inside each variant the property drives: characters (TEXT),
-  // visible (BOOLEAN) or the swapped instance (INSTANCE_SWAP).
   targets: string[];
 }
 
@@ -24,11 +19,8 @@ export interface ComponentSetPlan {
   warnings: string[];
 }
 
-// design-system.md §6.4: above ~50 variants, move axes to properties/modes.
 export const VARIANT_BUDGET = 50;
 
-// "Size=md, State=Default" — axes in a stable order so every variant of the
-// set spells its name the same way.
 export function variantName(props: Record<string, string>, axes: string[]): string {
   return axes.map((a) => `${a}=${props[a]}`).join(', ');
 }
@@ -48,7 +40,6 @@ export function planComponentSet(name: string, variants: VariantSpec[], properti
 
   for (const axis of axes) {
     if (/[=,]/.test(axis)) plan.problems.push(`property "${axis}": không được chứa "=" hoặc ","`);
-    // §6.2: short nouns, Title Case ("Size", "Has icon").
     if (axis[0] && axis[0] !== axis[0].toUpperCase()) plan.warnings.push(`property "${axis}": nên viết hoa chữ đầu (Size, State, Style)`);
   }
 
@@ -74,7 +65,6 @@ export function planComponentSet(name: string, variants: VariantSpec[], properti
     );
   }
 
-  // §6.2: one vocabulary per axis — "md" and "Large" in the same set is a smell.
   for (const axis of axes) {
     const values = new Set(variants.map((v) => v.props[axis]));
     const short = [...values].some((x) => SIZE_SHORT.test(x));

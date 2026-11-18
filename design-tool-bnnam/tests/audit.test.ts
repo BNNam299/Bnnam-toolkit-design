@@ -122,7 +122,7 @@ describe('report', () => {
     expect(md).toContain('| A. Cấu trúc | 0 | 1 | 0 |');
     expect(md).toContain('| E. Accessibility | 2 | 0 | 0 |');
     expect(md).toContain('QA-01');
-    expect(md).toContain('Card\\|Bad'); // pipes escaped
+    expect(md).toContain('Card\\|Bad');
   });
 
   it('passes handoff when nothing is blocking', () => {
@@ -139,7 +139,6 @@ describe('report', () => {
 
 describe('colorsDiffer (stale-paint)', () => {
   it('flags a bound paint that kept its fallback colour', () => {
-    // Manual boundVariables left #FFFFFF while the variable is #1A1A26.
     expect(colorsDiffer(rgb('#FFFFFF'), rgb('#1A1A26'))).toBe(true);
     expect(colorsDiffer(rgb('#000000'), rgb('#55556B'))).toBe(true);
   });

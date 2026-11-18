@@ -1,8 +1,8 @@
-// figma-ui-flow rule #3 "search before you create": one ranked search over local
-// components, variables and styles (and enabled library variables).
 import { rank } from '../../shared/search';
 import type { SearchDesignSystemInput } from '../../shared/schemas';
 import { toHex } from '../../shared/values';
+import { enabledLibraryVariables, errorText, isPrivateName, remoteInUse } from '../library';
+import type { RemoteInUse } from '../library';
 
 interface Hit {
   kind: 'component' | 'variable' | 'style';
@@ -18,20 +18,26 @@ export async function searchDesignSystem(p: SearchDesignSystemInput) {
   const kinds = new Set(p.kinds);
   const items: Hit[] = [];
   const notes: string[] = [];
+  let remote: Promise<RemoteInUse> | undefined;
+  const inUse = () => (remote ??= remoteInUse());
 
   if (kinds.has('component')) {
     await figma.loadAllPagesAsync();
     // eslint-disable-next-line @figma/figma-plugins/dynamic-page-find-method-advice -- pages loaded just above
     const nodes = figma.root.findAllWithCriteria({ types: ['COMPONENT_SET', 'COMPONENT'] });
     for (const n of nodes) {
-      // Variants are found through their set; standalone components directly.
       if (n.type === 'COMPONENT' && n.parent?.type === 'COMPONENT_SET') continue;
       const props = Object.entries(n.componentPropertyDefinitions).map(([k, d]) =>
         d.type === 'VARIANT' ? `${k}=${(d.variantOptions ?? []).join('|')}` : `${k.split('#')[0]}:${d.type}`,
       );
       items.push({ kind: 'component', name: n.name, id: n.id, key: n.key, type: n.type, detail: props.join(', ') || undefined, source: 'local' });
     }
-    notes.push('Plugin API không liệt kê được component của team library; component library đã dùng trên page có trong get_design_system.');
+    if (p.includeLibraries) {
+      for (const c of (await inUse()).components) {
+        items.push({ kind: 'component', name: c.name, key: c.key, type: c.type, detail: isPrivateName(c.name) ? 'private: not published' : undefined, source: 'library' });
+      }
+    }
+    notes.push('Plugin API không liệt kê được component của team library; chỉ tìm được component library đã dùng trên page (includeLibraries).');
   }
 
   if (kinds.has('variable')) {
@@ -59,14 +65,18 @@ export async function searchDesignSystem(p: SearchDesignSystemInput) {
       });
     }
     if (p.includeLibraries) {
+      const seen = new Set<string>();
+      for (const v of (await inUse()).variables) {
+        seen.add(v.key);
+        items.push({ kind: 'variable', name: v.name, id: v.id, key: v.key, type: v.resolvedType, detail: 'used on this page', source: 'library' });
+      }
       try {
-        for (const lc of await figma.teamLibrary.getAvailableLibraryVariableCollectionsAsync()) {
-          for (const lv of await figma.teamLibrary.getVariablesInLibraryCollectionAsync(lc.key)) {
-            items.push({ kind: 'variable', name: lv.name, key: lv.key, type: lv.resolvedType, detail: `${lc.libraryName} · ${lc.name}`, source: 'library' });
-          }
+        for (const lv of await enabledLibraryVariables()) {
+          if (seen.has(lv.key)) continue;
+          items.push({ kind: 'variable', name: lv.name, key: lv.key, type: lv.resolvedType, detail: `${lv.library} · ${lv.collection}`, source: 'library' });
         }
       } catch (e) {
-        notes.push(`Không đọc được library variables: ${String(e)}`);
+        notes.push(`Không đọc được library variables: ${errorText(e)}`);
       }
     }
   }
@@ -84,6 +94,9 @@ export async function searchDesignSystem(p: SearchDesignSystemInput) {
     }
     for (const s of effect) items.push({ kind: 'style', name: s.name, id: s.id, key: s.key, type: 'EFFECT', source: 'local' });
     for (const s of grid) items.push({ kind: 'style', name: s.name, id: s.id, key: s.key, type: 'GRID', source: 'local' });
+    if (p.includeLibraries) {
+      for (const s of (await inUse()).styles) items.push({ kind: 'style', name: s.name, id: s.id, key: s.key, type: s.type, detail: 'used on this page', source: 'library' });
+    }
   }
 
   const hits = rank(p.query, items, p.limit);

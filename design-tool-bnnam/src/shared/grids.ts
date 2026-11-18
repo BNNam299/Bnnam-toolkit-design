@@ -1,5 +1,3 @@
-// Layout grids for frames and grid styles (file-standards.md §4: 4 columns
-// mobile, 8 tablet, 12 desktop). Pure: returns plain Figma LayoutGrid objects.
 import { parseColor } from './values';
 
 export interface GridSpec {
@@ -45,7 +43,6 @@ export function toLayoutGrid(g: GridSpec): PlainGrid {
   };
 }
 
-// file-standards.md §4.1–4.2 presets, usable as `{ preset: "mobile" }`.
 export const GRID_PRESETS: Record<string, GridSpec[]> = {
   mobile: [{ pattern: 'COLUMNS', count: 4, gutter: 16, margin: 16 }],
   tablet: [{ pattern: 'COLUMNS', count: 8, gutter: 24, margin: 32 }],

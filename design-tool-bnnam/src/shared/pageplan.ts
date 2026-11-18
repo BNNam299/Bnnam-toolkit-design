@@ -1,12 +1,9 @@
-// Pure page planning for `manage_pages` (figma-ui-flow Stage 1: the standard
-// file skeleton). No Figma API here, so the safety rules are unit-testable.
 
 export interface PageRef {
   id: string;
   name: string;
 }
 
-// file-standards.md §1.2 — the standard page order.
 export const MASTER_PAGES = [
   '📘 Cover',
   '📝 Brief',
@@ -42,8 +39,6 @@ export interface PagePlan {
 const find = (pages: PageRef[], ref: string): PageRef | undefined =>
   pages.find((p) => p.id === ref) ?? pages.find((p) => p.name === ref);
 
-// Builds the operation list. Never returns a plan that would delete every page:
-// Figma requires a file to keep at least one.
 export function planPages(existing: PageRef[], input: ManagePagesInput): PagePlan {
   const plan: PagePlan = { ops: [], skipped: [], problems: [] };
   let current = existing.map((p) => ({ ...p }));

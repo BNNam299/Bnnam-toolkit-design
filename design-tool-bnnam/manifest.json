@@ -7,7 +7,7 @@
   "capabilities": [],
   "enableProposedApi": false,
   "documentAccess": "dynamic-page",
-  "editorType": ["figma"],
+  "editorType": ["figma", "figjam", "slides"],
   "permissions": ["currentuser", "teamlibrary"],
   "networkAccess": {
     "allowedDomains": ["none"],

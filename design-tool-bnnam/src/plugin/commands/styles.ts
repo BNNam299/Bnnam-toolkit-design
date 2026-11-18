@@ -1,6 +1,3 @@
-// figma-ui-flow Stage 2 — text, paint, effect and grid styles in one call.
-// Text style properties can bind variables ({ var }) so typography follows
-// the token system (design-system.md §4).
 import type { CreateStylesInput, StyleSpec } from '../../shared/schemas';
 import { parseLetterSpacing, parseLineHeight, weightToStyle } from '../../shared/values';
 import { resolveGrids } from '../apply';
@@ -86,8 +83,6 @@ export async function createStyles(p: CreateStylesInput) {
       (isNew ? created : updated).push({ id: style.id, name: style.name, kind: spec.kind });
     }
   } catch (e) {
-    // Leave no half-made styles behind. Updates to existing styles are not
-    // undone, so the canvas is only "clean" when nothing was updated yet.
     for (const s of fresh) s.remove();
     const msg = `${e instanceof Error ? e.message : String(e)} (các style mới đã bị gỡ)`;
     if (updated.length) throw new Error(`${msg}; đã cập nhật trước khi lỗi: ${updated.map((u) => u.name).join(', ')}`);

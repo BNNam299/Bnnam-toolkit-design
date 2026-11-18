@@ -16,8 +16,6 @@ export async function loadFont(font: FontName): Promise<void> {
   loaded.add(key(font));
 }
 
-// Resolves a family + style/weight into a FontName that exists, tolerating
-// "SemiBold" vs "Semi Bold". Throws with the available styles otherwise.
 export async function resolveFont(family: string, style?: string, weight?: number | string): Promise<FontName> {
   const wanted = style ?? (weight !== undefined ? weightToStyle(weight) : 'Regular');
   const fonts = await listFonts();
@@ -32,7 +30,6 @@ export async function resolveFont(family: string, style?: string, weight?: numbe
   return { family: realFamily, style: exact };
 }
 
-// Loads every font used by an existing text node; required before editing it.
 export async function loadNodeFonts(node: TextNode): Promise<void> {
   if (node.characters.length === 0) {
     if (node.fontName !== figma.mixed) await loadFont(node.fontName);

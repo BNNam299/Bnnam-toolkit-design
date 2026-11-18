@@ -1,6 +1,6 @@
 ---
 name: prd-to-ux-flow
-description: Turns a PRD into a complete, traceable screen list before any UI is drawn - reads the PRD in its native format (tables, images, comments) with exact source locations; cross-checks documents for contradictions and gaps; scans competitor screens for structure; runs task analysis, information architecture and flows; counts screens in three layers plus overlays with a 15-state sweep and a state matrix; logs technical assumptions; writes design/flows.md as the single traced source of screen names; optionally builds grey wireframes by flow in Figma. Use when the user hands over a PRD, a spec or one feature's excerpt, asks what screens and states an app or a feature needs, or wants user flows, a sitemap, a screen inventory, competitor analysis or text / grey wireframes before UI. Vietnamese triggers such as "đọc PRD", "phân tích đối thủ", "làm luồng", "liệt kê màn", "dựng wireframe", "phác wireframe", "luồng màn", "màn này đáp FR nào". For building UI screens use figma-ui-flow; for the copy voice use ux-writing.
+description: Turns a PRD into a complete, traceable screen list before any UI is drawn - reads the PRD in its native format (tables, images, comments) with exact locations; cross-checks documents for contradictions and gaps; scans competitor screens for structure; runs task analysis, IA and flows, starting from any the PRD already has; counts screens in three layers plus overlays with a 15-state sweep and a state matrix; logs technical assumptions; writes design/flows.md as the single source of screen names; optionally builds grey wireframes by flow in Figma. Use when the user hands over a PRD, a spec or one feature's excerpt, asks what screens and states an app or a feature needs, or wants user flows, a sitemap, a screen inventory, competitor analysis or text / grey wireframes before UI. Vietnamese triggers such as "đọc PRD", "phân tích đối thủ", "làm luồng", "liệt kê màn", "dựng wireframe", "phác wireframe", "luồng màn", "màn này đáp FR nào". For building UI screens use figma-ui-flow; for the copy voice use ux-writing.
 ---
 
 # prd-to-ux-flow — from PRD to a screen list nobody has to redo
@@ -65,16 +65,21 @@ Do not read everything at once: each job needs its own reference, plus a lens on
 8. **No permission screens by default.** Assume permissions are granted; behaviour on denial goes to the dev note. A project that wants
    otherwise records a decision.
 9. **Every sentence that asserts a state is an assumption** (`A-##`) a developer verifies before the UI is built.
-10. **Stop at each approval gate.** PRD, analysis, flows and wireframes are each approved by the user (*"duyệt PRD"*, *"duyệt
-    flows"*…) before the next job relies on them.
+10. **Start from the UX the PRD already did; build only what is missing.** Personas, jobs, task analysis, sitemap, screen list and
+    flows found in the PRD (any author — often the product toolkit) are the starting point: keep their ids, navigation type and order,
+    then deepen (branches, states, overlays). Would change one of their decisions → *Differences from the PRD* in `flows.md`, ask,
+    build on the PRD's version meanwhile. A PRD without these parts is normal: every step runs as before.
+11. **Stop at each approval gate.** PRD, analysis, flows and wireframes are each approved by the user (*"duyệt PRD"*, *"duyệt
+    flows"*…) before the next job relies on them. Reports and the `design/` files are in Vietnamese and address the user as "bạn"
+    (`../bnnam-standards/references/team-rules.md` §9).
 
 ## Workflow
 1. **Read the PRD** (`references/prd-read.md`): find the documents → read five layers (`scripts/docx_extract.py` for `.docx`, then open
-   the images) → extract `design/prd.md` from the template → report coverage, *Could not read*, *Where I interpreted*, *Need to ask* →
-   stop for *"approve PRD"*.
+   the images) → extract `design/prd.md` from the template, including *UX already in the PRD* (present / partial / absent, §6.1) →
+   report coverage, *Could not read*, *Where I interpreted*, *Need to ask* → stop for *"approve PRD"*.
 2. **Analyse** (`references/analyze.md`): contradictions with both sides verbatim → gaps with type and proposal → competitor scan
    (inventory → scope gate → anatomy → USE / DON'T) → crop matching competitor screens by function → stop for approval.
-3. **Flows** (`references/ux-flow.md`): task analysis → IA → redraw competitor flows, then yours → count screens → state sweep and
+3. **Flows** (`references/ux-flow.md`): take the PRD's UX parts as the start (§3.1) → task analysis → IA → redraw competitor flows, then yours → count screens → state sweep and
    matrix → assumptions → write `design/flows.md` → cross-check and `trace` → stop for *"approve flows"*. Voice can run in parallel
    (`ux-writing`).
 4. **Wireframe — only if the designer asked** (`references/wireframe.md`): one prototype per interaction type; the template screen
@@ -93,9 +98,14 @@ from the existing files with the matching step only — `trace` is read-only.
 - Building permission-explainer screens nobody asked for.
 - Keeping a separate traceability table that drifts from `flows.md`.
 - Adding a screen in Figma that `flows.md` does not have.
+- Redoing the sitemap and flows from scratch when the PRD already has them — or quietly "improving" them (other navigation type, merged
+  screens) instead of listing a difference and asking.
+- Asking for, or waiting on, UX parts a PRD never had — an external PRD without personas or a sitemap is not a blocker.
 
 ## Self-check before reporting
-- PRD: coverage report present, every item has an exact `source:`, unreadable parts named.
+- PRD: coverage report present, every item has an exact `source:`, unreadable parts named, *UX already in the PRD* filled (or *none*).
+- Flows from a PRD with UX parts: every PRD screen id mapped, navigation type and flow order kept or listed as a difference, report
+  says what came from the PRD and what was built here.
 - Analysis: both sides of every contradiction quoted, scope gate applied, rejected patterns recorded.
 - Flows: every screen in ≥ 1 flow, every flow step matches a screen heading, no FR without a screen, no screen without FR/UC, no empty
   *entered from* / *leads to* without a reason, every matrix cell filled or explained, assumptions listed.

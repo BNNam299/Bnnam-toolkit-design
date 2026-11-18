@@ -1,5 +1,3 @@
-// Layer naming for `rename_by_rule` (figma-ui-flow rule #4, file-standards.md
-// §2.3). Pure: the plugin passes a light description of each layer.
 
 import { DEFAULT_NAME, nameProblem } from './audit';
 import { normalize } from './search';
@@ -29,7 +27,6 @@ export const slug = (s: string, max = 3): string =>
     .slice(0, max)
     .join('-');
 
-// Role names from §2.3: text → content slug, icon/…, image/…, layout regions.
 export function suggestName(n: LayerInfo): string | null {
   if (n.type === 'TEXT') {
     const s = slug(n.text ?? '');
@@ -57,8 +54,6 @@ export function applyRules(n: LayerInfo, rules: Rule[]): string | null {
   return null;
 }
 
-// Explicit rules win; `auto` only touches names Figma invented or the
-// blacklist (never a name a designer chose).
 export function planRename(n: LayerInfo, rules: Rule[], auto: boolean): string | null {
   const ruled = applyRules(n, rules);
   if (ruled !== null && ruled !== n.name) return ruled;

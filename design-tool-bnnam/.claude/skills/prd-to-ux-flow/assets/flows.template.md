@@ -3,6 +3,7 @@ status: draft
 approved: —
 from: ux-flow
 based_on: prd.md@<YYYY-MM-DD> · analysis.md@<YYYY-MM-DD>
+started_from: —                     # PRD UX parts used, e.g. "PRD §11 sitemap + overall flows, §5 jobs" — or "none, built here"
 by: claude-code
 wireframe_approved: —               # write <date> only when the user says "approve wireframe"
 ui_approved: —                      # write <date> when every batch is accepted and the user says "approve UI"
@@ -19,6 +20,7 @@ ui_approved: —                      # write <date> when every batch is accepte
 
 ### <Flow name>
 - sequence: <Screen> → <Screen> → <Screen>
+- prd flow: —                       # the PRD flow this one starts from (source) — or "built here"
 - ui: not built                     # not built | building | awaiting acceptance | accepted <date>
 - origin: —                         # maintenance projects: current state | added <date>
 - click-through flow: —             # "<Flow name> Flow_Step 1 ← <source screen>" … — the copySource list from ../figma-prototype-flow/scripts/prototype.js
@@ -33,6 +35,7 @@ ui_approved: —                      # write <date> when every batch is accepte
 - main components: —                # e.g. tab bar, list rows, plan picker — the agent fills from situations.js, the designer corrects
 - canonical name: —                 # ONLY maintenance projects whose frame names differ from the naming standard — a mapping; NEVER rename the designer's frames in Figma
 - flow: —
+- prd screen: —                     # the PRD's screen id (SCR-03) when the PRD has a screen list — or "added here"
 - answers: —                        # FR-###, …
 - serves: —                         # UC-###, …
 - entered from: —                   # exact screen name
@@ -45,6 +48,18 @@ ui_approved: —                      # write <date> when every batch is accepte
 - adaptive structure: —             # only when the adaptive level is not none — level <n> · detail of <screen> · pane role primary|detail|supplementary ·
                                    #   default selection <rule> · outer screen keeps <pane> — references/ux-flow.md §17
 - notes: —
+
+## Differences from the PRD
+
+<!-- Only when the PRD had UX parts and this file would CHANGE one of its decisions (references/ux-flow.md §3.1).
+     Adding branches, states and overlays is not a difference. Build on the PRD's version until the user decides. -->
+
+### UXD-01 · <short name>
+- PRD says: "…"                     # verbatim
+- source: —
+- proposal: —
+- why: —
+- status: OPEN                      # OPEN | ACCEPTED <date> → update <PRD file / section> | REJECTED <date>
 
 ## Technical assumptions
 
