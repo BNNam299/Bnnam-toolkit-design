@@ -1,0 +1,11 @@
+schema_version: "1.1"
+name: plan-first-version-money
+context:
+  scaffold_script: place-files.sh
+expected_outcome: |
+  The run plans version 1.0.0 of the mental-health app from the PRD after product-users. For money it reads the market
+  check (US revenue per install 0.70 USD sits below the reference CPI, so buying installs loses money) and brainstorms with
+  monetize-options.md: it offers the user 2-3 options that fit this product, each with how it runs here, why it fits, the
+  risk, the numbers that decide keep / stop and which default it goes against, recommends one and leaves the pick to the
+  user. It does not copy the Remote TV setup whole, does not lock what users complained about or put a quota on the core
+  action without a decision that states the reason and a stop number, and §8 stays a labelled draft.

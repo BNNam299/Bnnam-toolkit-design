@@ -51,15 +51,17 @@ user pain or a data point.
 - **Money decisions respect the evidence**: by default the free tier does not lock what users complained about paying for and there
   is no quota on the core action when ads are a revenue line — going against either needs a decision D-… with the reason and a stop
   number; prices sit against the competitor anchor, never picked by feel.
-- **Offer options, not one setup**: brainstorm money decisions with `references/monetize-options.md` and give the user 2–3 options
-  that fit, with your recommendation; never copy another app's whole setup.
+- **Offer options, not one setup**: money decisions go through `references/monetize-options.md` "How to use" — one filter line for
+  the library, then one table of 2–3 options, every row complete, your recommendation in one line; never copy another app's whole
+  setup.
 - **Updates never rewrite shipped features** — they add FEATs or "Thay đổi ở các bản sau" rows (`ids-and-states.md` §4).
 
 ## Self-check before reporting
 - Every FEAT of the version: source, persona / job, priority, level *Đề xuất*, version; every request has a status.
 - §4 still consistent (no banned item in the table); P0 set serves the proof sentence; "không được cắt" items present.
 - §7 has one North Star, input metrics, ≥ 1 guardrail, each with a formula; §8 has model, split, plans with anchor, scenario + reason,
-  touchpoints; both labelled draft.
+  touchpoints; both labelled draft. §8 has the library filter line and the options table — every option with its keep / stop numbers
+  and the default it goes against; numbers taken from the market keep their *giả định* / *ước tính* label.
 - The version follows the cycle and batches its changes (or the out-of-cycle reason is one of the three allowed); retest scope
   written.
 - Kick-off sheet ready, or the meeting result recorded as decisions; §0 updated; next step named.
