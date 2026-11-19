@@ -3,7 +3,9 @@
 
 Python standard library only — runs on any machine with python3.
 Extracts, in reading order:
-  headings and paragraphs (with paragraph number ¶) · tables (merged cells written once, with table / row number) ·
+  headings (Word styles, numeric style ids and the paragraph-level outline level that Lark / Google Docs exports use) with an
+  Outline of the two top levels at the end — release layers stacked in one file show up there ·
+  paragraphs (with paragraph number ¶) · tables (merged cells written once, with table / row number) ·
   images AT THEIR PLACE (🖼 name, pixel size) — the preview picture of an embedded Excel table is NOT counted as an image:
   the table's content is printed right there instead · embedded Excel tables (word/embeddings/*.xlsx — every sheet, every row) ·
   comments attached to their paragraph, image or table cell — also on paragraphs with no text — with resolved / reply status ·
@@ -82,6 +84,33 @@ class Doc:
         self.notes, self.images, self.previews, self.tables_done = [], [], [], set()
         self.links, self.tracked, self.textboxes = [], 0, 0
         self.xlsx_blocks = []
+        self.headings, self.outline, self.first_place = {}, [], {}
+        self.styles = {}
+        if "word/styles.xml" in self.names:
+            for st in ET.fromstring(self.z.read("word/styles.xml")).findall(W + "style"):
+                nm, ol, base = st.find(W + "name"), st.find(f"{W}pPr/{W}outlineLvl"), st.find(W + "basedOn")
+                self.styles[st.get(W + "styleId", "")] = (nm.get(W + "val", "") if nm is not None else "",
+                                                          ol.get(W + "val") if ol is not None else None,
+                                                          base.get(W + "val") if base is not None else None)
+
+    def heading_level(self, p):
+        """1-based heading level of a paragraph, or None. Online-doc exports (Lark, Google Docs) often put the level on the
+        paragraph itself (w:outlineLvl) or use numeric style ids — so check the paragraph, then the style chain, then names."""
+        ppr = p.find(W + "pPr")
+        if ppr is None: return None
+        ol = ppr.find(W + "outlineLvl")
+        if ol is not None: return int(ol.get(W + "val")) + 1 if ol.get(W + "val", "9").isdigit() and int(ol.get(W + "val")) < 9 else None
+        ps = ppr.find(W + "pStyle"); sid = ps.get(W + "val", "") if ps is not None else ""
+        seen = set()
+        while sid and sid not in seen:
+            seen.add(sid); name, lvl, base = self.styles.get(sid, (sid, None, None))
+            if lvl is not None and lvl.isdigit() and int(lvl) < 9: return int(lvl) + 1
+            for label in (name, sid):
+                m = re.match(r"(?:Heading|heading|Tiêu ?đề)\s*(\d)", label)
+                if m: return int(m.group(1))
+                if re.match(r"Title$", label): return 1
+            sid = base
+        return None
 
     # ---- text with tracked changes, text boxes and links handled ----
     def text_of(self, el):
@@ -254,11 +283,15 @@ def main():
             if t:
                 pi += 1
                 if UNAVAILABLE.search(t): doc.notes.append(f"¶{pi}: embedded block could not be exported — \"{t[:60]}\"")
-                st = (el.find(W + "pPr").find(W + "pStyle").get(W + "val", "") if el.find(W + "pPr") is not None and el.find(W + "pPr").find(W + "pStyle") is not None else "")
-                m = re.match(r"(?:Heading|heading|Tiêu ?đề|Title)\s*(\d)?", st)
-                line = ("#" * (int(m.group(1)) + 1 if m and m.group(1) else 2) + " " + t) if m else t
-                out.append(f"{line}  `¶{pi}`")
+                lv = doc.heading_level(el)
+                if lv: doc.headings[lv] = doc.headings.get(lv, 0) + 1; doc.outline.append((lv, t, pi))
+                out.append(f"{'#' * min(lv + 1, 6) + ' ' + t if lv else t}  `¶{pi}`")
             where = f"after ¶{pi}" if pi else "before ¶1"
+            for i, v in enumerate(vis):
+                m = re.match(r"🖼 `([^`]+)`", v)
+                if not m: continue
+                if m.group(1) in doc.first_place: vis[i] = v + f" — same picture already placed {doc.first_place[m.group(1)]}"
+                else: doc.first_place[m.group(1)] = where
             out += [f"{v} · {where}" if not t else v for v in vis]
             for b in boxes: doc.textboxes += 1; out.append(f"> 🗒 text box ({where}): {b}")
             target = "" if t else (" — on the image above" if vis else f" — on an empty paragraph {where}")
@@ -278,6 +311,13 @@ def main():
     if loose:
         out += ["## Comments not tied to a place in the text", ""] + doc.comment_lines(loose) + [""]
         doc.notes.append(f"{len(loose)} comment(s) not tied to a place — see 'Comments not tied to a place'")
+    if doc.outline:
+        top = sorted(doc.headings)[:2]
+        out += ["## Outline — the two top heading levels", "",
+                "Top-level headings often mark releases stacked in one file (MVP · Update · Draft) — see prd-read.md §3.", ""]
+        out += [f"{'  ' * top.index(lv)}- {t}  `¶{n}`" for lv, t, n in doc.outline if lv in top] + [""]
+    else:
+        doc.notes.append("no heading levels found — sections and release layers must be read from the text itself")
     media = sorted((n for n in doc.names if n.startswith("word/media/")), key=lambda s: [int(x) if x.isdigit() else x for x in re.split(r"(\d+)", s)])
     previews, shown = set(doc.previews), set(doc.images)
     real = [m for m in media if posixpath.basename(m) not in previews]
@@ -297,7 +337,7 @@ def main():
     res = "\n".join(out) + "\n"
     known = [c for c in doc.comments.values() if c["done"] is not None]
     open_c = f"{sum(1 for c in known if not c['done'])} open" if known else "status not recorded"
-    summary = (f"{pi} paragraphs · {ti} tables · {len(real)} images + {len(previews)} table previews · {len(doc.tables_done)} embedded tables · "
+    summary = (f"{pi} paragraphs · {sum(doc.headings.values())} headings ({len(doc.headings)} levels) · {ti} tables · {len(real)} images + {len(previews)} table previews · {len(doc.tables_done)} embedded tables · "
                f"{len(doc.comments)} comments ({open_c}) · {doc.tracked} tracked changes · {doc.textboxes} text boxes · "
                f"{len(set(u for _, u in doc.links))} links · {len(doc.notes)} unreadable places")
     if a.out:

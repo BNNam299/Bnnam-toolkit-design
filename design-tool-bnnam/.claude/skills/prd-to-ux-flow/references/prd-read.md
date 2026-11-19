@@ -51,7 +51,9 @@ competitor screenshots are kept.
 
 **One file, several layers in time.** A PRD kept alive in one doc (Lark, Notion, Google Docs) often stacks releases on top of each
 other: *MVP · Update Aug–Sep · Update Oct · Draft*. This is not "several documents disagree" — do not stop the whole job:
-1. Spot the layers by headings, dates, version names or the word *Draft* / *Nháp*, and list them in the report.
+1. Spot the layers by headings, dates, version names or the word *Draft* / *Nháp*, and list them in the report with their
+   paragraph range. For a `.docx`, the *Outline* at the end of the extract shows the top heading level — layers usually sit
+   there. Numbering that carries on across layers (scenarios 1–4 in one layer, 5–10 in the Draft) does not make them one layer.
 2. Same topic written differently in two layers → by default the **newest finished layer wins**; the older text is history, not a
    requirement. A layer marked *Draft* (or undated and clearly unfinished) is **not decided** → its items go under *Gaps — ask the user*.
 3. Every extracted item records its layer: `source: PRD.docx · Update Oct · §3 Paywall · table 2 · row "Weekly"`.
@@ -148,7 +150,7 @@ For a `.docx` PRD:
 ```
 python <skill>/scripts/docx_extract.py product/sources/prd/<file>.docx -o design/extract/<file>.md
 ```
-The last line printed is the count for the coverage report (paragraphs · tables · images + table previews · embedded tables ·
+The last line printed is the count for the coverage report (paragraphs · headings and levels · tables · images + table previews · embedded tables ·
 comments · tracked changes · text boxes · links · unreadable places).
 - **Writes nothing into `sources/`** (the script refuses an output path containing `/sources/`); the extract is the agent's file in `design/extract/`.
 - The extract follows the reading order of the document and carries:
@@ -169,6 +171,13 @@ comments · tracked changes · text boxes · links · unreadable places).
   page width — a whole board in 2560 px leaves note text a few pixels high. When you open an image and cannot read its text at full
   size, do not guess: list it under *Could not read* (image name, where it sits, what it seems to show) and ask for the link to the
   board or a bigger export. Check *Links in the document* first — the readable original is often already linked there.
+  - *Full size* means the file's own pixels: an image viewer shrinks a 2560 px picture to fit, so before deciding, crop the
+    unreadable area at original resolution (any image tool) and look again. Only what is still unreadable goes under *Could not read*.
+  - A sticky note whose text runs past its box is cut off **in the board itself** — no crop brings it back. List it the same way
+    (*"note cut off: «Trong lúc hiển thị popup này, nếu đang…»"*).
+  - A picture that does not match the heading it sits under (an old flow pasted under a new scenario, store screenshots under a
+    paywall scenario) is not evidence for that heading: write what it shows under *Where I interpreted* and ask where it belongs.
+  - A picture used twice is marked by the script (*same picture already placed after ¶…*) — read it once, cite both places.
 - The extract is for fast reading; **the original file is still the source**. Every `🖼` image still has to be opened and looked at
   (layer 3).
 
