@@ -12,6 +12,9 @@ paywall content, product IDs per country and A/B details are `product-detail`'s 
 - Hybrid pattern "quota + watch an ad for more": quota an *expensive* extra (AI calls, HD export), never the core action — free DAU is
   the audience ads need (R_ads ≈ DAU_free × impressions/DAU × eCPM / 1000).
 - Check against market evidence: if users complained about paying for something basic, it is free here.
+- These are the defaults. Alternatives the team has run (country groups, paywall ladder by session, free uses of the core action,
+  lock by button…) are in `monetize-options.md`: brainstorm with it and offer the user 2–3 fitting options. Going against a default
+  needs a decision D-… with the reason and a stop number.
 
 ## 2. Plans and price
 - Anchor to competitors (market §4.5 price anchor): state where we sit (equal / below / above) and why.

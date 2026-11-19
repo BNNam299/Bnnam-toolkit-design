@@ -130,3 +130,19 @@ Lessons from the team's optimisation roadmap for a live app; apply when planning
   user puts in that brings them back; every mechanism passes the product principles (no manipulation). Ask for an upgrade right after
   a moment of success, not after a failure.
 
+## 9. Seasonal event versions (Black Friday, Christmas, Tết…)
+An event is a short version with a fixed end. It goes through the same queue, kick-off and retest scope as any version, plus:
+- **Scope checklist** — tick what this event changes, leave the rest untouched: sale plan(s) · sale paywall · which existing paywalls
+  get the event look · onboarding (and any A/B variant) · paywall flow by session / country group · store listing and ASO (handed to
+  whoever owns ASO; link it in prd.md §1) · icon / in-app banner · which country groups see it. Small events change one screen
+  (e.g. only the sale paywall); big ones touch many — say which, and why.
+- **Start and end dates, by country time zone**, and who switches it on and off (remote config key, Dev names it). An event with no
+  end date trains users to wait for sales.
+- **Going back**: what each changed screen returns to after the end, and what happens to users who bought the sale plan (keep their
+  price until renewal, then normal price — say it in the plan's terms).
+- **Sale plan table** (one row per plan): tên nội bộ · tên hiển thị · mã gói · dùng thử · giá and discount vs the normal plan ·
+  quyền lợi · áp dụng ở (flow / country group). Prices per country are researched, never invented.
+- **Measure**: revenue per install and paywall view → purchase during the event vs the 2 weeks before; refunds after the event.
+  Write the number that makes the team repeat or drop this event next year.
+- **Order by time**: an event has a deadline, so rank it with WSJF (§6) — cost of delay is the whole event if it ships late. Lock its
+  scope early enough for design, build and store review.

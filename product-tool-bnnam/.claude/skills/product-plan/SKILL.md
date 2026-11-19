@@ -19,6 +19,8 @@ user pain or a data point.
 | Gates 0–6, choosing ICE / RICE / Kano / WSJF / MoSCoW, opportunity canvas, story map, hypothesis + harm question, three lenses, dot voting, impact–effort, risk score, Now / Next / Later roadmap | `references/plan.md` §6–7 |
 | Monetization decisions, the 8 onboarding + paywall scenarios, ads placement | `references/monetize-draft.md` |
 | Thinking in user states (who sees what), fixed vs config values, revenue model first | `references/monetize-draft.md` §7 |
+| Other monetization options to brainstorm (country groups, paywall ladder by session, free uses, lock by button, seasonal sale plan) | `references/monetize-options.md` |
+| A seasonal event version (Black Friday, Christmas…): scope checklist, start / end dates, going back | `references/plan.md` §9 |
 | Update for a live app: order of improvements, baseline, hard stops, diagnosing why users do not act | `references/plan.md` §8 |
 | North Star, input, guardrail metrics, HEART UX metrics, time to value | `references/metrics-draft.md` |
 | Consistency checks for free tier, quotas, ads | `../product-standards/references/quality-gates.md` §5 |
@@ -46,8 +48,11 @@ user pain or a data point.
 - **The team decides scope, not the AI.** The AI proposes and challenges; the sign-off is recorded with names and date.
 - **A feature that traces nowhere is cut or sent back** to `product-users` / market — not kept "for later".
 - **Recovery paths share their flow's priority** (dependency rule).
-- **Money decisions respect the evidence**: the free tier never locks what users complained about paying for; no quota on the core
-  action when ads are a revenue line; prices sit against the competitor anchor, never picked by feel.
+- **Money decisions respect the evidence**: by default the free tier does not lock what users complained about paying for and there
+  is no quota on the core action when ads are a revenue line — going against either needs a decision D-… with the reason and a stop
+  number; prices sit against the competitor anchor, never picked by feel.
+- **Offer options, not one setup**: brainstorm money decisions with `references/monetize-options.md` and give the user 2–3 options
+  that fit, with your recommendation; never copy another app's whole setup.
 - **Updates never rewrite shipped features** — they add FEATs or "Thay đổi ở các bản sau" rows (`ids-and-states.md` §4).
 
 ## Self-check before reporting

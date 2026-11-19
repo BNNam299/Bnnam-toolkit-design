@@ -51,6 +51,11 @@
 | Luồng màn của bộ design | design/flows.md <hoặc chưa có> |
 | Yêu cầu chi tiết | docs/product/requirements.md |
 | Sổ quyết định | docs/product/decisions.md |
+| ASO, ảnh store (người làm ASO giữ) | <link / chưa có> |
+| File khoá remote config (Dev giữ) | <link / chưa có> |
+| FAQ trong app | <link / chưa có> |
+| Lỗi theo thiết bị / dòng máy | <link / chưa có> |
+| Danh sách event đo | <link / chưa có — bản nháp ở requirements.md §6> |
 
 # Phần A — Cấp sản phẩm
 
@@ -170,8 +175,8 @@
 |---|---|---|---|---|
 
 ### Paywall và quảng cáo hiện ở đâu
-| Điểm chạm | Loại (paywall / rewarded / interstitial / banner) | Người dùng đã thấy giá trị chưa | Ghi chú |
-|---|---|---|---|
+| Điểm chạm | Loại (paywall / rewarded / interstitial / banner / native / mở lại app) | Kích thước | Tần suất (tối đa) | Người dùng đã thấy giá trị chưa | So với bản trước (giữ / mới / đổi / bỏ) | Ghi chú |
+|---|---|---|---|---|---|---|
 
 ### Rẽ nhánh — ai thấy gì, khi nào
 <!-- Bảng là bản gốc; sơ đồ trên FigJam vẽ từ bảng. Bảng đổi → vẽ lại. Dev góp ý trên FigJam → sửa bảng trước. -->
@@ -197,6 +202,12 @@ Sơ đồ: <link FigJam — chưa có>
 | Mã | Tính năng | Giải gì (bằng chứng) | Ưu tiên | Mức | Bản |
 |---|---|---|---|---|---|
 
+### Tình huống chung cho cả app
+<!-- Chỉ ca dính nhiều tính năng (quyền bị từ chối, mất mạng / mất kết nối, kết nối lại, tắt app rồi mở lại…).
+     Ca của riêng một tính năng ghi ở "Trường hợp khác" của tính năng đó; tính năng gặp ca chung chỉ trỏ về đây, không chép lại. -->
+| Nhóm | Tình huống | App biết bằng cách nào (Dev) | Người dùng thấy gì, làm được gì (Design) | Tính năng bị ảnh hưởng |
+|---|---|---|---|---|
+
 ### FEAT-01 · <tên>                                             <!-- lặp khối này cho mỗi tính năng -->
 - Mức: <Đề xuất / Đủ để thiết kế / Đủ để build / Đã phát hành> · Bản: <1.0.0> · Ưu tiên: <P0>
 - Cho ai, giải gì: <PER-01 · JTBD-01 · M#…>
@@ -216,8 +227,9 @@ Sơ đồ: <link FigJam — chưa có>
 |---|---|---|---|---|
 
 #### Trường hợp khác
-| Màn | Trường hợp | Hành động |
-|---|---|---|
+<!-- Ca chung của cả app: chỉ ghi "xem Tình huống chung — <tên ca>". -->
+| Màn | Trường hợp | App biết bằng cách nào | Hành động |
+|---|---|---|---|
 
 #### Thay đổi ở các bản sau
 | Bản | Đổi gì | Quyết định |

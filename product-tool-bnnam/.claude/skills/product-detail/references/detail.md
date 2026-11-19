@@ -13,12 +13,17 @@ One table per screen of the feature, rows in the order a user meets the componen
 - Keep the rule about behaviour; the visual belongs to Figma (link the frame in the block, no pasted images as the only content).
 
 ## 2. Other cases (per FEAT)
-| Màn | Trường hợp | Hành động |
-|---|---|---|
-| Kết nối TV | quá 15 giây chưa thấy TV nào | hiện hướng dẫn kiểm tra cùng wifi + nút Thử lại |
+| Màn | Trường hợp | App biết bằng cách nào | Hành động |
+|---|---|---|---|
+| Kết nối TV | quá 15 giây chưa thấy TV nào | đếm thời gian quét, danh sách vẫn rỗng | hiện hướng dẫn kiểm tra cùng wifi + nút Thử lại |
 
 Go through every branch written at *Đủ để thiết kế* (permission denied / permanently, offline, errors, empty, limit reached, trial
 ended, app killed and reopened) and state, per screen, what the user sees and can do.
+- **"App biết bằng cách nào"**: the signal that tells the app the case happened (permission status, no result after n seconds,
+  wrong code 3 times, saved device not answering). It is the line Dev asks about most; write it in plain words, Dev turns it into
+  code. Unknown → "chưa rõ" + a question for Dev.
+- **Cases shared by several features** (permission denied, lost connection, reconnect after the app was killed, device off) go once
+  in prd.md §10 "Tình huống chung cho cả app"; the feature's table only points to it.
 
 ## 3. Onboarding screen by screen (prd.md §12)
 Per screen: **mục tiêu màn** · tiêu đề và mô tả (real copy from the design, or marked "chờ ux-writing") · câu hỏi chính · lựa chọn ·
@@ -28,14 +33,18 @@ Permission screens: the explanation before the system dialog and the path when d
 
 ## 4. Monetization detail (prd.md §8, requirements §7)
 - **Plans by country** in the team's IAP sheet format: product ID · plan name · price · localised price by country · discount / trial ·
-  type (subscription / non-consumable / consumable) · note. Prices researched per country follow the team guide: top 5 competitors in
+  type (subscription / non-consumable / consumable) · **quyền lợi** (what this plan unlocks, e.g. "mọi tính năng, không quảng cáo")
+  · **áp dụng ở** (which flow, country group, stage or event shows it) · note. When there are many plans, name product IDs by one
+  pattern agreed with Dev, e.g. `loai_nhom_gia` (`lifetime_tier3_12_99`, `yearly_black_friday_9_99`). Prices researched per country follow the team guide: top 5 competitors in
   that country (AppStoreSpy), their plans and offers (Sensor Tower) — the user fetches these; never invent localised prices.
 - **Placements**: each paywall placement with its trigger, the scenario (KB…) it implements, headline / benefits / plans shown,
   downsell on close (frequency cap), where cancel is explained.
 - **8 transaction states** (success, failed, pending, cancelled mid-way, refunded, expired, renewal failed, restore): what the user
-  sees, screen, event, AC.
-- **Ads**: placement · screen · type · what the user gets · max frequency · has the user already seen the value here (never at the
-  first touch of a feature) · which tier sees ads.
+  sees, screen, event, AC. **Success** shows a short thank-you screen listing what was just unlocked — users who do not know what
+  they bought ask for refunds.
+- **Ads**: placement · screen · type · size · what the user gets · max frequency · has the user already seen the value here (never at
+  the first touch of a feature) · which country group sees ads · compared with the last version (keep / new / changed / removed). Ads
+  on app reopen or after n tab taps interrupt the main path — they need a written reason and a frequency cap.
 - **A/B tests**: hypothesis "tin rằng … sẽ khiến … vì …" · variants · main metric and **guardrail** · **kill rule set before
   starting** · remote config key · no two tests on the same flow at once · metrics by role: chính (decides), phụ (to understand),
   rào chắn (must not worsen), kinh doanh (payer conversion, revenue per user) · sample size counted on users who actually reach the

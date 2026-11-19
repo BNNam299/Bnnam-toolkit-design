@@ -38,10 +38,12 @@ failed · pending · cancelled mid-way · refund · expired · renewal failed ·
 app killed and reopened. Each has what the user sees and an AC (requirements §7).
 
 ## 5. Monetization consistency (spec: decisions; detail: full)
-- **Free tier does not lock what users complained about.** If the market evidence shows users angry at paying for a basic action,
-  the free tier must include it.
-- **No quota on the core action when ads are a revenue line.** Ad revenue ≈ DAU_free × impressions per DAU × eCPM / 1000; a quota
-  that makes free users quit removes the very audience the ads need. Quota expensive extras instead (AI calls, exports, HD).
+The first two lines are **defaults**, not bans: going against one needs a decision D-… that states the reason and the number at which
+the team stops (options that do this: `../../product-plan/references/monetize-options.md`). Without that decision, they fail the gate.
+- **Free tier does not lock what users complained about** (default). If the market evidence shows users angry at paying for a basic
+  action, the free tier includes it.
+- **No quota on the core action when ads are a revenue line** (default). Ad revenue ≈ DAU_free × impressions per DAU × eCPM / 1000; a
+  quota that makes free users quit removes the very audience the ads need. Quota expensive extras instead (AI calls, exports, HD).
 - **One number per rule.** Several drafts with different limits (15 / 10 / 5) are settled before events and AC are written.
 - **Catalog check:** weekly / yearly / lifetime? a remove-ads purchase? a downsell? Each absence is a decision, not an oversight.
 - **Ads placement:** never show an ad at a user's first touch of a feature before they got its value; prefer rewarded over popups.

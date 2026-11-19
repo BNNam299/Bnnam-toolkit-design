@@ -16,6 +16,9 @@
 - **Branches every feature is checked against** — write the ones that apply, say "không áp dụng" for the rest:
   permission denied · permanently denied · offline at start / mid-action · error from a service · empty first run (no data yet) ·
   free limit reached · trial ended · purchase failed / pending · the user leaves and comes back · notification permission refused.
+- **Many causes, few screen states**: list every cause first (app killed, wifi lost, network changed, device off, phone restarted…),
+  then group them by what the user should see — usually 2–3 states ("đang hoạt động" / "không kết nối được + cách sửa"). The designer
+  draws the states; the causes stay in the table for Dev. Cases shared by several features go once to prd.md §10 "Tình huống chung".
 - **AI touchpoints** (if any): number them (AI-1, AI-2). For each: acceptable wait + what happens on timeout · what happens when the
   result is wrong (can the user correct it, what updates downstream) · cost per call vs free quota (link §8).
 - **Features meant to bring users back** (reminders, streaks, notifications): pick the kind of nudge by the user's motivation and how

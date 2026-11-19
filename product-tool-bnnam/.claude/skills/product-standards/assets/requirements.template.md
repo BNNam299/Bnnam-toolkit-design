@@ -56,8 +56,8 @@
 - Áp cho: FR-…
 
 ## 5. Quyền và dữ liệu                                           <!-- product-spec -->
-| Mã | Quyền | Xin lúc nào | Đồng ý | Từ chối | Từ chối vĩnh viễn |
-|---|---|---|---|---|---|
+| Mã | Quyền | Xin lúc nào | Câu chữ hiện trong popup hệ thống | Đồng ý | Từ chối | Từ chối vĩnh viễn |
+|---|---|---|---|---|---|---|
 
 | Mã | Dữ liệu | Vì sao cần | Lưu ở đâu (Dev xác nhận) | Giữ bao lâu | Xoá được / đổi máy thì sao |
 |---|---|---|---|---|---|

@@ -54,7 +54,11 @@ do not design around them.
 
 ## 4. Journey and aha moment
 - One journey per primary persona. Choose the journey that matters most: the typical one, the most broken one, or the one over time.
-- Five stages: **Phát hiện → Cân nhắc → Lần đầu dùng → Dùng hằng ngày → Quay lại / bỏ**. Per stage: action · feeling (😀 / 😐 /
+- Five stages: **Phát hiện → Cân nhắc → Lần đầu dùng → Dùng hằng ngày → Quay lại / bỏ** — for a paid app add **Trả tiền** between
+  using and returning (what they compare the price with, what makes them feel cheated, what confirms they got their money's worth).
+- **Same message from ad to app**: what the ad promises, the store screenshots show and the first onboarding screen says must be one
+  message (ad about fast connection → screenshot shows it → onboarding opens on it). Note where it breaks; a broken chain shows up as
+  "app không giống mô tả" reviews. Per stage: action · feeling (😀 / 😐 /
   😣) · obstacle · touchpoint · motivation (why they keep trying), from evidence — plus a short business half: what the company wants
   at that stage (metric) and the opportunity. Mark the moment of truth with ⭐.
 - Pick the kind of journey by purpose: experience map (check assumptions, attach metrics per stage) · current state (improve from data)

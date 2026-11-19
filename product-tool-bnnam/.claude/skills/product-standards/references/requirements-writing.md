@@ -39,6 +39,8 @@ which FRs apply it.
 - Each permission: why · when in the flow (after the user sees why, not on first launch by default) · the explanation screen before
   the system dialog · granted · denied · **permanently denied** (the app can no longer ask — only guide to Settings) · which FRs
   depend on it. A feature that is useless without the permission needs a fallback (sample / demo / manual path).
+- **The text inside the system dialog** (iOS purpose string, written in the user's language, says what the user gets: "Để tìm TV
+  của bạn và kết nối nhanh") is part of the requirement — Apple reviews it, and the lead writes it, not Dev.
 - Each data item: what · why · where it lives (Dev confirms) · how long · can the user delete it · what happens on a new device.
 - "Không thu thập" list matches the bans in prd.md §4.
 
