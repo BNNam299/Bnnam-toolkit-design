@@ -51,6 +51,7 @@ RICE, ICE, Kano, WSJF, MoSCoW, opportunity canvas, impact – effort, story map 
 |---|---|---|---|
 | **Assumption mapping** | many "giả định" in §14 | each: importance (if wrong, does the version fail?) × evidence we have. High importance + low evidence = the riskiest assumption → test it first (spec, Dev question, soft launch gate) | risk score 5×5, MVP types |
 | **Pre-mortem** | at kick-off, before the scope is final | "bản này ra mắt và thất bại — vì sao?" each person lists reasons; the ones not yet covered become risks with an owner, or a cut | plan.md §6 risk score |
+| **Assumption test check** (Uxcel `pm/audits/assumption-rigor`) | a plan says an assumption was "tested" or "validated", or a test is being planned | 7 checks: the riskiest assumption was tested, not the comfortable one · written so it can be proven wrong ("≥ 30% người dùng thử chia sẻ kết quả trong tuần đầu") · the method matches the risk (interview / paper for the problem, clickable mock / fake door for the solution, live test for money and scale) · past behaviour over "would you use it?" answers · pass line set before the test · the result read honestly, not stretched · a result that goes against the plan changes the plan | assumption mapping, three lines in `../../product-plan/references/metrics-draft.md` §4 |
 | **Harm question** | wellbeing, money, kids, data | "có thể gây hại cho <ai> nếu <điều gì>?" — answered per FEAT (plan.md hypothesis) | gate 0 |
 
 ## 6. Value and behaviour fit

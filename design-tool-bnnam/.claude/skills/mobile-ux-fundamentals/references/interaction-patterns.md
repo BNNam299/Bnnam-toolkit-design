@@ -7,7 +7,7 @@ Knowledge here is a lens for thinking, not a procedure. Platform pages with the 
 
 ## Contents
 1. Interaction styles (WYSIWYG, menus, forms, gestures)
-2. Common UX patterns (onboarding → data visualization)
+2. Common UX patterns (onboarding → data visualization → leaving: cancel / delete account)
 3. Screen and flow templates (list → error state)
 4. Mobile app design end to end (strategy → release checklist)
 5. iOS 27 / iPhone Duo additions (pointers)
@@ -81,6 +81,11 @@ Platform: `../apple-hig/references/loading.md`, `../apple-hig/references/progres
 - Split into sections; a very long form may be stepped, but must show progress.
 - Keep data when going back or when the app is interrupted.
 - A submit error must point to the field, plus a summary if there are several errors.
+- **Prevent before handling**: the right keyboard (number pad for phone / card), input masks that format as the user types, disabled
+  invalid options, OTP autofill.
+- **Validate when the user leaves the field**, not on every key and not only on submit. Exception: rules the user has to meet while
+  typing (new password) show a check per rule as it is met. An error stays visible until the value is really valid, not the moment
+  the user starts retyping.
 
 Platform: `../apple-hig/references/text-fields.md`, `../material-design-3/references/components__text-fields.md`. Error copy: `../ux-writing/references/principles.md`.
 
@@ -126,6 +131,23 @@ Platform: `../apple-hig/references/managing-accounts.md`, `../apple-hig/referenc
 - Avoid 3D charts that distort perception.
 
 Platform: `../apple-hig/references/charting-data.md`, `../apple-hig/references/charts.md`.
+
+### 2.10 Leaving — cancel a subscription, delete the account
+Source: Uxcel product-skills, `ux/flows/offboarding` (MIT). Store rules on cancelling: `../app-store-policies/`.
+- **Know how reversible it is** before drawing: cancelling a subscription is usually reversible (access stays until the period ends);
+  deleting the account may destroy data for good. The friction follows that: light for cancel, a deliberate step for permanent loss
+  (type the word "Xoá" or re-enter the password).
+- **Easy to find**: the exit sits where people expect it (Settings → subscription / account), looks tappable, is never hidden or
+  disguised. On iOS / Google Play, cancelling a store subscription opens the system's subscription page — the app shows the way there.
+- **Say the consequences before the last tap**: deleted now or after N days, can it be restored, what happens to the data, until when
+  the paid features stay on.
+- **Ask why — optional**: preset reasons + "Khác"; never required, never blocking the exit.
+- **Real alternatives, offered once**: pause, downgrade, switch to a cheaper plan — each says what it means for data and billing.
+  One easy-to-decline offer at most; no "are you really sure?" chain.
+- **Honest emphasis**: "stay" and "leave" are equally visible; no guilt copy ("Không, tôi không cần dữ liệu của mình") — that is
+  confirmshaming (dark pattern, see `../ux-review-handoff/references/acceptance-checklist.md`). Destructive and safe buttons are not
+  a mis-tap apart.
+- **Close well**: confirm what happened, thank the user, show how to come back. At most one follow-up to reverse an accidental cancel.
 
 ---
 
@@ -259,6 +281,14 @@ Copy: `../ux-writing/references/principles.md`.
 - **Dialog** only when a decision is needed or the error blocks an important action.
 - Always keep entered data.
 - Retry close to the error; support/reference ID only when it really helps resolve it.
+- **Slip or mistake?** (Uxcel `ux/flows/error-recovery`, after Norman) A *slip* is a wrong tap by someone who knows the app → fix with
+  constraints, good defaults and undo. A *mistake* comes from a wrong idea of how the app works → fix with clearer labels, examples and
+  feedback; undo alone does not help.
+- **Never a dead end**: every error offers a way on — retry, go back, an alternative, or help.
+- **Degrade step by step**: when one part fails (AI, network, a device connection), keep the rest working and offer the manual way,
+  instead of blanking the whole screen.
+- **Confirm or undo by how much it would be regretted**: undo for reversible actions; a confirmation only for what cannot be undone.
+  Too many confirmations train people to tap through them.
 
 ---
 

@@ -12,6 +12,14 @@ paywall content, product IDs per country and A/B details are `product-detail`'s 
 - Hybrid pattern "quota + watch an ad for more": quota an *expensive* extra (AI calls, HD export), never the core action — free DAU is
   the audience ads need (R_ads ≈ DAU_free × impressions/DAU × eCPM / 1000).
 - Check against market evidence: if users complained about paying for something basic, it is free here.
+- **Say which kind of app this is** (Nikita Bier's split, X post 24/10/2024): a **lasting app** earns because people keep using it ·
+  a **forgotten-cancel app** earns mostly from people who forget to cancel a weekly plan, with retention near zero. Both can make
+  money, but the plan, the metrics and the risk differ: the second lives on refunds staying low and store rules staying loose, so
+  write it as a risk in §14, and never read its revenue as retention.
+- **What to charge for**: rank the most frequent requests in reviews / support of competitors (market evidence) or of our own app
+  (live version) — a top request people would pay for is the first premium candidate. Tie premium to a want the free part creates
+  (free shows the result, premium removes the watermark / gives the HD copy). Never put the action that spreads the app (sharing a
+  result, inviting) behind the paywall.
 - These are the defaults. Alternatives the team has run (country groups, paywall ladder by session, free uses of the core action,
   lock by button…) are in `monetize-options.md`: brainstorm with it and offer the user 2–3 fitting options. Going against a default
   needs a decision D-… with the reason and a stop number.

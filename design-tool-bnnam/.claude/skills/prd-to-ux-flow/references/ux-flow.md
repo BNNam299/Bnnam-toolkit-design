@@ -230,6 +230,11 @@ under `## Screens` — the heading is the full semantic name with its suffix (`.
 - Every flow step has a **matching screen** (exact heading match).
 - States decided as **later** are written down — never allowed to disappear silently.
 - The main flow reaches value in **≤ the competitors' step count**, if `analysis.md` has that number.
+- **Count the taps to value and guess the pass-through** (method from Nikita Bier's playbook: predict each screen's conversion before
+  seeing data). Write a guessed share of users who pass each screen before the value moment and multiply: 7 screens × 85% ≈ 32% reach
+  value, 5 screens ≈ 44%. A screen before value that does not raise the chance of reaching it (intro carousel, sign-up, profile)
+  moves after value or goes — propose it under *Differences from the PRD* when the PRD put it there. The guesses are labelled as
+  guesses.
 - Run `trace` (§15): no FR without a screen, no screen without an FR/UC, no empty *entered from* / *leads to* unless there is a reason.
 - PRD had UX parts (§3.1): every PRD screen id appears in a `prd screen` field or has a reason; the PRD's navigation type and flow
   order are kept or listed under *Differences from the PRD*; nothing in the PRD was changed silently.

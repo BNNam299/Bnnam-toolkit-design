@@ -95,7 +95,9 @@ Center vs App Store), widgets, notifications, back navigation. Gate 0 uses Apple
   (licence)? Write the result in the feature block; open items go to §14 with an owner.
 - **Ratings** are requested only with Apple's rating API, at a moment after value; no custom review pop-up.
 - **Onboarding**: list every step from install to value — screens, fields, taps, confirmations, **permission prompts**, empty states
-  (teams usually count about half). Each step is "guilty until proven needed": cut, defer, pre-fill or make skippable. The first
+  (teams usually count about half). Put a number on it: guess the share of users who pass each step (label it a guess) and
+  multiply — 7 steps at 85% ≈ 32% reach value, 5 steps ≈ 44% (Nikita Bier: predict a screen's conversion before the data). Each step
+  is "guilty until proven needed": cut, defer, pre-fill or make skippable. The first
   session aims at **one** successful outcome; doing beats learning; give a head start (sample data, a ready choice); end on a high
   point. Mobile order: permission (only if the first value needs it) → quick win → ask for notifications → daily loop. Tours 3–5 steps,
   skippable, never repeated for returning users. Empty states explain and offer the first action.

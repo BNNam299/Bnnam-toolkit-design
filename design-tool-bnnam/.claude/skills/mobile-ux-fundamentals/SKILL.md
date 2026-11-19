@@ -16,7 +16,7 @@ libraries `apple-hig` and `material-design-3`; this skill points into them.
 | Component states (pressed, focused, disabled…), screen states, feedback channels, durations, haptics | `references/states-feedback-motion.md` §5–7 |
 | Motion purpose, iOS motion, M3 spring physics, performance | `references/states-feedback-motion.md` §1–4 |
 | Interaction styles, menu and form rules | `references/interaction-patterns.md` §1 |
-| UX patterns: onboarding, permission, loading/empty/offline, form, destructive + undo, notification, settings, auth, data viz | `references/interaction-patterns.md` §2 |
+| UX patterns: onboarding, permission, loading/empty/offline, form, destructive + undo, notification, settings, auth, data viz, leaving (cancel subscription / delete account) | `references/interaction-patterns.md` §2 |
 | Screen templates: list, list–detail, create/edit form, auth, checkout, settings, dashboard, media, chat, map, camera, empty, error | `references/interaction-patterns.md` §3 |
 | Mobile app end to end: product, IA, ergonomics, forms, resilience, iOS vs Android, adaptive, testing, handoff, release | `references/interaction-patterns.md` §4 |
 | Accessibility: targets, text size, contrast, screen reader, focus, motion/sound, checklist | `references/accessibility.md` §1 |

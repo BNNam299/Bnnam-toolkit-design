@@ -52,6 +52,17 @@ Monthly ad revenue = DAU × 30 × ad impressions per DAU per day × eCPM ÷ 1000
 giữa 6 and 5 · mạnh tay 10 and 8. Ad money is already net. Ad revenue follows active days, so it depends on retention: a user who
 stays ~5 active days in 12 months cannot carry much ad revenue. Check that "DAU" is really DAU, not MAU.
 
+**d. Sharing lowers the real cost per user** (K-factor, from Nikita Bier's playbook)
+- If users share what the app makes (a result, a before / after) and some viewers install, each bought install brings extra ones:
+  total users ≈ bought installs ÷ (1 − K); cost per user ≈ CPI × (1 − K). K = 0,4 turns a CPI of 2 USD into ~1,2 USD per user.
+- Use K > 0 only when the evidence shows it: competitors' results carry the app name or a link, reviews or posts show people sharing
+  them. Otherwise K = 0 and say so. Any K used is **giả định**, and the verdict must still read correctly with K = 0.
+
+**e. What kind of revenue it is**
+Check whether competitors earn because people keep using the app or because people forget to cancel a weekly plan (high revenue per
+download, weak retention, reviews about unwanted charges / refunds). The second is fragile — store crackdowns and refunds hit it —
+and a new app copying it inherits that risk. Say which in §5 and list the risk in §7.
+
 ## 3. Cost per download (CPI) references
 The team has **no UA person**, so nobody can hand over a CPI. Get the range yourself and turn the question around:
 - **Find published CPI benchmarks** for the category × platform × country (or tier), 2025–2026 only — e.g. reports or benchmark pages

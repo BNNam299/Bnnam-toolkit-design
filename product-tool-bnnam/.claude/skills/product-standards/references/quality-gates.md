@@ -9,7 +9,7 @@ is written down, never hidden; the user may still export with open items visibly
 |---|---|
 | 0 Chính sách và an toàn | every applicable item in `policy-and-safety.md` is either met or written as an open question with an owner; no feature needs notifications, location, tracking or data sharing to work; refused permissions have an alternative path |
 | 1 Đủ phần lõi | §2–5 and §10 filled for this version; no heading without content |
-| 2 Bằng chứng | every number and claim has M# / P# / Dev / mốc team / giả định; no orphan numbers |
+| 2 Bằng chứng | every number and claim has M# / P# / Dev / mốc team / giả định; no orphan numbers; "đã kiểm với người dùng" names the method, how many people and what it changed in the PRD — otherwise it is an assumption |
 | 3 Ràng buộc mobile | §9 covers offline, notifications, accessibility, privacy, release readiness (restore purchase, permission denial, offline tested) |
 | 4 Phạm vi rõ | in / out / bans / "không được cắt" filled; every P0 FEAT serves the "phải chứng minh" sentence; recovery paths of P0 flows are P0 |
 | 5 Đo được | every metric in §7 can be computed from ≥ 1 event; every event serves a metric or funnel step (spec: draft list; detail: complete) |

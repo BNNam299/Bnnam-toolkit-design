@@ -39,6 +39,17 @@ to the aha moment — is usually the most useful single UX number for a new app.
   the product getting better or worse; if the retention curve never flattens above 0, optimising anything else is pointless.
 - Trial → paid is measured after the trial ends, not early. Split churn into voluntary and failed payment.
 
+## 2d. Sharing as a channel (method: K-factor, from Nikita Bier's playbook)
+- An app has only two ways to spread by itself: **invite** (one to one) and **share** (one to many). A utility app has no friends
+  inside it, so its channel is usually **sharing the result** — the thing the app made (before / after photo, scan result, score).
+  Decide in the plan whether the result can be shared, what the shared item shows (app name, a link to the store), and keep sharing
+  free.
+- **K** = share of users who share × installs each share brings. A utility app rarely reaches K = 1; treat K as a **multiplier** on
+  installs, not an on / off switch: total users ≈ bought installs ÷ (1 − K). K = 0,4 → 10 bought installs become ~16,7 users.
+- Count a share at the final send, not at the tap on "Chia sẻ". Track installs from share links apart from spikes caused by a viral
+  video — a spike is like press, not a product that spreads.
+- When sharing matters to the version, put "share rate" or K among the input metrics; no evidence yet → **giả định**.
+
 ## 3. Vanity check
 For each metric ask: "if this doubles and nothing else changes, is the business better?" No → drop it (total downloads, total screen
 views, total accounts).
@@ -46,6 +57,11 @@ views, total accounts).
 ## 4. Per version
 Each version row in §13 names the 1–3 metrics that decide whether it worked, and what result would make the team roll back or change
 direction. After release, the next `product-plan` run reads these first.
+- **Three lines, set before release** (from Nikita Bier's 48-hour test plan): **Đạt** at or above X · **Không đạt** below Y · **Chưa
+  rõ** in between. "Chưa rõ" is not a pass — something muddied the test (wrong audience, a bug, too few users); fix that and read once
+  more; a second "chưa rõ" counts as không đạt.
+- **When to read** follows how often the app is used: a daily app can be read within days; a weekly one needs 2–4 weeks before
+  retention means anything. Write the read date next to the lines.
 
 ## 5. Team metric sheet
 The team's "Bộ chỉ số đo lường" sheet tracks per version: content of the update · metric · definition · current · expected · actual ·
