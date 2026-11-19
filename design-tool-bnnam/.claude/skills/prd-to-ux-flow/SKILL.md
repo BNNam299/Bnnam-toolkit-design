@@ -26,7 +26,7 @@ layouts (`iphone-duo-adaptive`); maintenance projects that start from an existin
 | Need | Read |
 |---|---|
 | Read a PRD in its native format, five layers, coverage report | `references/prd-read.md` |
-| Extract a `.docx` PRD with locations, merged cells, comments, embedded Excel | `scripts/docx_extract.py` |
+| Extract a `.docx` PRD with locations, merged cells, comments, images and embedded Excel in place, tracked changes, links | `scripts/docx_extract.py` |
 | Contradictions `C-##`, gaps `G-##`, competitor scan in three tiers, cropping competitor parts by function | `references/analyze.md` |
 | Measure and crop competitor screenshots | `../bnnam-standards/scripts/clone_measure.py` |
 | Task analysis, IA, eight flow rules, counting screens, 15-state sweep, state matrix, assumptions, `trace` | `references/ux-flow.md` |
@@ -52,6 +52,8 @@ Do not read everything at once: each job needs its own reference, plus a lens on
    stays the source; when unsure, reopen it.
 3. **Never invent, never pick a side.** Numbers, prices and names come from the documents. Bans are quoted verbatim. Unresolved
    comments, unaccepted tracked changes and documents that disagree go to the user — the newest file is not always the right one.
+   One file stacking releases (MVP · Update Oct · Draft) is different: newest finished layer wins, Draft = not decided, confirm with
+   one question (`references/prd-read.md` §3).
 4. **Borrow structure from competitors, not content or style.** Layout, block order, primary-action position, step count and copy
    rhythm — yes; features, names, sample copy, colors — no. Count (`appears: 2/3`), don't feel. Rejected patterns are recorded too.
    Competitor screenshots are images: read them by eye, never conclude "no screens" from an empty node query.
@@ -75,7 +77,7 @@ Do not read everything at once: each job needs its own reference, plus a lens on
 
 ## Workflow
 1. **Read the PRD** (`references/prd-read.md`): find the documents → read five layers (`scripts/docx_extract.py` for `.docx`, then open
-   the images) → extract `design/prd.md` from the template, including *UX already in the PRD* (present / partial / absent, §6.1) →
+   the images; text too small to read → ask for the board link, never guess) → extract `design/prd.md` from the template, including *UX already in the PRD* (present / partial / absent, §6.1) →
    report coverage, *Could not read*, *Where I interpreted*, *Need to ask* → stop for *"approve PRD"*.
 2. **Analyse** (`references/analyze.md`): contradictions with both sides verbatim → gaps with type and proposal → competitor scan
    (inventory → scope gate → anatomy → USE / DON'T) → crop matching competitor screens by function → stop for approval.

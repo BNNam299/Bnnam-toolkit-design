@@ -49,6 +49,14 @@ competitor screenshots are kept.
 
 **Several documents disagree → say so and stop.** The newest file is not always the canonical one. Do not pick a side.
 
+**One file, several layers in time.** A PRD kept alive in one doc (Lark, Notion, Google Docs) often stacks releases on top of each
+other: *MVP · Update Aug–Sep · Update Oct · Draft*. This is not "several documents disagree" — do not stop the whole job:
+1. Spot the layers by headings, dates, version names or the word *Draft* / *Nháp*, and list them in the report.
+2. Same topic written differently in two layers → by default the **newest finished layer wins**; the older text is history, not a
+   requirement. A layer marked *Draft* (or undated and clearly unfinished) is **not decided** → its items go under *Gaps — ask the user*.
+3. Every extracted item records its layer: `source: PRD.docx · Update Oct · §3 Paywall · table 2 · row "Weekly"`.
+4. Ask **one** question to confirm the reading: *"I read the layers as MVP → Aug–Sep → Oct (newest wins), Draft = not decided. Right?"*
+
 ## 4. Step 2 — Read the native format, five layers
 
 Do not convert to markdown and then read. Conversion loses merged table cells, diagrams, comments and text boxes — exactly the
@@ -140,14 +148,29 @@ For a `.docx` PRD:
 ```
 python <skill>/scripts/docx_extract.py product/sources/prd/<file>.docx -o design/extract/<file>.md
 ```
+The last line printed is the count for the coverage report (paragraphs · tables · images + table previews · embedded tables ·
+comments · tracked changes · text boxes · links · unreadable places).
 - **Writes nothing into `sources/`** (the script refuses an output path containing `/sources/`); the extract is the agent's file in `design/extract/`.
-- The extract carries locations (¶ paragraph · table · row · sheet), comments attached to their paragraph, merged cells marked
-  (`↑` = content in the cell above, `←` = content in the cell to the left), embedded images and Excel tables, and a **Could not read**
-  section.
+- The extract follows the reading order of the document and carries:
+  - locations (¶ paragraph · table · row · sheet); merged cells marked (`↑` = content in the cell above, `←` = content in the cell
+    to the left);
+  - **images at their place** — `🖼 image12.png (2560×2560 px) · after ¶256` — so you know which section each picture belongs to;
+  - **embedded Excel tables at their place** (`📊`, every sheet, every row). Word keeps a preview picture of each embedded table; the
+    script counts those apart (*47 images · 16 preview pictures*) — a preview is not an image to look at, its table is printed;
+  - **comments** on their paragraph, image or table cell — also on a paragraph with only an image — with author, date,
+    *resolved / open* (or *not recorded* when the file does not say) and replies under the comment they answer. A comment the script
+    cannot place is listed under *Comments not tied to a place*, never dropped;
+  - **tracked changes not yet accepted** inline: `{+inserted+}` `{-deleted-}` — not final, they go under *Gaps*;
+  - **text boxes** (`🗒`) and **links with their address**, collected again under *Links in the document*;
+  - a **Could not read** section.
 - Lark / Feishu embedded blocks export as *"[This type of content is unavailable…]"*; embedded files that are not Excel → **ask the
   user for the original or a link**, never skip silently.
-- The extract is for fast reading; **the original file is still the source**. Images listed by the script still have to be opened
-  and looked at (layer 3).
+- **PRDs exported from Lark (or any online doc).** Boards, flow drawings and pasted notes come out as one picture squeezed to the
+  page width — a whole board in 2560 px leaves note text a few pixels high. When you open an image and cannot read its text at full
+  size, do not guess: list it under *Could not read* (image name, where it sits, what it seems to show) and ask for the link to the
+  board or a bigger export. Check *Links in the document* first — the readable original is often already linked there.
+- The extract is for fast reading; **the original file is still the source**. Every `🖼` image still has to be opened and looked at
+  (layer 3).
 
 ## 8. Embedded tables — Excel, spreadsheets
 
@@ -160,6 +183,7 @@ location and ask the user to send the Excel file separately — never skip silen
 
 Stop and ask:
 - Several documents disagree → stop, ask (§3).
+- One file with several layers in time → one question confirming which layer wins (§3) — do not stop the rest of the work.
 - *Gaps — ask the user* (§6).
 - Approval of the PRD extract (report).
 
@@ -167,6 +191,8 @@ Self-check before reporting:
 - Coverage report present (mandatory), including the *UX already in the PRD* line (or *none*).
 - Every item has an exact `source:` (§6).
 - Unreadable embedded tables reported (§8).
+- Comment count equals the file's (`word/comments.xml`); every comment is placed or listed — none dropped.
+- Images whose text was too small to read are under *Could not read*, not guessed (§7).
 
 ## 10. Report — coverage report is mandatory
 
@@ -175,10 +201,13 @@ Without a coverage report nobody knows what the extract is missing.
 ```
 Read
   headings         42  (4 levels)
+  layers in time    3  (MVP → Update Oct → Draft · newest finished wins, Draft = not decided — confirm?)
   tables           11  (3 with merged cells)
-  images            6  (looked at 6)
+  embedded tables   4  (Excel, read all sheets)
+  images            6  (looked at 6 · 1 text too small — asked for the board link) · 4 table previews not counted
   comments         17  (5 unresolved)
   tracked changes   8  (not accepted)
+  links             5  (2 Lark boards)
 
 UX already in the PRD             (Job 3 starts from the present / partial parts)
   users ✔ present · jobs ✔ · journey + value moment ✔ (4 steps) · task analysis ✗ absent

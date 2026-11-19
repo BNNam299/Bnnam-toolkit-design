@@ -118,7 +118,7 @@ for real when the designer says *"chạy thật"*. Python tools run locally (`py
 | `../figma-vector-illustration/scripts/illustration-helpers.js` | drawing / fixing a vector illustration: shading paints, masks, contact shadow, rain, glass drops, grouping, widget build, 4× zoom check — helpers to paste, they write |
 | `../figma-vector-illustration/scripts/anchors.js` | any vector (art, icon, logo, background shape): `anchorReport` counts anchors and waste (read only) · `optimizeAnchors` simplifies on a copy within 0.5 px — helpers to paste |
 | `../screen-background/scripts/background.js`, `palette.py` | background from a palette (explore, component, instance at the bottom layer); OKLCH ramps and contrast |
-| `../prd-to-ux-flow/scripts/docx_extract.py` | extract a `.docx` PRD (merged cells, comments, images, embedded Excel) |
+| `../prd-to-ux-flow/scripts/docx_extract.py` | extract a `.docx` PRD (merged cells, comments, images and embedded Excel in place, tracked changes, links) |
 | `../iphone-duo-adaptive/scripts/adaptive.js` | adaptive screen families: missing variants, actions differing between variants, fixed hinge spacer, text too wide — read only |
 
 ## Common pitfalls
