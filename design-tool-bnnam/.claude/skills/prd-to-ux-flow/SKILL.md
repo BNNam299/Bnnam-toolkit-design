@@ -64,14 +64,18 @@ Do not read everything at once: each job needs its own reference, plus a lens on
    the list neither bloats nor misses screens.
 7. **No empty cell in the state matrix, and every state has an exit.** Fill the "Mastered" column — it decides when to stop teaching.
    Projects with Android say where system back goes.
-8. **No permission screens by default.** Assume permissions are granted; behaviour on denial goes to the dev note. A project that wants
-   otherwise records a decision.
-9. **Every sentence that asserts a state is an assumption** (`A-##`) a developer verifies before the UI is built.
-10. **Start from the UX the PRD already did; build only what is missing.** Personas, jobs, task analysis, sitemap, screen list and
+8. **Permissions are system popups, drawn in system style with the app's real text.** Request popup and denied popup (guide + open
+   Settings) recreate the iOS alert with the popup text from the PRD; both are overlays, not screens. No pre-permission explanation
+   screen unless the PRD asks for one; the other permission states go to the dev note.
+9. **App-wide situations are counted once.** Each row of the PRD's shared-cases table (permission denied, offline, reconnect, reopen…)
+   becomes one entry under *App-wide situations* in `flows.md`, attached to the affected features' screens, its "how the app knows" an
+   assumption, its "what the user sees" an own screen, variant or annotation. New ones found here → *add to PRD*, never edit the PRD.
+10. **Every sentence that asserts a state is an assumption** (`A-##`) a developer verifies before the UI is built.
+11. **Start from the UX the PRD already did; build only what is missing.** Personas, jobs, task analysis, sitemap, screen list and
     flows found in the PRD (any author — often the product toolkit) are the starting point: keep their ids, navigation type and order,
     then deepen (branches, states, overlays). Would change one of their decisions → *Differences from the PRD* in `flows.md`, ask,
     build on the PRD's version meanwhile. A PRD without these parts is normal: every step runs as before.
-11. **Stop at each approval gate.** PRD, analysis, flows and wireframes are each approved by the user (*"duyệt PRD"*, *"duyệt
+12. **Stop at each approval gate.** PRD, analysis, flows and wireframes are each approved by the user (*"duyệt PRD"*, *"duyệt
     flows"*…) before the next job relies on them. Reports and the `design/` files are in Vietnamese and address the user as "bạn"
     (`../bnnam-standards/references/team-rules.md` §9).
 
@@ -97,7 +101,9 @@ from the existing files with the matching step only — `trace` is read-only.
 - Copying a competitor's feature names or copy along with the layout.
 - Stopping at the two branches drawn in the PRD (login has at least four outcomes).
 - Turning every toast and label change into a screen — or leaving loading, empty and offline out entirely.
-- Building permission-explainer screens nobody asked for.
+- Building permission-explainer screens nobody asked for — or skipping the permission popups, or styling them like the app instead
+  of the system, or filling them with placeholder text when the PRD gives the real words.
+- Repeating an app-wide case (offline, permission denied) as a separate state in every feature instead of one entry counted once.
 - Keeping a separate traceability table that drifts from `flows.md`.
 - Adding a screen in Figma that `flows.md` does not have.
 - Redoing the sitemap and flows from scratch when the PRD already has them — or quietly "improving" them (other navigation type, merged
@@ -108,6 +114,8 @@ from the existing files with the matching step only — `trace` is read-only.
 - PRD: coverage report present, every item has an exact `source:`, unreadable parts named, *UX already in the PRD* filled (or *none*).
 - Flows from a PRD with UX parts: every PRD screen id mapped, navigation type and flow order kept or listed as a difference, report
   says what came from the PRD and what was built here.
+- Every app-wide situation has ≥ 1 own screen / variant / annotation and an `A-##`; every permission has its popups with PRD text (or a
+  marked draft); new cases and drafted popup text are listed as *add to PRD*.
 - Analysis: both sides of every contradiction quoted, scope gate applied, rejected patterns recorded.
 - Flows: every screen in ≥ 1 flow, every flow step matches a screen heading, no FR without a screen, no screen without FR/UC, no empty
   *entered from* / *leads to* without a reason, every matrix cell filled or explained, assumptions listed.

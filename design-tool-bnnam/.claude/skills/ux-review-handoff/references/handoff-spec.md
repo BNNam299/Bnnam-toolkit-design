@@ -78,7 +78,7 @@ called `Note`.
 | Technical assumptions the developer has verified | `flows.md` — technical assumptions table |
 | Why it deviates from the PRD | the design decision log |
 | Edge cases: *"user doesn't add a photo"* | the state suffix in the screen name · `flows.md` |
-| Behaviour when the user denies a permission | `flows.md` · decision log (the permission screen itself is not built by default) |
+| Behaviour when the user denies a permission | `flows.md` — request and denied popups (system style, overlays) · *App-wide situations* · decision log; the limited / restricted / revoked states of §18 live only in the dev note |
 | Touch area: a visible button smaller than 44 pt / 48 dp → the developer enlarges the **hit area** in code, the visual stays | applies to every screen — the team decided touch area is the developer's job and the design isn't checked for it |
 
 Write in the **dev-note language** declared in `voice.md`. A note that needs information not in `design/` reveals a **gap in an earlier

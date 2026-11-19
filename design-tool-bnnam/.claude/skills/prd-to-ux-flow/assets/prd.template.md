@@ -58,6 +58,8 @@ by: claude-code
 | Flows (overall · per feature · unhappy branches) | | | |
 | Onboarding | | | |
 | Screens often forgotten | | | |
+| App-wide situations (group · situation · how the app knows · user sees · features affected) | | | |
+| Permissions and their popup text (PRM · when asked · popup text verbatim · grant / deny / permanent deny) | | | |
 
 <!-- Under the table, the extracted items themselves — ids kept as in the PRD (PER-01, JTBD-01, SCR-03…), each with source: -->
 

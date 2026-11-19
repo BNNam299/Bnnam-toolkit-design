@@ -49,6 +49,18 @@ ui_approved: —                      # write <date> when every batch is accepte
                                    #   default selection <rule> · outer screen keeps <pane> — references/ux-flow.md §17
 - notes: —
 
+## App-wide situations
+
+<!-- One entry per case shared by several features (permission denied, offline, reconnect, app reopened, update required…),
+     counted ONCE for the whole app — references/ux-flow.md §3.1. Each needs ≥ 1 own screen / variant / annotation. -->
+
+### <Group> · <situation>
+- origin: from PRD                  # from PRD | found here — add to PRD
+- source: —                         # PRD location of the row (from PRD only)
+- features affected: —              # and the screens that point here in their notes
+- how the app knows: —              # A-## — pre-filled from the PRD, the developer confirms
+- user sees: —                      # own screen <name> | variant <name> | annotation on <screen>
+
 ## Differences from the PRD
 
 <!-- Only when the PRD had UX parts and this file would CHANGE one of its decisions (references/ux-flow.md §3.1).

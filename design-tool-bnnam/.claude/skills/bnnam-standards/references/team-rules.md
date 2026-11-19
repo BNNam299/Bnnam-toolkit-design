@@ -256,7 +256,7 @@ Real design **applies thinking**; it doesn't march *step this, then that*. Use k
 | back | left-edge swipe, back button on the app's nav bar | **system back button / back gesture** — every screen needs a clear way back |
 | push notifications, widgets, lock screen | per iOS | per Android |
 
-  System components are **design data, not project components**: draw them to the correct platform when the screen needs to show one (e.g. a permission screen); never redesign them.
+  System components are **design data, not project components**: draw them to the correct platform when the screen needs to show one (e.g. a permission popup — an overlay carrying the app's real text, not a screen); never redesign them.
 - **Consult both sides when looking for a layout.** The main design leans iOS; Material is not a standard to switch to but a source of solutions to combine. When comparing options (§13) an option may take a Material solution — label it *"Material's solution: …"* so the designer knows the source. The combined layout is still **one set for both platforms**.
 - **Touch areas are the developer's job; design does not check them.** Visible buttons of 32 or 36 are still used; the developer enlarges the hit area in code. Reference numbers for developers: 44pt iOS · 48dp Android · take 48 for both platforms.
 

@@ -15,7 +15,7 @@ spot to fill: going from a PRD to a screen list that is **neither missing screen
 7. Step 4 — Counting screens: three layers + one extra
 8. Step 5 — State sweep for every core screen (15 states)
 9. Step 6 — Own screen · variant · annotation
-10. Step 7 — Default: no permission screens
+10. Step 7 — Permissions: system-style popups, no explainer screens
 11. Step 8 — State matrix: two axes
 12. Step 9 — Technical assumptions `A-##`
 13. Step 10 — Writing `flows.md`
@@ -76,6 +76,16 @@ How each present part feeds the steps:
 - **Value moment + step count** → the main flow must reach it in **≤ that many steps**; more steps is a difference (below).
 - **PRD screen list** → every `SCR-…` ends up as a screen in `flows.md` (or a recorded reason why not).
 - **Onboarding, screens often forgotten** → feed Step 4–5 directly.
+- **App-wide situations → Step 4–6 and Step 9.** Each row is **one state shared by the whole app, counted once** (like row 14 of §8),
+  not one per feature. Write it under *App-wide situations* in `flows.md` marked *from PRD* with its `source:`, and:
+  - *features affected* → attach it to the screens of those features (their `states in the same branch` or `notes` say *see App-wide
+    situations — <name>*), so each affected feature shows where the case lands;
+  - *how the app knows* → a technical assumption `A-##` (§12), pre-filled with the PRD's words, for the developer to confirm;
+  - *what the user sees* → decide **own screen · variant · annotation** with §9 (a blocking "update required" is an own screen, "offline"
+    on a list is a variant, "reconnected" is usually a toast annotation).
+  A case this skill finds that the PRD's table does not have (e.g. a second feature that also needs the network) is added the same way,
+  marked *found here — add to PRD*; never edit the PRD.
+- **Permissions and their popup text → Step 7** (§10): the popup text is drawn as written.
 
 **Adding is deepening; changing is a difference.** New branch screens, states and overlays are normal and need no permission. But when
 the design side would **change** a decision the PRD made — another navigation type, merging / splitting / dropping a PRD screen,
@@ -133,7 +143,7 @@ A **list to think through**, not a list to build. A cell that does not apply get
 | 4 | Offline | the app is required to work offline | per-screen variant | `Offline` |
 | 5 | Little data / limit reached | a list with 1 item vs many vs full | usually an annotation | `Partial` |
 | 6 | First time | first visit to the screen | overlay variant | `First run` |
-| 7 | Permission request | needs notifications, camera, location | **not built by default — §10** | — |
+| 7 | Permission request | needs notifications, camera, location | system-style popup overlay with the app's real text + denied popup — **no explainer screen — §10** | — |
 | 8 | Sign-in | can it be viewed signed out? | signed-out variant · session expired | `Logged out` |
 | 9 | Paywall / plan | what free vs premium sees | own paywall screen + locked variant | `Locked` · `Premium` |
 | 10 | Form validation | every form | variant: per-field errors, button enabled / disabled | `Invalid` |
@@ -156,11 +166,22 @@ Freemium mobile apps: rows 9 and 11 **almost always apply** — remind the user 
 Own screens and variants are each **one screen entry** in `flows.md`, with their own suffix. Get this wrong and the screen list
 **bloats artificially** or is **really missing screens**.
 
-## 10. Step 7 — Default: no permission screens
+## 10. Step 7 — Permissions: system-style popups, no explainer screens
 
-The permission prompt is **system UI**. By default **assume the user has granted every permission** — do not build permission screens
-and do not build pre-permission explanation screens. Behaviour when permission is denied goes into the **dev note**
-(`../ux-review-handoff/references/handoff-spec.md` §18 permission state machine). A project that wants otherwise records a `DEC`.
+The permission prompt is **system UI** and the app keeps using it — never a custom-styled permission dialog. The design still **draws
+it**, so the team sees the real moment and the real words:
+
+- **Request popup** — a recreation of the system alert (iOS alert; Android dialog when the project targets Android —
+  `../bnnam-standards/references/team-rules.md` system components) carrying the **app's real text**: the popup text from *Permissions
+  and their popup text* in `prd.md`, verbatim. The PRD has no text for it → draft one with `ux-writing`, mark it *draft — not from the
+  PRD*, and list it in the report as *add to PRD*.
+- **Denied popup** — for the case the PRD's *denied / permanently denied* column (or an app-wide situation) describes: the same
+  system-alert style, one line on how to turn it back on, a button that opens Settings and a dismiss button.
+- Both are **overlays, not screens** — counted in the overlay layer (§7), one entry each in `flows.md` with screen type *system alert —
+  permission*, entered from the screen where the permission is asked (e.g. `Scan-Permission Camera`, `Scan-Permission Camera_Failed`).
+- **No pre-permission explanation screen**, unless the PRD asks for one explicitly — then it is a PRD screen like any other.
+- The remaining states (limited / approximate access, restricted, revoked later) go into the **dev note**
+  (`../ux-review-handoff/references/handoff-spec.md` §18 permission state machine). A project that wants otherwise records a `DEC`.
 
 ## 11. Step 8 — State matrix: two axes
 
@@ -212,6 +233,10 @@ under `## Screens` — the heading is the full semantic name with its suffix (`.
 - Run `trace` (§15): no FR without a screen, no screen without an FR/UC, no empty *entered from* / *leads to* unless there is a reason.
 - PRD had UX parts (§3.1): every PRD screen id appears in a `prd screen` field or has a reason; the PRD's navigation type and flow
   order are kept or listed under *Differences from the PRD*; nothing in the PRD was changed silently.
+- Every row of the PRD's app-wide situations has **≥ 1 own screen, variant or annotation** under *App-wide situations*, and its *how the
+  app knows* has an `A-##`.
+- Every permission the app asks for has a request popup (and a denied popup where the PRD describes denial) with text from the PRD or
+  marked *draft — not from the PRD*.
 
 **Flows do not spawn new screens during the build.** A later stage finds a missing screen → go back and add it to `flows.md` first,
 then build it.
@@ -278,7 +303,8 @@ The adaptive layout job does not build frames for screens missing this field.
 **Report** adds: number of flows · screens per layer (main · branch · state · overlay) · number of unverified assumptions · cross-check
 result · **what was taken from the PRD and what this skill built** (e.g. *sitemap and 3 main flows from PRD §11; navigation type,
 branches, states, overlays built here*) or *PRD had no UX parts — all built here* · open *Differences from the PRD*, each with the
-PRD file to update if accepted.
+PRD file to update if accepted · **add to PRD**: app-wide situations found here that the PRD's table lacks, and permission popup text
+drafted here — the PRD owner adds them, this skill does not edit the PRD.
 
 ```
 Next steps

@@ -137,6 +137,8 @@ section *UX already in the PRD* of `prd.md`:
 | Flows | overall flows (first open → value, daily return), per-feature main flow, unhappy branches, branching tables | steps verbatim, decision points and their outcomes |
 | Onboarding | steps, questions asked, skippable or not | rows |
 | Screens often forgotten | a checklist the PRD gives (paywall + restore, permission + denied, offline…) | the list |
+| App-wide situations | a table or list of cases that touch **several features** at once — permission denied, offline / connection lost, reconnect, app killed and reopened, update required… The product toolkit's PRD has it as *Tình huống chung cho cả app* (§10: group · situation · how the app knows · what the user sees, can do · features affected); other PRDs call it *Edge Cases chung*, *Common edge cases* or just list them under one feature | one row per case, verbatim: group, situation, how the app knows, what the user sees / can do, features affected |
+| Permissions and their popup text | a permission table (product toolkit: `requirements.md` `PRM-##` — permission · when asked · text in the system popup · granted · denied · permanently denied) or permission wording anywhere in the PRD | id, permission, when it is asked, the popup text **verbatim**, what happens on grant / deny / permanent deny |
 
 Each part gets a status: **present** (usable as a starting point) · **partial** (say what is missing — e.g. tree without navigation
 type, main flow without unhappy branches) · **absent**. Every extracted item keeps its exact `source:` like any other item.
@@ -221,6 +223,7 @@ Read
 UX already in the PRD             (Job 3 starts from the present / partial parts)
   users ✔ present · jobs ✔ · journey + value moment ✔ (4 steps) · task analysis ✗ absent
   sitemap ◐ partial (tree, no navigation type) · screen list ✔ 14 SCR · flows ◐ (main flows, no unhappy branches) · onboarding ✔
+  app-wide situations ✔ 6 rows · permissions ◐ 2 PRM (popup text for 1 — the other under Need to ask)
 
 Could not read
   · 1 SmartArt in §5 — the user must describe it or export an image
