@@ -140,6 +140,11 @@ section *UX already in the PRD* of `prd.md`:
 | App-wide situations | a table or list of cases that touch **several features** at once — permission denied, offline / connection lost, reconnect, app killed and reopened, update required… The product toolkit's PRD has it as *Tình huống chung cho cả app* (§10: group · situation · how the app knows · what the user sees, can do · features affected); other PRDs call it *Edge Cases chung*, *Common edge cases* or just list them under one feature | one row per case, verbatim: group, situation, how the app knows, what the user sees / can do, features affected |
 | Permissions and their popup text | a permission table (product toolkit: `requirements.md` `PRM-##` — permission · when asked · text in the system popup · granted · denied · permanently denied) or permission wording anywhere in the PRD | id, permission, when it is asked, the popup text **verbatim**, what happens on grant / deny / permanent deny |
 
+A table that is there but lacks a column the extract needs is still **present**, not partial for that reason alone: fill the missing
+column yourself and mark every cell you filled *agent-inferred*. The usual case is an external edge-case table with no *features
+affected* column — infer it from the group and the situation (*"Remote Control · TV does not support Touchpad, Keyboard"* → FR
+Touchpad, Keyboard…). Name the missing column in the status line so the PRD owner can add it.
+
 Each part gets a status: **present** (usable as a starting point) · **partial** (say what is missing — e.g. tree without navigation
 type, main flow without unhappy branches) · **absent**. Every extracted item keeps its exact `source:` like any other item.
 

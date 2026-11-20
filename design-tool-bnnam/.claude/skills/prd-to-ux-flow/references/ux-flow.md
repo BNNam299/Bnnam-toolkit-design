@@ -179,6 +179,14 @@ it**, so the team sees the real moment and the real words:
   system-alert style, one line on how to turn it back on, a button that opens Settings and a dismiss button.
 - Both are **overlays, not screens** — counted in the overlay layer (§7), one entry each in `flows.md` with screen type *system alert —
   permission*, entered from the screen where the permission is asked (e.g. `Scan-Permission Camera`, `Scan-Permission Camera_Failed`).
+- **Does the feature need the permission at all?** Some system pickers work without one — on iOS the system photo picker
+  (`PHPickerViewController`) lets the user pick photos and videos with **no Photos permission**; a custom in-app album needs it. Before
+  drawing a request popup, ask whether a system picker covers the feature; when it might, keep the popup but write an `A-##`
+  (*"picking photos needs the Photos permission"*) so the developer decides — if not needed, the popup and its denied case go.
+- **Can the app read the permission's state?** Not every permission tells the app it was denied. iOS **Local Network** has no API to
+  read its status: the app only sees that the scan found nothing, so *"permission denied"* and *"no TV on this network"* look the same.
+  For such a permission the denied popup's trigger is **always an `A-##`**, and the design keeps a fallback: if the developer cannot
+  tell the two apart, one message covers both (*"Can't find your TV — check Wi-Fi and Local Network in Settings"*).
 - **No pre-permission explanation screen**, unless the PRD asks for one explicitly — then it is a PRD screen like any other.
 - The remaining states (limited / approximate access, restricted, revoked later) go into the **dev note**
   (`../ux-review-handoff/references/handoff-spec.md` §18 permission state machine). A project that wants otherwise records a `DEC`.
@@ -224,7 +232,21 @@ change the screen, record a `DEC`.
 Template: `assets/flows.template.md`. One entry per flow under `## Flows` (field `sequence`, `ui: not built`); one entry per screen
 under `## Screens` — the heading is the full semantic name with its suffix (`../bnnam-standards/references/naming.md` §2–3).
 
+**Writing `sequence`** so the check script (§14) can read it: steps are exact screen headings joined by `→`; `·` starts another branch
+of the same flow; a short label ending in `:` may open a branch (`denied: A → B`); anything in `(parentheses)` is a comment. Never
+shorten a step (`_Failed`, `Settings`) — write the full screen name, or put it in parentheses as a comment. Every screen, overlay and
+variant — permission popups and their denied popups included — appears in at least one `sequence`.
+
 ## 14. Step 11 — Cross-check before asking for approval
+
+**Run the script first** — by eye, a 50-screen file always hides a few orphans (on the Remote TV PRD: 11 of 58):
+```
+python <skill>/scripts/check_flows.py design/flows.md --prd design/prd.md
+```
+It reports flow steps that are not screens, orphan screens, duplicate names, FRs with no screen, app-wide situations without *user
+sees* or an `A-##`, permission popups without PRD text or a draft mark (errors), and broken *entered from* / *leads to* names and
+undeclared `A-##` (warnings). Fix and run again until **0 errors**; read every warning. The rest of this list is judgement — the
+script cannot do it.
 
 - Every screen appears in **≥ 1 flow** — an orphan screen is either extra or a flow is missing.
 - Every flow step has a **matching screen** (exact heading match).

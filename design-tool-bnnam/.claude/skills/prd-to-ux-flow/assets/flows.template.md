@@ -19,7 +19,7 @@ ui_approved: —                      # write <date> when every batch is accepte
 ## Flows
 
 ### <Flow name>
-- sequence: <Screen> → <Screen> → <Screen>
+- sequence: <Screen> → <Screen> → <Screen>   # exact screen names · "·" = another branch · "(…)" = comment — references/ux-flow.md §13
 - prd flow: —                       # the PRD flow this one starts from (source) — or "built here"
 - ui: not built                     # not built | building | awaiting acceptance | accepted <date>
 - origin: —                         # maintenance projects: current state | added <date>

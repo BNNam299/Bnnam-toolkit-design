@@ -30,6 +30,7 @@ layouts (`iphone-duo-adaptive`); maintenance projects that start from an existin
 | Contradictions `C-##`, gaps `G-##`, competitor scan in three tiers, cropping competitor parts by function | `references/analyze.md` |
 | Measure and crop competitor screenshots | `../bnnam-standards/scripts/clone_measure.py` |
 | Task analysis, IA, eight flow rules, counting screens, 15-state sweep, state matrix, assumptions, `trace` | `references/ux-flow.md` |
+| Check `flows.md` before approval: orphan screens, steps that are not screens, FRs without a screen, situations / popups missing parts | `scripts/check_flows.py` |
 | Wireframe kit, three-row layout by flow, notes outside the frame, fold line, acceptance | `references/wireframe.md` |
 | Templates for the three files | `assets/prd.template.md`, `assets/analysis.template.md`, `assets/flows.template.md` |
 | PACT, the five IA architectures, worked task analysis, flow symbols, story maps, navigation models, information scent, UX artifacts | `references/structure.md` |
@@ -86,7 +87,8 @@ Do not read everything at once: each job needs its own reference, plus a lens on
 2. **Analyse** (`references/analyze.md`): contradictions with both sides verbatim → gaps with type and proposal → competitor scan
    (inventory → scope gate → anatomy → USE / DON'T) → crop matching competitor screens by function → stop for approval.
 3. **Flows** (`references/ux-flow.md`): take the PRD's UX parts as the start (§3.1) → task analysis → IA → redraw competitor flows, then yours → count screens → state sweep and
-   matrix → assumptions → write `design/flows.md` → cross-check and `trace` → stop for *"approve flows"*. Voice can run in parallel
+   matrix → assumptions → write `design/flows.md` → `scripts/check_flows.py` to 0 errors, then the judgement checks and `trace` →
+   stop for *"approve flows"*. Voice can run in parallel
    (`ux-writing`).
 4. **Wireframe — only if the designer asked** (`references/wireframe.md`): one prototype per interaction type; the template screen
    first, then batches by flow; three rows per flow section; audit in `wireframe` mode → stop for *"approve wireframe"*. Otherwise the
@@ -104,6 +106,9 @@ from the existing files with the matching step only — `trace` is read-only.
 - Building permission-explainer screens nobody asked for — or skipping the permission popups, or styling them like the app instead
   of the system, or filling them with placeholder text when the PRD gives the real words.
 - Repeating an app-wide case (offline, permission denied) as a separate state in every feature instead of one entry counted once.
+- Drawing a permission popup the feature may not need (a system picker needs no permission) or a denied popup the app cannot trigger
+  (iOS Local Network cannot be read) — without an `A-##` for the developer.
+- Cross-checking 50+ screens by eye instead of running `check_flows.py` — orphans and misspelt steps slip through.
 - Keeping a separate traceability table that drifts from `flows.md`.
 - Adding a screen in Figma that `flows.md` does not have.
 - Redoing the sitemap and flows from scratch when the PRD already has them — or quietly "improving" them (other navigation type, merged
@@ -117,6 +122,7 @@ from the existing files with the matching step only — `trace` is read-only.
 - Every app-wide situation has ≥ 1 own screen / variant / annotation and an `A-##`; every permission has its popups with PRD text (or a
   marked draft); new cases and drafted popup text are listed as *add to PRD*.
 - Analysis: both sides of every contradiction quoted, scope gate applied, rejected patterns recorded.
+- `check_flows.py design/flows.md --prd design/prd.md` ends with 0 errors; warnings read.
 - Flows: every screen in ≥ 1 flow, every flow step matches a screen heading, no FR without a screen, no screen without FR/UC, no empty
   *entered from* / *leads to* without a reason, every matrix cell filled or explained, assumptions listed.
 - Wireframe (if built): acceptance list in `references/wireframe.md` §11 met.
